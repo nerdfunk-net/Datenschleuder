@@ -1,0 +1,130 @@
+<template>
+  <div class="settings-page">
+    <div class="page-card">
+      <div class="card-header">
+        <h2 class="card-title">NiFi Settings</h2>
+      </div>
+
+      <div class="card-body">
+        <form @submit.prevent="handleSave">
+          <div class="row g-4">
+            <div class="col-md-12">
+              <label class="form-label">NiFi URL</label>
+              <b-form-input v-model="settings.nifiUrl" placeholder="https://nifi.example.com:8443/nifi-api" required />
+              <small class="form-text text-muted">The full NiFi API endpoint URL (must end with /nifi-api)</small>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              <b-form-input v-model="settings.username" placeholder="admin" />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Password</label>
+              <b-form-input v-model="settings.password" type="password" placeholder="••••••••" />
+            </div>
+
+            <div class="col-md-12">
+              <b-form-checkbox v-model="settings.useSSL">
+                Use SSL/TLS
+              </b-form-checkbox>
+            </div>
+
+            <div class="col-md-12">
+              <b-form-checkbox v-model="settings.verifySSL">
+                Verify SSL Certificates
+              </b-form-checkbox>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <b-button type="button" variant="outline-secondary" @click="handleReset">Reset</b-button>
+            <b-button type="button" variant="info" class="ms-2" @click="handleTestConnection" :disabled="isTesting">
+              <b-spinner v-if="isTesting" small class="me-2"></b-spinner>
+              Test Connection
+            </b-button>
+            <b-button type="submit" variant="primary" class="ms-2" :disabled="isSaving">
+              <b-spinner v-if="isSaving" small class="me-2"></b-spinner>
+              Save Settings
+            </b-button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { apiRequest } from '@/utils/api'
+
+const isSaving = ref(false)
+const isTesting = ref(false)
+const settings = ref({
+  nifiUrl: '',
+  username: '',
+  password: '',
+  useSSL: true,
+  verifySSL: true
+})
+
+const loadSettings = async () => {
+  try {
+    const data = await apiRequest('/api/settings/nifi')
+    settings.value = data
+  } catch (error) {
+    console.error('Error loading settings:', error)
+  }
+}
+
+const handleSave = async () => {
+  isSaving.value = true
+  try {
+    await apiRequest('/api/settings/nifi', {
+      method: 'POST',
+      body: JSON.stringify(settings.value)
+    })
+    alert('NiFi settings saved successfully!')
+  } catch (error: any) {
+    console.error('Error saving settings:', error)
+    alert(error.message || 'Error saving settings')
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const handleTestConnection = async () => {
+  isTesting.value = true
+  try {
+    const result = await apiRequest('/api/nifi/check-connection', {
+      method: 'POST'
+    })
+
+    if (result.status === 'success') {
+      alert('✓ Success\n\nSuccessfully connected to NiFi!\n\n' +
+            `URL: ${result.details.nifiUrl}\n` +
+            `Version: ${result.details.version || 'Unknown'}`)
+    } else {
+      alert('⚠ Partial Success\n\n' + result.message + '\n\n' +
+            (result.details?.error || ''))
+    }
+  } catch (error: any) {
+    console.error('Connection test failed:', error)
+    alert('✗ Failed\n\n' + (error.message || 'Connection test failed. Please check your settings.'))
+  } finally {
+    isTesting.value = false
+  }
+}
+
+const handleReset = () => {
+  loadSettings()
+}
+
+onMounted(() => {
+  loadSettings()
+})
+</script>
+
+<style scoped lang="scss">
+@import './settings-common.scss';
+</style>

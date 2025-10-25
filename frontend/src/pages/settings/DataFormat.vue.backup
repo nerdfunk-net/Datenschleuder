@@ -1,0 +1,157 @@
+<template>
+  <div class="settings-page">
+    <div class="page-card">
+      <div class="card-header">
+        <h2 class="card-title">Data Format Settings</h2>
+      </div>
+
+      <div class="card-body">
+        <form @submit.prevent="handleSave">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label">Default Format</label>
+              <b-form-select v-model="settings.defaultFormat" :options="formatOptions" />
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Character Encoding</label>
+              <b-form-select v-model="settings.encoding" :options="encodingOptions" />
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label">Date Format</label>
+              <b-form-input v-model="settings.dateFormat" placeholder="YYYY-MM-DD HH:mm:ss" />
+              <small class="form-text text-muted">Format pattern for date/time values</small>
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label">JSON Settings</label>
+              <div class="format-options">
+                <b-form-checkbox v-model="settings.json.prettyPrint">
+                  Pretty Print JSON
+                </b-form-checkbox>
+                <b-form-checkbox v-model="settings.json.includeNullValues">
+                  Include Null Values
+                </b-form-checkbox>
+              </div>
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label">CSV Settings</label>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label small">Delimiter</label>
+                  <b-form-input v-model="settings.csv.delimiter" maxlength="1" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small">Quote Character</label>
+                  <b-form-input v-model="settings.csv.quoteChar" maxlength="1" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small">Escape Character</label>
+                  <b-form-input v-model="settings.csv.escapeChar" maxlength="1" />
+                </div>
+              </div>
+              <div class="format-options mt-2">
+                <b-form-checkbox v-model="settings.csv.includeHeader">
+                  Include Header Row
+                </b-form-checkbox>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <b-button type="button" variant="outline-secondary" @click="handleReset">Reset</b-button>
+            <b-button type="submit" variant="primary" class="ms-2" :disabled="isSaving">
+              <b-spinner v-if="isSaving" small class="me-2"></b-spinner>
+              Save Settings
+            </b-button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
+const isSaving = ref(false)
+const settings = ref({
+  defaultFormat: 'json',
+  encoding: 'utf-8',
+  dateFormat: 'YYYY-MM-DD HH:mm:ss',
+  json: {
+    prettyPrint: true,
+    includeNullValues: false
+  },
+  csv: {
+    delimiter: ',',
+    quoteChar: '"',
+    escapeChar: '\\',
+    includeHeader: true
+  }
+})
+
+const formatOptions = [
+  { value: 'json', text: 'JSON' },
+  { value: 'xml', text: 'XML' },
+  { value: 'csv', text: 'CSV' },
+  { value: 'avro', text: 'Avro' },
+  { value: 'parquet', text: 'Parquet' }
+]
+
+const encodingOptions = [
+  { value: 'utf-8', text: 'UTF-8' },
+  { value: 'utf-16', text: 'UTF-16' },
+  { value: 'iso-8859-1', text: 'ISO-8859-1' },
+  { value: 'ascii', text: 'ASCII' }
+]
+
+const loadSettings = async () => {
+  try {
+    // TODO: Implement actual API call
+    const response = await fetch('/api/proxy/settings/data-format')
+    if (response.ok) {
+      settings.value = await response.json()
+    }
+  } catch (error) {
+    console.error('Error loading settings:', error)
+  }
+}
+
+const handleSave = async () => {
+  isSaving.value = true
+  try {
+    // TODO: Implement actual API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    alert('Data format settings saved successfully!')
+  } catch (error) {
+    console.error('Error saving settings:', error)
+    alert('Error saving settings')
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const handleReset = () => {
+  loadSettings()
+}
+
+onMounted(() => {
+  loadSettings()
+})
+</script>
+
+<style scoped lang="scss">
+@import './settings-common.scss';
+
+.format-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+</style>

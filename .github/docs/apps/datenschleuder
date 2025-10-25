@@ -1,0 +1,37 @@
+# Datenschleuder
+
+This app is a web frontend to automatically add and deploy flows for nifi. It uses a fastapi python based backend. The backend stores the flows and is an interface for the frontend to deploy the flows.
+
+# Technology Stack
+
+- **Vue 3** (Composition API)
+- **TypeScript** for all code
+- **Pinia** for global state management
+- **Tailwind CSS** for styling
+- **Responsive layout** (adapts to different screen sizes)
+- **Optional Routing**: If multi-page, use routes such as `/dashboard`, `/settings`
+- **fastapi** as backend
+- **pipyapi** to communicate with nifi and to deploy flows
+- **postgres** database to store data
+
+# Layout
+
+The frontend has a left menu and a main canvas that depends on the menu item the user has selected. 
+The app uses a modern, light, grey and blue colored theme.
+The menu on the left side have the following items: Flows, Settings
+The Flows menu has the submenus: Manage, Deploy
+The Settings menu has the submenus: Nifi, Registry, Data Format, Profile
+
+# Flows / Manage
+
+This app is used to manage individual flows. A table containing all existing data flows is displayed. This table has columns for ID, CN, OU, DC, Type, Source, Dest, and Active. The table also has an Action column with the following buttons: Edit, View, Remove.
+The table has a header that allows filtering. The table uses pagination.
+When the app is launched, all current flows are loaded from the backend and displayed in the table. Below the table are “Cancel” and “Save Flows” buttons.
+
+# Flows / Deploy
+
+The Deploy app is used to deploy the configured flows.
+
+# Data format of a flow
+
+Each flow has the following mandatory fields: src, dest, cn, ou, dc, type, active

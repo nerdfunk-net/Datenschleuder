@@ -1,114 +1,318 @@
 <template>
   <div class="flows-deploy">
     <div class="page-card">
-      <!-- Header -->
+      <!-- Wizard Header -->
       <div class="card-header">
         <h2 class="card-title">Deploy Flows</h2>
-        <b-button variant="primary" @click="handleDeployAll" :disabled="isDeploying || selectedFlows.length === 0">
-          <i class="pe-7s-cloud-upload"></i>
-          Deploy Selected ({{ selectedFlows.length }})
-        </b-button>
+        <div class="wizard-steps">
+          <div
+            v-for="(step, index) in steps"
+            :key="index"
+            class="wizard-step"
+            :class="{ active: currentStep === index, completed: currentStep > index }"
+          >
+            <div class="step-number">{{ index + 1 }}</div>
+            <div class="step-label">{{ step }}</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Deployment Status -->
-      <div v-if="deploymentStatus" class="alert-section">
-        <b-alert :variant="deploymentStatus.type" show dismissible @dismissed="deploymentStatus = null">
-          <i :class="deploymentStatus.icon"></i>
-          {{ deploymentStatus.message }}
-        </b-alert>
-      </div>
+      <!-- Step 1: Select Flows -->
+      <div v-if="currentStep === 0" class="wizard-content">
+        <div class="step-header">
+          <h3>Step 1: Select Flows to Deploy</h3>
+          <p class="text-muted">Choose one or more flows from the list below</p>
+        </div>
 
-      <!-- Loading State -->
-      <div v-if="isLoading" class="text-center py-5">
-        <b-spinner variant="primary"></b-spinner>
-        <p class="mt-3 text-muted">Loading flows...</p>
-      </div>
+        <!-- Loading State -->
+        <div v-if="isLoading" class="text-center py-5">
+          <b-spinner variant="primary"></b-spinner>
+          <p class="mt-3 text-muted">Loading flows...</p>
+        </div>
 
-      <!-- Flows List -->
-      <div v-else class="flows-list">
-        <div v-if="activeFlows.length === 0" class="empty-state">
+        <!-- Flows Table -->
+        <div v-else-if="flows.length > 0" class="flows-table-container">
+          <table class="flows-table">
+            <thead>
+              <tr>
+                <th>
+                  <b-form-checkbox
+                    :model-value="allSelected"
+                    @update:model-value="toggleSelectAll"
+                  />
+                </th>
+                <th v-for="col in visibleColumns" :key="col.key">
+                  {{ col.label }}
+                </th>
+                <th>Source</th>
+                <th>Destination</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="flow in flows"
+                :key="flow.id"
+                :class="{ selected: selectedFlows.includes(flow.id) }"
+                @click="toggleFlow(flow.id)"
+              >
+                <td @click.stop>
+                  <b-form-checkbox
+                    :model-value="selectedFlows.includes(flow.id)"
+                    @update:model-value="toggleFlow(flow.id)"
+                  />
+                </td>
+                <td v-for="col in visibleColumns" :key="col.key">
+                  {{ flow[col.key] || '-' }}
+                </td>
+                <td>{{ flow.source }}</td>
+                <td>{{ flow.destination }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else class="empty-state">
           <i class="pe-7s-info display-1 text-muted"></i>
-          <h4 class="mt-3 text-muted">No Active Flows</h4>
-          <p class="text-muted">There are no active flows available for deployment.</p>
+          <h4 class="mt-3 text-muted">No Flows Available</h4>
+          <p class="text-muted">There are no flows available for deployment.</p>
           <router-link to="/flows/manage" class="btn btn-primary mt-3">
             <i class="pe-7s-plus"></i>
             Manage Flows
           </router-link>
         </div>
 
-        <div v-else class="flow-cards">
-          <div v-for="flow in activeFlows" :key="flow.id" class="flow-card" :class="{ selected: isSelected(flow.id), deploying: isFlowDeploying(flow.id) }">
-            <div class="flow-card-header">
-              <b-form-checkbox
-                :model-value="isSelected(flow.id)"
-                @update:model-value="toggleFlow(flow.id)"
-                :disabled="isDeploying"
-              >
-                <span class="flow-name">{{ flow.cn }}</span>
-              </b-form-checkbox>
-              <span class="flow-type-badge" :class="getTypeBadgeClass(flow.type)">
-                {{ flow.type }}
-              </span>
-            </div>
-
-            <div class="flow-card-body">
-              <div class="flow-info-row">
-                <div class="flow-info-item">
-                  <span class="label">OU:</span>
-                  <span class="value">{{ flow.ou }}</span>
-                </div>
-                <div class="flow-info-item">
-                  <span class="label">DC:</span>
-                  <span class="value">{{ flow.dc }}</span>
-                </div>
-              </div>
-
-              <div class="flow-path">
-                <div class="path-item">
-                  <i class="pe-7s-angle-right-circle text-primary"></i>
-                  <span class="path-label">Source:</span>
-                  <span class="path-value">{{ flow.src }}</span>
-                </div>
-                <div class="path-arrow">
-                  <i class="pe-7s-angle-right"></i>
-                </div>
-                <div class="path-item">
-                  <i class="pe-7s-angle-left-circle text-success"></i>
-                  <span class="path-label">Destination:</span>
-                  <span class="path-value">{{ flow.dest }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="isFlowDeploying(flow.id)" class="flow-card-footer deploying">
-              <b-spinner small class="me-2"></b-spinner>
-              Deploying...
-            </div>
-
-            <div v-else-if="deploymentResults[flow.id]" class="flow-card-footer" :class="deploymentResults[flow.id].success ? 'success' : 'error'">
-              <i :class="deploymentResults[flow.id].success ? 'pe-7s-check text-success' : 'pe-7s-close text-danger'"></i>
-              {{ deploymentResults[flow.id].message }}
-            </div>
-          </div>
+        <div class="wizard-actions">
+          <b-button variant="outline-secondary" @click="$router.push('/flows/manage')">
+            Cancel
+          </b-button>
+          <b-button
+            variant="primary"
+            @click="goToNextStep"
+            :disabled="selectedFlows.length === 0"
+          >
+            Next: Choose Deployment Targets
+            <i class="pe-7s-angle-right"></i>
+          </b-button>
         </div>
       </div>
 
-      <!-- Deployment History -->
-      <div v-if="!isLoading && deploymentHistory.length > 0" class="deployment-history">
-        <h4 class="history-title">Recent Deployments</h4>
-        <div class="history-list">
-          <div v-for="(entry, index) in deploymentHistory" :key="index" class="history-item">
-            <div class="history-icon" :class="entry.success ? 'success' : 'error'">
-              <i :class="entry.success ? 'pe-7s-check' : 'pe-7s-close'"></i>
+      <!-- Step 2: Choose Deployment Target -->
+      <div v-if="currentStep === 1" class="wizard-content">
+        <div class="step-header">
+          <h3>Step 2: Choose Deployment Targets</h3>
+          <p class="text-muted">Select where each flow should be deployed</p>
+        </div>
+
+        <div class="deployment-targets">
+          <div v-for="flow in selectedFlowObjects" :key="flow.id" class="target-card">
+            <div class="target-header">
+              <h5>{{ getFlowName(flow) }}</h5>
+              <span class="text-muted">{{ flow.source }} → {{ flow.destination }}</span>
             </div>
-            <div class="history-content">
-              <div class="history-header">
-                <span class="history-flow-name">{{ entry.flowName }}</span>
-                <span class="history-time">{{ formatTime(entry.timestamp) }}</span>
+
+            <div class="target-body">
+              <div class="hierarchy-info">
+                <div class="hierarchy-item">
+                  <span class="label">Top Hierarchy ({{ topHierarchyName }}):</span>
+                  <span class="value-badge source">Source: {{ getTopHierarchyValue(flow, 'source') }}</span>
+                  <span class="value-badge dest">Dest: {{ getTopHierarchyValue(flow, 'destination') }}</span>
+                </div>
               </div>
-              <div class="history-message">{{ entry.message }}</div>
+
+              <div class="deployment-options">
+                <label class="option-label">Deploy to:</label>
+                <div class="option-buttons">
+                  <b-button
+                    :variant="getDeploymentTarget(flow.id) === 'source' ? 'primary' : 'outline-primary'"
+                    @click="setDeploymentTarget(flow.id, 'source')"
+                    class="target-btn"
+                  >
+                    <i class="pe-7s-angle-right-circle"></i>
+                    Source ({{ getTopHierarchyValue(flow, 'source') }})
+                  </b-button>
+                  <b-button
+                    :variant="getDeploymentTarget(flow.id) === 'destination' ? 'primary' : 'outline-primary'"
+                    @click="setDeploymentTarget(flow.id, 'destination')"
+                    class="target-btn"
+                  >
+                    <i class="pe-7s-angle-left-circle"></i>
+                    Destination ({{ getTopHierarchyValue(flow, 'destination') }})
+                  </b-button>
+                  <b-button
+                    :variant="getDeploymentTarget(flow.id) === 'both' ? 'primary' : 'outline-primary'"
+                    @click="setDeploymentTarget(flow.id, 'both')"
+                    class="target-btn"
+                  >
+                    <i class="pe-7s-refresh-2"></i>
+                    Both
+                  </b-button>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
+
+        <div class="wizard-actions">
+          <b-button variant="outline-secondary" @click="goToPreviousStep">
+            <i class="pe-7s-angle-left"></i>
+            Back
+          </b-button>
+          <b-button
+            variant="primary"
+            @click="goToNextStep"
+            :disabled="!allTargetsSelected"
+          >
+            Next: Choose Process Groups
+            <i class="pe-7s-angle-right"></i>
+          </b-button>
+        </div>
+      </div>
+
+      <!-- Step 3: Choose Process Groups -->
+      <div v-if="currentStep === 2" class="wizard-content">
+        <div class="step-header">
+          <h3>Step 3: Choose Process Groups</h3>
+          <p class="text-muted">Select the target process group for each deployment</p>
+        </div>
+
+        <div v-if="isLoadingPaths" class="text-center py-5">
+          <b-spinner variant="primary"></b-spinner>
+          <p class="mt-3 text-muted">Loading process groups...</p>
+        </div>
+
+        <div v-else class="process-group-selection">
+          <div v-for="deployment in deploymentConfigs" :key="deployment.key" class="pg-card">
+            <div class="pg-header">
+              <h5>{{ deployment.flowName }}</h5>
+              <span class="text-muted">
+                <i :class="deployment.target === 'source' ? 'pe-7s-angle-right-circle' : 'pe-7s-angle-left-circle'"></i>
+                {{ deployment.target === 'source' ? 'Source' : 'Destination' }}
+                ({{ deployment.hierarchyValue }})
+              </span>
+            </div>
+
+            <div class="pg-body">
+              <div class="default-suggestion" v-if="deployment.suggestedPath">
+                <i class="pe-7s-info-circle"></i>
+                <span>Suggested path based on {{ secondHierarchyName }}: <strong>{{ deployment.suggestedPath }}</strong></span>
+              </div>
+
+              <div class="form-group">
+                <label>Select Process Group:</label>
+                <select
+                  class="form-select"
+                  v-model="deployment.selectedProcessGroupId"
+                  @change="updateProcessGroupSelection(deployment)"
+                >
+                  <option value="">-- Select a process group --</option>
+                  <option
+                    v-for="pg in deployment.availablePaths"
+                    :key="pg.id"
+                    :value="pg.id"
+                  >
+                    {{ pg.pathDisplay }}
+                  </option>
+                </select>
+              </div>
+
+              <div v-if="deployment.selectedProcessGroupId" class="selected-info">
+                <i class="pe-7s-check text-success"></i>
+                <span>Selected: <strong>{{ getSelectedPathDisplay(deployment) }}</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <b-button variant="outline-secondary" @click="goToPreviousStep">
+            <i class="pe-7s-angle-left"></i>
+            Back
+          </b-button>
+          <b-button
+            variant="primary"
+            @click="goToNextStep"
+            :disabled="!allProcessGroupsSelected"
+          >
+            Next: Review & Deploy
+            <i class="pe-7s-angle-right"></i>
+          </b-button>
+        </div>
+      </div>
+
+      <!-- Step 4: Review & Deploy -->
+      <div v-if="currentStep === 3" class="wizard-content">
+        <div class="step-header">
+          <h3>Step 4: Review & Deploy</h3>
+          <p class="text-muted">Review your deployment configuration before proceeding</p>
+        </div>
+
+        <div class="review-section">
+          <div class="review-summary">
+            <div class="summary-item">
+              <i class="pe-7s-network"></i>
+              <div>
+                <div class="summary-label">Total Flows</div>
+                <div class="summary-value">{{ selectedFlows.length }}</div>
+              </div>
+            </div>
+            <div class="summary-item">
+              <i class="pe-7s-server"></i>
+              <div>
+                <div class="summary-label">Total Deployments</div>
+                <div class="summary-value">{{ deploymentConfigs.length }}</div>
+              </div>
+            </div>
+            <div class="summary-item">
+              <i class="pe-7s-config"></i>
+              <div>
+                <div class="summary-label">Instances Affected</div>
+                <div class="summary-value">{{ uniqueInstancesCount }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="review-details">
+            <h5>Deployment Details</h5>
+            <div v-for="deployment in deploymentConfigs" :key="deployment.key" class="review-card">
+              <div class="review-card-header">
+                <strong>{{ deployment.flowName }}</strong>
+                <span class="badge" :class="deployment.target === 'source' ? 'badge-primary' : 'badge-success'">
+                  {{ deployment.target }}
+                </span>
+              </div>
+              <div class="review-card-body">
+                <div class="review-row">
+                  <span class="review-label">Instance:</span>
+                  <span>{{ deployment.hierarchyValue }}</span>
+                </div>
+                <div class="review-row">
+                  <span class="review-label">Process Group:</span>
+                  <span>{{ getSelectedPathDisplay(deployment) }}</span>
+                </div>
+                <div class="review-row">
+                  <span class="review-label">Template:</span>
+                  <span>{{ deployment.templateName || 'Default Template' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <b-button variant="outline-secondary" @click="goToPreviousStep">
+            <i class="pe-7s-angle-left"></i>
+            Back
+          </b-button>
+          <b-button
+            variant="success"
+            @click="deployFlows"
+            :disabled="isDeploying"
+          >
+            <b-spinner v-if="isDeploying" small class="me-2"></b-spinner>
+            <i v-else class="pe-7s-cloud-upload"></i>
+            Deploy Now
+          </b-button>
         </div>
       </div>
     </div>
@@ -117,49 +321,97 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { apiRequest } from '@/utils/api'
 
 interface Flow {
   id: number
-  cn: string
-  ou: string
-  dc: string
-  type: string
-  src: string
-  dest: string
-  active: boolean
+  [key: string]: any
+  source: string
+  destination: string
 }
 
-interface DeploymentResult {
-  success: boolean
-  message: string
+interface HierarchyAttribute {
+  name: string
+  label: string
+  order: number
 }
 
-interface DeploymentHistory {
+interface ProcessGroupPath {
+  id: string
+  name: string
+  parent_group_id: string | null
+  depth: number
+  path: Array<{ id: string; name: string; parent_group_id: string | null }>
+}
+
+interface DeploymentConfig {
+  key: string
+  flowId: number
   flowName: string
-  timestamp: Date
-  success: boolean
-  message: string
+  target: 'source' | 'destination'
+  hierarchyValue: string
+  instanceId: number | null
+  availablePaths: Array<{ id: string; pathDisplay: string }>
+  selectedProcessGroupId: string
+  suggestedPath: string | null
+  templateName: string | null
 }
 
+const steps = ['Select Flows', 'Choose Targets', 'Choose Process Groups', 'Review & Deploy']
+const currentStep = ref(0)
 const isLoading = ref(false)
+const isLoadingPaths = ref(false)
 const isDeploying = ref(false)
+
+// Flow data
 const flows = ref<Flow[]>([])
 const selectedFlows = ref<number[]>([])
-const deployingFlows = ref<number[]>([])
-const deploymentResults = ref<Record<number, DeploymentResult>>({})
-const deploymentHistory = ref<DeploymentHistory[]>([])
-const deploymentStatus = ref<{ type: string; icon: string; message: string } | null>(null)
+const hierarchyConfig = ref<HierarchyAttribute[]>([])
+const visibleColumns = ref<Array<{ key: string; label: string }>>([])
+const nifiInstances = ref<any[]>([])
 
-const activeFlows = computed(() => {
-  return flows.value.filter((flow) => flow.active)
+// Deployment configuration
+const deploymentTargets = ref<Record<number, 'source' | 'destination' | 'both'>>({})
+const deploymentConfigs = ref<DeploymentConfig[]>([])
+const processGroupPaths = ref<Record<string, ProcessGroupPath[]>>({})
+
+// Computed
+const allSelected = computed(() => {
+  return flows.value.length > 0 && selectedFlows.value.length === flows.value.length
 })
 
-const isSelected = (flowId: number) => {
-  return selectedFlows.value.includes(flowId)
-}
+const selectedFlowObjects = computed(() => {
+  return flows.value.filter(f => selectedFlows.value.includes(f.id))
+})
 
-const isFlowDeploying = (flowId: number) => {
-  return deployingFlows.value.includes(flowId)
+const topHierarchyName = computed(() => {
+  return hierarchyConfig.value.length > 0 ? hierarchyConfig.value[0].name : 'DC'
+})
+
+const secondHierarchyName = computed(() => {
+  return hierarchyConfig.value.length > 1 ? hierarchyConfig.value[1].name : 'OU'
+})
+
+const allTargetsSelected = computed(() => {
+  return selectedFlows.value.every(flowId => deploymentTargets.value[flowId])
+})
+
+const allProcessGroupsSelected = computed(() => {
+  return deploymentConfigs.value.every(config => config.selectedProcessGroupId)
+})
+
+const uniqueInstancesCount = computed(() => {
+  const instances = new Set(deploymentConfigs.value.map(c => c.hierarchyValue))
+  return instances.size
+})
+
+// Methods
+const toggleSelectAll = () => {
+  if (allSelected.value) {
+    selectedFlows.value = []
+  } else {
+    selectedFlows.value = flows.value.map(f => f.id)
+  }
 }
 
 const toggleFlow = (flowId: number) => {
@@ -171,140 +423,287 @@ const toggleFlow = (flowId: number) => {
   }
 }
 
-const getTypeBadgeClass = (type: string) => {
-  const classes: Record<string, string> = {
-    http: 'bg-primary',
-    kafka: 'bg-success',
-    file: 'bg-warning',
-    database: 'bg-info'
+const getFlowName = (flow: Flow) => {
+  // Try to get the first hierarchy attribute value as the name
+  if (hierarchyConfig.value.length > 0) {
+    const firstAttr = hierarchyConfig.value[0].name.toLowerCase()
+    return flow[`src_${firstAttr}`] || flow[firstAttr] || `Flow ${flow.id}`
   }
-  return classes[type] || 'bg-secondary'
+  return `Flow ${flow.id}`
+}
+
+const getTopHierarchyValue = (flow: Flow, side: 'source' | 'destination') => {
+  if (hierarchyConfig.value.length === 0) return 'N/A'
+
+  const topAttr = hierarchyConfig.value[0].name.toLowerCase()
+  const prefix = side === 'source' ? 'src_' : 'dest_'
+  return flow[`${prefix}${topAttr}`] || 'N/A'
+}
+
+const getDeploymentTarget = (flowId: number) => {
+  return deploymentTargets.value[flowId]
+}
+
+const setDeploymentTarget = (flowId: number, target: 'source' | 'destination' | 'both') => {
+  deploymentTargets.value[flowId] = target
+}
+
+const goToNextStep = async () => {
+  if (currentStep.value === 1) {
+    // Moving to step 3: prepare deployment configs and load process groups
+    await prepareDeploymentConfigs()
+  }
+  currentStep.value++
+}
+
+const goToPreviousStep = () => {
+  currentStep.value--
+}
+
+const prepareDeploymentConfigs = async () => {
+  deploymentConfigs.value = []
+  isLoadingPaths.value = true
+
+  try {
+    // Build deployment configs based on selected flows and targets
+    for (const flowId of selectedFlows.value) {
+      const flow = flows.value.find(f => f.id === flowId)
+      if (!flow) continue
+
+      const target = deploymentTargets.value[flowId]
+      const flowName = getFlowName(flow)
+
+      if (target === 'source' || target === 'both') {
+        const hierarchyValue = getTopHierarchyValue(flow, 'source')
+        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue)
+
+        const config: DeploymentConfig = {
+          key: `${flowId}-source`,
+          flowId,
+          flowName,
+          target: 'source',
+          hierarchyValue,
+          instanceId,
+          availablePaths: [],
+          selectedProcessGroupId: '',
+          suggestedPath: getSuggestedPath(flow, 'source'),
+          templateName: null,
+        }
+
+        // Load paths for this instance
+        if (instanceId) {
+          const paths = await loadProcessGroupPaths(instanceId, hierarchyValue)
+          config.availablePaths = paths
+        }
+
+        deploymentConfigs.value.push(config)
+      }
+
+      if (target === 'destination' || target === 'both') {
+        const hierarchyValue = getTopHierarchyValue(flow, 'destination')
+        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue)
+
+        const config: DeploymentConfig = {
+          key: `${flowId}-destination`,
+          flowId,
+          flowName,
+          target: 'destination',
+          hierarchyValue,
+          instanceId,
+          availablePaths: [],
+          selectedProcessGroupId: '',
+          suggestedPath: getSuggestedPath(flow, 'destination'),
+          templateName: null,
+        }
+
+        // Load paths for this instance
+        if (instanceId) {
+          const paths = await loadProcessGroupPaths(instanceId, hierarchyValue)
+          config.availablePaths = paths
+        }
+
+        deploymentConfigs.value.push(config)
+      }
+    }
+  } catch (error) {
+    console.error('Error preparing deployment configs:', error)
+  } finally {
+    isLoadingPaths.value = false
+  }
+}
+
+const getSuggestedPath = (flow: Flow, side: 'source' | 'destination') => {
+  // Get the penultimate hierarchy value (e.g., OU)
+  if (hierarchyConfig.value.length < 2) return null
+
+  const secondAttr = hierarchyConfig.value[1].name.toLowerCase()
+  const prefix = side === 'source' ? 'src_' : 'dest_'
+  const value = flow[`${prefix}${secondAttr}`]
+
+  return value ? `Contains "${value}"` : null
+}
+
+const getInstanceIdForHierarchyValue = async (hierarchyValue: string): Promise<number | null> => {
+  try {
+    // Ensure we have loaded NiFi instances
+    if (nifiInstances.value.length === 0) {
+      await loadNiFiInstances()
+    }
+
+    // Get the top hierarchy attribute name (e.g., "DC")
+    const topHierarchyAttr = topHierarchyName.value
+
+    // Find the instance that matches the hierarchy attribute and value
+    const instance = nifiInstances.value.find(
+      inst => inst.hierarchy_attribute === topHierarchyAttr && inst.hierarchy_value === hierarchyValue
+    )
+
+    if (instance) {
+      console.log(`Found NiFi instance ${instance.id} for ${topHierarchyAttr}=${hierarchyValue}`)
+      return instance.id
+    }
+
+    console.warn(`No NiFi instance found for ${topHierarchyAttr}=${hierarchyValue}`)
+    return null
+  } catch (error) {
+    console.error('Error getting instance ID:', error)
+    return null
+  }
+}
+
+const loadProcessGroupPaths = async (instanceId: number, cacheKey: string): Promise<Array<{ id: string; pathDisplay: string }>> => {
+  // Check cache first
+  if (processGroupPaths.value[cacheKey]) {
+    return formatPathsForDisplay(processGroupPaths.value[cacheKey])
+  }
+
+  try {
+    const data = await apiRequest(`/api/deploy/${instanceId}/get-all-paths`)
+
+    if (data.status === 'success' && data.process_groups) {
+      processGroupPaths.value[cacheKey] = data.process_groups
+      return formatPathsForDisplay(data.process_groups)
+    }
+
+    return []
+  } catch (error) {
+    console.error('Error loading process group paths:', error)
+    // Return mock data for development when backend is not available
+    return getMockPaths()
+  }
+}
+
+const formatPathsForDisplay = (paths: ProcessGroupPath[]): Array<{ id: string; pathDisplay: string }> => {
+  return paths.map(pg => {
+    // Reverse the path array so root is first and deepest is last
+    const pathNames = pg.path.slice().reverse().map(p => p.name).join(' → ')
+    return {
+      id: pg.id,
+      pathDisplay: pathNames,
+    }
+  })
+}
+
+const getMockPaths = (): Array<{ id: string; pathDisplay: string }> => {
+  return [
+    { id: 'root', pathDisplay: 'NiFi Flow' },
+    { id: 'pg1', pathDisplay: 'NiFi Flow → Engineering' },
+    { id: 'pg2', pathDisplay: 'NiFi Flow → Engineering → DataPipeline' },
+    { id: 'pg3', pathDisplay: 'NiFi Flow → Marketing' },
+    { id: 'pg4', pathDisplay: 'NiFi Flow → Marketing → Analytics' },
+  ]
+}
+
+const updateProcessGroupSelection = (deployment: DeploymentConfig) => {
+  // Selection is already updated via v-model
+  console.log(`Selected process group ${deployment.selectedProcessGroupId} for ${deployment.key}`)
+}
+
+const getSelectedPathDisplay = (deployment: DeploymentConfig) => {
+  const selected = deployment.availablePaths.find(p => p.id === deployment.selectedProcessGroupId)
+  return selected?.pathDisplay || 'Not selected'
+}
+
+const deployFlows = async () => {
+  isDeploying.value = true
+
+  try {
+    // TODO: Implement actual deployment API calls
+    console.log('Deploying flows with configs:', deploymentConfigs.value)
+
+    // Simulate deployment
+    await new Promise(resolve => setTimeout(resolve, 2000))
+
+    alert('Deployment completed successfully!')
+
+    // Reset wizard
+    currentStep.value = 0
+    selectedFlows.value = []
+    deploymentTargets.value = {}
+    deploymentConfigs.value = []
+
+  } catch (error) {
+    console.error('Deployment error:', error)
+    alert('Deployment failed: ' + error)
+  } finally {
+    isDeploying.value = false
+  }
 }
 
 const loadFlows = async () => {
   isLoading.value = true
   try {
-    // TODO: Replace with actual API call
-    const response = await fetch('/api/proxy/flows')
-    if (response.ok) {
-      const contentType = response.headers.get('content-type')
-      if (contentType && contentType.includes('application/json')) {
-        flows.value = await response.json()
-      } else {
-        // Not JSON, use mock data
-        useMockData()
-      }
-    } else {
-      // Backend not available, use mock data
-      useMockData()
+    const data = await apiRequest('/api/nifi-flows/')
+    if (data.flows) {
+      flows.value = data.flows
     }
   } catch (error) {
-    console.log('Backend not available, using mock data for development')
-    // Use mock data on error
-    useMockData()
+    console.error('Error loading flows:', error)
   } finally {
     isLoading.value = false
   }
 }
 
-const useMockData = () => {
-  flows.value = [
-    { id: 1, cn: 'flow1', ou: 'engineering', dc: 'us-east', type: 'http', src: 'api.source.com', dest: 'api.dest.com', active: true },
-    { id: 2, cn: 'flow2', ou: 'marketing', dc: 'us-west', type: 'kafka', src: 'topic-a', dest: 'topic-b', active: false },
-    { id: 3, cn: 'flow3', ou: 'sales', dc: 'eu-central', type: 'file', src: '/data/input', dest: '/data/output', active: true },
-    { id: 4, cn: 'flow4', ou: 'engineering', dc: 'us-east', type: 'database', src: 'postgres://source', dest: 'postgres://dest', active: true },
-    { id: 5, cn: 'flow5', ou: 'operations', dc: 'ap-south', type: 'http', src: 'webhook.example.com', dest: 'processor.example.com', active: true }
-  ]
-}
+const loadHierarchyConfig = async () => {
+  try {
+    const data = await apiRequest('/api/settings/hierarchy')
+    if (data.hierarchy) {
+      hierarchyConfig.value = data.hierarchy.sort((a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order)
 
-const deployFlow = async (flowId: number): Promise<DeploymentResult> => {
-  // Simulate deployment
-  await new Promise((resolve) => setTimeout(resolve, 2000))
-
-  // TODO: Replace with actual API call
-  const success = Math.random() > 0.2 // 80% success rate for demo
-  return {
-    success,
-    message: success ? 'Deployed successfully' : 'Deployment failed'
-  }
-}
-
-const handleDeployAll = async () => {
-  if (selectedFlows.value.length === 0) return
-
-  isDeploying.value = true
-  deploymentResults.value = {}
-  deploymentStatus.value = {
-    type: 'info',
-    icon: 'pe-7s-cloud-upload',
-    message: `Deploying ${selectedFlows.value.length} flow(s)...`
-  }
-
-  const deployPromises = selectedFlows.value.map(async (flowId) => {
-    deployingFlows.value.push(flowId)
-    const result = await deployFlow(flowId)
-    deploymentResults.value[flowId] = result
-
-    // Add to history
-    const flow = flows.value.find((f) => f.id === flowId)
-    if (flow) {
-      deploymentHistory.value.unshift({
-        flowName: flow.cn,
-        timestamp: new Date(),
-        success: result.success,
-        message: result.message
-      })
+      // Build visible columns from hierarchy
+      visibleColumns.value = hierarchyConfig.value.map(attr => ({
+        key: `src_${attr.name.toLowerCase()}`,
+        label: `Src ${attr.name}`,
+      }))
     }
-
-    deployingFlows.value = deployingFlows.value.filter((id) => id !== flowId)
-  })
-
-  await Promise.all(deployPromises)
-
-  const successCount = Object.values(deploymentResults.value).filter((r) => r.success).length
-  const failCount = selectedFlows.value.length - successCount
-
-  if (failCount === 0) {
-    deploymentStatus.value = {
-      type: 'success',
-      icon: 'pe-7s-check',
-      message: `Successfully deployed all ${successCount} flow(s)`
-    }
-  } else {
-    deploymentStatus.value = {
-      type: 'warning',
-      icon: 'pe-7s-attention',
-      message: `Deployed ${successCount} flow(s) successfully, ${failCount} failed`
-    }
-  }
-
-  isDeploying.value = false
-  selectedFlows.value = []
-
-  // Keep history limited to 10 items
-  if (deploymentHistory.value.length > 10) {
-    deploymentHistory.value = deploymentHistory.value.slice(0, 10)
+  } catch (error) {
+    console.error('Error loading hierarchy config:', error)
   }
 }
 
-const formatTime = (date: Date) => {
-  const now = new Date()
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-
-  if (diffInSeconds < 60) return 'Just now'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
-  return date.toLocaleDateString()
+const loadNiFiInstances = async () => {
+  try {
+    const instances = await apiRequest('/api/nifi-instances/')
+    if (instances && Array.isArray(instances)) {
+      nifiInstances.value = instances
+      console.log(`Loaded ${instances.length} NiFi instances`)
+    }
+  } catch (error) {
+    console.error('Error loading NiFi instances:', error)
+  }
 }
 
-onMounted(() => {
-  loadFlows()
+onMounted(async () => {
+  await loadHierarchyConfig()
+  await loadNiFiInstances()
+  await loadFlows()
 })
 </script>
 
 <style scoped lang="scss">
 .flows-deploy {
-  max-width: 1200px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .page-card {
@@ -315,248 +714,427 @@ onMounted(() => {
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 20px 30px;
   border-bottom: 1px solid #e9ecef;
 }
 
 .card-title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: #2c3e50;
-  margin: 0;
+  margin: 0 0 20px 0;
 }
 
-.alert-section {
-  padding: 20px 30px;
-  padding-bottom: 0;
-
-  i {
-    margin-right: 8px;
-  }
-}
-
-.flows-list {
-  padding: 30px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-}
-
-.flow-cards {
-  display: grid;
+// Wizard Steps
+.wizard-steps {
+  display: flex;
+  justify-content: space-between;
   gap: 20px;
 }
 
-.flow-card {
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  overflow: hidden;
+.wizard-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #f8f9fa;
   transition: all 0.3s;
 
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  &.active {
+    background: #e3f2fd;
+    border: 2px solid #2196f3;
+
+    .step-number {
+      background: #2196f3;
+      color: white;
+    }
   }
 
-  &.selected {
-    border-color: #4a90e2;
-    background: #f0f7ff;
-  }
+  &.completed {
+    background: #e8f5e9;
 
-  &.deploying {
-    opacity: 0.7;
+    .step-number {
+      background: #4caf50;
+      color: white;
+    }
   }
 }
 
-.flow-card-header {
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #dee2e6;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.step-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+// Wizard Content
+.wizard-content {
+  padding: 30px;
+  min-height: 500px;
+}
+
+.step-header {
+  margin-bottom: 30px;
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+  }
+}
+
+// Flows Table
+.flows-table-container {
+  overflow-x: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  margin-bottom: 30px;
+}
+
+.flows-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background: #f8f9fa;
+
+    th {
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #495057;
+      border-bottom: 2px solid #dee2e6;
+      font-size: 0.875rem;
+    }
+  }
+
+  tbody {
+    tr {
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #f8f9fa;
+      }
+
+      &.selected {
+        background: #e3f2fd;
+      }
+
+      td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #dee2e6;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Deployment Targets
+.deployment-targets {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.target-card {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.target-header {
   padding: 15px 20px;
   background: #f8f9fa;
   border-bottom: 1px solid #e9ecef;
 
-  .flow-name {
-    font-weight: 600;
+  h5 {
+    margin: 0 0 5px 0;
     font-size: 1rem;
-    color: #2c3e50;
+    font-weight: 600;
   }
 }
 
-.flow-type-badge {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  color: white;
-}
-
-.flow-card-body {
+.target-body {
   padding: 20px;
 }
 
-.flow-info-row {
-  display: flex;
-  gap: 30px;
-  margin-bottom: 15px;
-}
-
-.flow-info-item {
-  display: flex;
-  gap: 8px;
-
-  .label {
-    font-weight: 600;
-    color: #6c757d;
-  }
-
-  .value {
-    color: #495057;
-  }
-}
-
-.flow-path {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.path-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-
-  i {
-    font-size: 1.5rem;
-  }
-
-  .path-label {
-    font-weight: 600;
-    color: #6c757d;
-    font-size: 0.875rem;
-  }
-
-  .path-value {
-    color: #495057;
-    font-size: 0.875rem;
-    word-break: break-all;
-  }
-}
-
-.path-arrow {
-  color: #6c757d;
-  font-size: 1.5rem;
-}
-
-.flow-card-footer {
-  padding: 12px 20px;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
-
-  &.deploying {
-    background: #e7f3ff;
-    color: #0066cc;
-  }
-
-  &.success {
-    background: #d4edda;
-    color: #155724;
-  }
-
-  &.error {
-    background: #f8d7da;
-    color: #721c24;
-  }
-}
-
-.deployment-history {
-  padding: 30px;
-  border-top: 2px solid #e9ecef;
-  background: #f8f9fa;
-}
-
-.history-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2c3e50;
+.hierarchy-info {
   margin-bottom: 20px;
 }
 
-.history-list {
+.hierarchy-item {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 15px;
+
+  .label {
+    font-weight: 600;
+    color: #495057;
+  }
 }
 
-.history-item {
-  display: flex;
-  gap: 15px;
-  padding: 15px;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
+.value-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  &.source {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &.dest {
+    background: #e8f5e9;
+    color: #388e3c;
+  }
 }
 
-.history-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.deployment-options {
+  .option-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #495057;
+  }
+}
+
+.option-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.target-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-
-  &.success {
-    background: #d4edda;
-    color: #155724;
-  }
-
-  &.error {
-    background: #f8d7da;
-    color: #721c24;
-  }
+  gap: 8px;
 
   i {
     font-size: 1.25rem;
   }
 }
 
-.history-content {
-  flex: 1;
-}
-
-.history-header {
+// Process Group Selection
+.process-group-selection {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 5px;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.history-flow-name {
+.pg-card {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pg-header {
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+
+  h5 {
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}
+
+.pg-body {
+  padding: 20px;
+}
+
+.default-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 0.875rem;
+
+  i {
+    font-size: 1.25rem;
+    color: #ff9800;
+  }
+}
+
+.form-group {
+  margin-bottom: 15px;
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #495057;
+  }
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+
+  &:focus {
+    border-color: #2196f3;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+  }
+}
+
+.selected-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  font-size: 0.875rem;
+
+  i {
+    font-size: 1.25rem;
+  }
+}
+
+// Review Section
+.review-section {
+  margin-bottom: 30px;
+}
+
+.review-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+
+  i {
+    font-size: 2rem;
+    color: #2196f3;
+  }
+}
+
+.summary-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  font-size: 1.5rem;
   font-weight: 600;
   color: #2c3e50;
 }
 
-.history-time {
-  font-size: 0.75rem;
-  color: #6c757d;
+.review-details {
+  h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #2c3e50;
+  }
 }
 
-.history-message {
+.review-card {
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  overflow: hidden;
+}
+
+.review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+
+  &.badge-primary {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+
+  &.badge-success {
+    background: #e8f5e9;
+    color: #388e3c;
+  }
+}
+
+.review-card-body {
+  padding: 15px;
+}
+
+.review-row {
+  display: flex;
+  margin-bottom: 8px;
   font-size: 0.875rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.review-label {
+  font-weight: 600;
   color: #6c757d;
+  min-width: 140px;
+}
+
+// Wizard Actions
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+
+  i {
+    font-size: 4rem;
+  }
 }
 </style>

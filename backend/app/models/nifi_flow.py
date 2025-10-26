@@ -7,11 +7,13 @@ from typing import Optional
 
 class NiFiFlowCreate(BaseModel):
     """Schema for creating a NiFi flow"""
-    hierarchy_values: dict  # Dynamic hierarchy values e.g., {"CN": "test1", "O": "myOrg", ...}
+    hierarchy_values: dict  # Dynamic hierarchy values e.g., {"CN": {"source": "test1", "destination": "test2"}, "O": {"source": "myOrg", "destination": "yourOrg"}, ...}
     source: str
     destination: str
-    connection_param: str
-    template: str
+    src_connection_param: str
+    dest_connection_param: str
+    src_template_id: Optional[int] = None  # ID of registry_flow
+    dest_template_id: Optional[int] = None  # ID of registry_flow
     active: bool
     description: Optional[str] = None
     creator_name: Optional[str] = None
@@ -22,8 +24,10 @@ class NiFiFlowUpdate(BaseModel):
     hierarchy_values: Optional[dict] = None
     source: Optional[str] = None
     destination: Optional[str] = None
-    connection_param: Optional[str] = None
-    template: Optional[str] = None
+    src_connection_param: Optional[str] = None
+    dest_connection_param: Optional[str] = None
+    src_template_id: Optional[int] = None
+    dest_template_id: Optional[int] = None
     active: Optional[bool] = None
     description: Optional[str] = None
 
@@ -34,8 +38,10 @@ class NiFiFlowResponse(BaseModel):
     hierarchy_values: dict
     source: str
     destination: str
-    connection_param: str
-    template: str
+    src_connection_param: str
+    dest_connection_param: str
+    src_template_id: Optional[int]
+    dest_template_id: Optional[int]
     active: bool
     description: Optional[str]
     creator_name: Optional[str]

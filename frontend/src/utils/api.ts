@@ -85,3 +85,37 @@ export function logout() {
   localStorage.removeItem('rememberMe')
   window.location.href = '/login'
 }
+
+/**
+ * Default API object with axios-like interface
+ */
+const api = {
+  get: <T = any>(url: string, config?: RequestInit) =>
+    apiRequest<T>(url, { ...config, method: 'GET' }),
+
+  post: <T = any>(url: string, data?: any, config?: RequestInit) =>
+    apiRequest<T>(url, {
+      ...config,
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  put: <T = any>(url: string, data?: any, config?: RequestInit) =>
+    apiRequest<T>(url, {
+      ...config,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  delete: <T = any>(url: string, config?: RequestInit) =>
+    apiRequest<T>(url, { ...config, method: 'DELETE' }),
+
+  patch: <T = any>(url: string, data?: any, config?: RequestInit) =>
+    apiRequest<T>(url, {
+      ...config,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    }),
+}
+
+export default api

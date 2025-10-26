@@ -37,9 +37,14 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../pages/settings/Registry.vue')
       },
       {
-        path: 'settings/data-format',
-        name: 'settings-data-format',
-        component: () => import('../pages/settings/DataFormat.vue')
+        path: 'settings/hierarchy',
+        name: 'settings-hierarchy',
+        component: () => import('../pages/settings/Hierarchy.vue')
+      },
+      {
+        path: 'settings/parameter',
+        name: 'settings-parameter',
+        component: () => import('../pages/settings/Parameter.vue')
       },
       {
         path: 'settings/profile',

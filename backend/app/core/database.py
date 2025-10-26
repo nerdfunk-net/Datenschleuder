@@ -137,7 +137,7 @@ def init_db():
     from app.models.user import User
     from app.models.credential import Credential
     from app.models.setting import Setting
-    from app.models.data_format import DataFormatValue
+    from app.models.hierarchy import HierarchyValue
     from app.models.nifi_instance import NiFiInstance
 
     # Step 5: Create all tables

@@ -52,8 +52,11 @@
             <router-link to="/settings/registry" class="ds-nav-subitem" active-class="ds-active">
               <span>Registry</span>
             </router-link>
-            <router-link to="/settings/data-format" class="ds-nav-subitem" active-class="ds-active">
-              <span>Data Format</span>
+            <router-link to="/settings/parameter" class="ds-nav-subitem" active-class="ds-active">
+              <span>Parameter</span>
+            </router-link>
+            <router-link to="/settings/hierarchy" class="ds-nav-subitem" active-class="ds-active">
+              <span>Hierarchy</span>
             </router-link>
             <router-link to="/settings/profile" class="ds-nav-subitem" active-class="ds-active">
               <span>Profile</span>
@@ -115,7 +118,8 @@ const pageTitle = computed(() => {
     '/flows/deploy': 'Deploy Flows',
     '/settings/nifi': 'NiFi Settings',
     '/settings/registry': 'Registry Settings',
-    '/settings/data-format': 'Data Format Settings',
+    '/settings/parameter': 'Parameter Settings',
+    '/settings/hierarchy': 'Hierarchy Settings',
     '/settings/profile': 'Profile Settings'
   }
   return titles[route.path] || 'Dashboard'

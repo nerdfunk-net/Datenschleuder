@@ -2,7 +2,7 @@
   <div class="settings-page">
     <div class="page-card">
       <div class="card-header">
-        <h2 class="card-title">Hierarchical Data Format Settings</h2>
+        <h2 class="card-title">Hierarchy Settings</h2>
         <p class="text-muted mb-0">Configure the hierarchy of attributes (e.g., CN=test,O=myOrg,OU=myOrgUnit,DC=myNet)</p>
       </div>
 
@@ -226,7 +226,7 @@ const hasErrors = computed(() => {
 
 const loadSettings = async () => {
   try {
-    const data = await apiRequest('/api/settings/data-format')
+    const data = await apiRequest('/api/settings/hierarchy')
     settings.value = data
   } catch (error) {
     console.error('Error loading settings:', error)
@@ -316,7 +316,7 @@ const viewAttribute = async (index: number) => {
 
   try {
     // Fetch values from backend
-    const data = await apiRequest(`/api/settings/data-format/values/${encodeURIComponent(attr.name)}`)
+    const data = await apiRequest(`/api/settings/hierarchy/values/${encodeURIComponent(attr.name)}`)
     editingAttribute.value = {
       ...attr,
       values: data.values || []
@@ -339,7 +339,7 @@ const editAttribute = async (index: number) => {
 
   try {
     // Fetch values from backend
-    const data = await apiRequest(`/api/settings/data-format/values/${encodeURIComponent(attr.name)}`)
+    const data = await apiRequest(`/api/settings/hierarchy/values/${encodeURIComponent(attr.name)}`)
     editingAttribute.value = {
       ...attr,
       values: data.values || []
@@ -379,7 +379,7 @@ const saveValues = async () => {
       const attributeName = editingAttribute.value.name
 
       // Save to backend
-      await apiRequest('/api/settings/data-format/values', {
+      await apiRequest('/api/settings/hierarchy/values', {
         method: 'POST',
         body: JSON.stringify({
           attribute_name: attributeName,
@@ -388,7 +388,6 @@ const saveValues = async () => {
       })
 
       closeModal()
-      alert(`Saved ${cleanedValues.length} value(s) for ${attributeName}`)
     } catch (error: any) {
       console.error('Error saving values:', error)
       alert('Error: ' + (error.message || 'Error saving values'))
@@ -450,7 +449,7 @@ const handleSave = async () => {
   isSaving.value = true
   try {
     // Save settings first
-    await apiRequest('/api/settings/data-format', {
+    await apiRequest('/api/settings/hierarchy', {
       method: 'POST',
       body: JSON.stringify(settings.value)
     })
@@ -460,7 +459,7 @@ const handleSave = async () => {
       method: 'POST'
     })
 
-    alert('✓ Data format settings saved successfully!\n✓ NiFi flows table has been recreated with the new hierarchy.')
+    alert('✓ Hierarchy settings saved successfully!\n✓ NiFi flows table has been recreated with the new hierarchy.')
   } catch (error: any) {
     console.error('Error saving settings:', error)
     alert('✗ Error: ' + (error.message || 'Error saving settings'))

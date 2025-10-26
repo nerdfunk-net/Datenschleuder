@@ -1,4 +1,4 @@
-"""Data format hierarchy value model"""
+"""Hierarchy value model"""
 
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
@@ -9,9 +9,9 @@ from typing import List
 from app.core.database import Base
 
 
-class DataFormatValue(Base):
-    """Data format hierarchy values - stores individual values for each attribute"""
-    __tablename__ = "data_format_values"
+class HierarchyValue(Base):
+    """Hierarchy values - stores individual values for each attribute"""
+    __tablename__ = "hierarchy"
 
     id = Column(Integer, primary_key=True, index=True)
     attribute_name = Column(String, index=True, nullable=False)  # e.g., "CN", "O", "OU", "DC"
@@ -20,13 +20,13 @@ class DataFormatValue(Base):
 
 
 # Pydantic schemas
-class DataFormatValueCreate(BaseModel):
+class HierarchyValueCreate(BaseModel):
     """Schema for creating a value"""
     attribute_name: str
     value: str
 
 
-class DataFormatValueResponse(BaseModel):
+class HierarchyValueResponse(BaseModel):
     """Schema for value response"""
     id: int
     attribute_name: str
@@ -37,7 +37,7 @@ class DataFormatValueResponse(BaseModel):
         from_attributes = True
 
 
-class DataFormatValuesRequest(BaseModel):
+class HierarchyValuesRequest(BaseModel):
     """Schema for batch creating/updating values for an attribute"""
     attribute_name: str
     values: List[str]

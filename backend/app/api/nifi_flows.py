@@ -31,7 +31,7 @@ def get_engine():
 
 def get_hierarchy_config(db: Session) -> List[dict]:
     """Get the current hierarchy configuration"""
-    settings = get_setting_value(db, "data_format_config")
+    settings = get_setting_value(db, "hierarchy_config")
 
     if not settings:
         # Return default hierarchy
@@ -70,17 +70,21 @@ def create_nifi_flows_table(db: Session):
         Column("id", Integer, primary_key=True, index=True),
     ]
 
-    # Add dynamic hierarchy columns
+    # Add dynamic hierarchy columns (both source and destination)
     for attr in hierarchy:
-        col_name = attr["name"].lower()
-        columns.append(Column(col_name, String, nullable=False, index=True))
+        attr_name = attr["name"].lower()
+        # Add src_{attribute} and dest_{attribute} columns
+        columns.append(Column(f"src_{attr_name}", String, nullable=False, index=True))
+        columns.append(Column(f"dest_{attr_name}", String, nullable=False, index=True))
 
     # Add standard flow columns
     columns.extend([
         Column("source", String, nullable=False),
         Column("destination", String, nullable=False),
-        Column("connection_param", String, nullable=False),
-        Column("template", String, nullable=False),
+        Column("src_connection_param", String, nullable=False),
+        Column("dest_connection_param", String, nullable=False),
+        Column("src_template_id", Integer, nullable=True),  # FK to registry_flows
+        Column("dest_template_id", Integer, nullable=True),  # FK to registry_flows
         Column("active", Boolean, nullable=False, default=True),
         Column("description", Text, nullable=True),
         Column("creator_name", String, nullable=True),
@@ -92,9 +96,19 @@ def create_nifi_flows_table(db: Session):
     table = Table("nifi_flows", metadata, *columns)
     metadata.create_all(engine)
 
+    # Build list of hierarchy column pairs (src_ and dest_)
+    hierarchy_columns = []
+    for attr in hierarchy:
+        attr_name = attr["name"]
+        hierarchy_columns.append({
+            "name": attr_name,
+            "src_column": f"src_{attr_name.lower()}",
+            "dest_column": f"dest_{attr_name.lower()}"
+        })
+
     return {
         "table_name": "nifi_flows",
-        "hierarchy_columns": [attr["name"] for attr in hierarchy],
+        "hierarchy_columns": hierarchy_columns,
         "total_columns": len(columns)
     }
 
@@ -140,6 +154,16 @@ async def get_table_info(
         columns = inspector.get_columns("nifi_flows")
         hierarchy = get_hierarchy_config(db)
 
+        # Build hierarchy column pairs (src_ and dest_)
+        hierarchy_columns = []
+        for attr in hierarchy:
+            attr_name = attr["name"]
+            hierarchy_columns.append({
+                "name": attr_name,
+                "src_column": f"src_{attr_name.lower()}",
+                "dest_column": f"dest_{attr_name.lower()}"
+            })
+
         return {
             "exists": True,
             "table_name": "nifi_flows",
@@ -152,7 +176,7 @@ async def get_table_info(
                 }
                 for col in columns
             ],
-            "hierarchy_columns": [attr["name"] for attr in hierarchy],
+            "hierarchy_columns": hierarchy_columns,
             "current_hierarchy": hierarchy
         }
     except Exception as e:
@@ -190,17 +214,40 @@ async def create_nifi_flow(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Missing hierarchy value: {name}"
                 )
+            # Validate that each hierarchy value has both source and destination
+            if not isinstance(data.hierarchy_values[name], dict):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Hierarchy value for {name} must be a dict with 'source' and 'destination'"
+                )
+            if "source" not in data.hierarchy_values[name] or "destination" not in data.hierarchy_values[name]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Hierarchy value for {name} must contain both 'source' and 'destination'"
+                )
 
-        # Build insert query
-        columns = [attr["name"].lower() for attr in hierarchy]
-        columns.extend(["source", "destination", "connection_param", "template", "active", "description", "creator_name"])
+        # Build insert query with src_ and dest_ columns
+        columns = []
+        values = []
 
-        values = [data.hierarchy_values[attr["name"]] for attr in hierarchy]
+        # Add hierarchy columns (src_ and dest_ for each attribute)
+        for attr in hierarchy:
+            attr_name = attr["name"]
+            attr_lower = attr_name.lower()
+            columns.append(f"src_{attr_lower}")
+            columns.append(f"dest_{attr_lower}")
+            values.append(data.hierarchy_values[attr_name]["source"])
+            values.append(data.hierarchy_values[attr_name]["destination"])
+
+        # Add standard columns
+        columns.extend(["source", "destination", "src_connection_param", "dest_connection_param", "src_template_id", "dest_template_id", "active", "description", "creator_name"])
         values.extend([
             data.source,
             data.destination,
-            data.connection_param,
-            data.template,
+            data.src_connection_param,
+            data.dest_connection_param,
+            data.src_template_id,
+            data.dest_template_id,
             data.active,
             data.description,
             data.creator_name
@@ -296,10 +343,26 @@ async def update_nifi_flow(
             for attr in hierarchy:
                 attr_name = attr["name"]
                 if attr_name in data.hierarchy_values:
-                    col_name = attr_name.lower()
-                    update_parts.append(f"{col_name} = :param_{param_counter}")
-                    values[f"param_{param_counter}"] = data.hierarchy_values[attr_name]
-                    param_counter += 1
+                    # Validate structure
+                    if not isinstance(data.hierarchy_values[attr_name], dict):
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Hierarchy value for {attr_name} must be a dict with 'source' and 'destination'"
+                        )
+
+                    attr_lower = attr_name.lower()
+
+                    # Update source if provided
+                    if "source" in data.hierarchy_values[attr_name]:
+                        update_parts.append(f"src_{attr_lower} = :param_{param_counter}")
+                        values[f"param_{param_counter}"] = data.hierarchy_values[attr_name]["source"]
+                        param_counter += 1
+
+                    # Update destination if provided
+                    if "destination" in data.hierarchy_values[attr_name]:
+                        update_parts.append(f"dest_{attr_lower} = :param_{param_counter}")
+                        values[f"param_{param_counter}"] = data.hierarchy_values[attr_name]["destination"]
+                        param_counter += 1
 
         # Update standard fields if provided
         if data.source is not None:
@@ -312,14 +375,24 @@ async def update_nifi_flow(
             values[f"param_{param_counter}"] = data.destination
             param_counter += 1
 
-        if data.connection_param is not None:
-            update_parts.append(f"connection_param = :param_{param_counter}")
-            values[f"param_{param_counter}"] = data.connection_param
+        if data.src_connection_param is not None:
+            update_parts.append(f"src_connection_param = :param_{param_counter}")
+            values[f"param_{param_counter}"] = data.src_connection_param
             param_counter += 1
 
-        if data.template is not None:
-            update_parts.append(f"template = :param_{param_counter}")
-            values[f"param_{param_counter}"] = data.template
+        if data.dest_connection_param is not None:
+            update_parts.append(f"dest_connection_param = :param_{param_counter}")
+            values[f"param_{param_counter}"] = data.dest_connection_param
+            param_counter += 1
+
+        if data.src_template_id is not None:
+            update_parts.append(f"src_template_id = :param_{param_counter}")
+            values[f"param_{param_counter}"] = data.src_template_id
+            param_counter += 1
+
+        if data.dest_template_id is not None:
+            update_parts.append(f"dest_template_id = :param_{param_counter}")
+            values[f"param_{param_counter}"] = data.dest_template_id
             param_counter += 1
 
         if data.active is not None:

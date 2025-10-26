@@ -236,13 +236,13 @@ const hierarchyValueOptions = computed(() => {
 
 const loadHierarchy = async () => {
   try {
-    const data = await apiRequest('/api/settings/data-format')
+    const data = await apiRequest('/api/settings/hierarchy')
     hierarchyConfig.value = data.hierarchy || []
 
     // Load values for top hierarchy
     if (hierarchyConfig.value.length > 0) {
       const topAttr = hierarchyConfig.value[0]
-      const valuesData = await apiRequest(`/api/settings/data-format/values/${encodeURIComponent(topAttr.name)}`)
+      const valuesData = await apiRequest(`/api/settings/hierarchy/values/${encodeURIComponent(topAttr.name)}`)
       topAttr.values = valuesData.values || []
     }
   } catch (error) {

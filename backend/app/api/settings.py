@@ -22,7 +22,7 @@ class HierarchyAttribute(BaseModel):
     order: int  # Position in hierarchy (0 = top level)
 
 
-class DataFormatSettings(BaseModel):
+class HierarchySettings(BaseModel):
     """Hierarchical data format configuration"""
     hierarchy: List[HierarchyAttribute]
 
@@ -177,13 +177,13 @@ async def save_registry_settings(
         )
 
 
-@router.get("/data-format")
+@router.get("/hierarchy")
 async def get_data_format_settings(
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
     """Get hierarchical data format settings"""
-    settings = get_setting_value(db, "data_format_config")
+    settings = get_setting_value(db, "hierarchy_config")
 
     if not settings:
         # Return default hierarchy (X.509 DN style)
@@ -199,9 +199,9 @@ async def get_data_format_settings(
     return settings
 
 
-@router.post("/data-format")
+@router.post("/hierarchy")
 async def save_data_format_settings(
-    settings: DataFormatSettings,
+    settings: HierarchySettings,
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
@@ -218,9 +218,9 @@ async def save_data_format_settings(
         settings_dict = settings.dict()
         upsert_setting(
             db,
-            key="data_format_config",
+            key="hierarchy_config",
             value=settings_dict,
-            category="data-format",
+            category="hierarchy",
             description="Hierarchical data format configuration"
         )
         return {"message": "Data format settings saved successfully"}
@@ -236,30 +236,30 @@ async def save_data_format_settings(
         )
 
 
-@router.get("/data-format/values/{attribute_name}")
+@router.get("/hierarchy/values/{attribute_name}")
 async def get_attribute_values(
     attribute_name: str,
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
     """Get all values for a specific attribute"""
-    from app.models.data_format import DataFormatValue
+    from app.models.hierarchy import HierarchyValue
 
-    values = db.query(DataFormatValue).filter(
-        DataFormatValue.attribute_name == attribute_name
+    values = db.query(HierarchyValue).filter(
+        HierarchyValue.attribute_name == attribute_name
     ).all()
 
     return {"attribute_name": attribute_name, "values": [v.value for v in values]}
 
 
-@router.post("/data-format/values")
+@router.post("/hierarchy/values")
 async def save_attribute_values(
     data: dict,
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
     """Save/replace all values for a specific attribute"""
-    from app.models.data_format import DataFormatValue
+    from app.models.hierarchy import HierarchyValue
 
     attribute_name = data.get("attribute_name")
     values = data.get("values", [])
@@ -271,14 +271,14 @@ async def save_attribute_values(
         )
 
     # Delete existing values for this attribute
-    db.query(DataFormatValue).filter(
-        DataFormatValue.attribute_name == attribute_name
+    db.query(HierarchyValue).filter(
+        HierarchyValue.attribute_name == attribute_name
     ).delete()
 
     # Insert new values
     for value in values:
         if value.strip():  # Only insert non-empty values
-            db_value = DataFormatValue(
+            db_value = HierarchyValue(
                 attribute_name=attribute_name,
                 value=value.strip()
             )
@@ -289,17 +289,17 @@ async def save_attribute_values(
     return {"message": f"Saved {len(values)} values for {attribute_name}"}
 
 
-@router.delete("/data-format/values/{attribute_name}")
+@router.delete("/hierarchy/values/{attribute_name}")
 async def delete_attribute_values(
     attribute_name: str,
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
     """Delete all values for a specific attribute"""
-    from app.models.data_format import DataFormatValue
+    from app.models.hierarchy import HierarchyValue
 
-    deleted_count = db.query(DataFormatValue).filter(
-        DataFormatValue.attribute_name == attribute_name
+    deleted_count = db.query(HierarchyValue).filter(
+        HierarchyValue.attribute_name == attribute_name
     ).delete()
 
     db.commit()

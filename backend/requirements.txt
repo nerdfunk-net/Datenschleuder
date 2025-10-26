@@ -9,4 +9,4 @@ cryptography==44.0.0
 python-multipart==0.0.17
 python-dotenv==1.0.1
 alembic==1.14.0
-nipyapi==0.21.0
+nipyapi==1.0.0

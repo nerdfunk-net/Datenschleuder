@@ -292,7 +292,7 @@
                 </div>
                 <div class="review-row">
                   <span class="review-label">Template:</span>
-                  <span>{{ deployment.templateName || 'Default Template' }}</span>
+                  <span>{{ deployment.templateName || 'No Template' }}</span>
                 </div>
               </div>
             </div>
@@ -354,6 +354,7 @@ interface DeploymentConfig {
   availablePaths: Array<{ id: string; pathDisplay: string }>
   selectedProcessGroupId: string
   suggestedPath: string | null
+  templateId: number | null
   templateName: string | null
 }
 
@@ -369,6 +370,7 @@ const selectedFlows = ref<number[]>([])
 const hierarchyConfig = ref<HierarchyAttribute[]>([])
 const visibleColumns = ref<Array<{ key: string; label: string }>>([])
 const nifiInstances = ref<any[]>([])
+const registryFlows = ref<any[]>([])
 
 // Deployment configuration
 const deploymentTargets = ref<Record<number, 'source' | 'destination' | 'both'>>({})
@@ -476,6 +478,8 @@ const prepareDeploymentConfigs = async () => {
       if (target === 'source' || target === 'both') {
         const hierarchyValue = getTopHierarchyValue(flow, 'source')
         const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue)
+        const templateId = flow.src_template_id || null
+        const templateName = getTemplateName(templateId)
 
         const config: DeploymentConfig = {
           key: `${flowId}-source`,
@@ -487,7 +491,8 @@ const prepareDeploymentConfigs = async () => {
           availablePaths: [],
           selectedProcessGroupId: '',
           suggestedPath: getSuggestedPath(flow, 'source'),
-          templateName: null,
+          templateId,
+          templateName,
         }
 
         // Load paths for this instance
@@ -502,6 +507,8 @@ const prepareDeploymentConfigs = async () => {
       if (target === 'destination' || target === 'both') {
         const hierarchyValue = getTopHierarchyValue(flow, 'destination')
         const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue)
+        const templateId = flow.dest_template_id || null
+        const templateName = getTemplateName(templateId)
 
         const config: DeploymentConfig = {
           key: `${flowId}-destination`,
@@ -513,7 +520,8 @@ const prepareDeploymentConfigs = async () => {
           availablePaths: [],
           selectedProcessGroupId: '',
           suggestedPath: getSuggestedPath(flow, 'destination'),
-          templateName: null,
+          templateId,
+          templateName,
         }
 
         // Load paths for this instance
@@ -541,6 +549,13 @@ const getSuggestedPath = (flow: Flow, side: 'source' | 'destination') => {
   const value = flow[`${prefix}${secondAttr}`]
 
   return value ? `Contains "${value}"` : null
+}
+
+const getTemplateName = (templateId: number | null): string | null => {
+  if (!templateId) return null
+
+  const template = registryFlows.value.find(rf => rf.id === templateId)
+  return template ? template.flow_name : `Template ID ${templateId}`
 }
 
 const getInstanceIdForHierarchyValue = async (hierarchyValue: string): Promise<number | null> => {
@@ -628,23 +643,103 @@ const deployFlows = async () => {
   isDeploying.value = true
 
   try {
-    // TODO: Implement actual deployment API calls
     console.log('Deploying flows with configs:', deploymentConfigs.value)
 
-    // Simulate deployment
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    const results = []
+    let successCount = 0
+    let failCount = 0
 
-    alert('Deployment completed successfully!')
+    // Deploy each configuration
+    for (const config of deploymentConfigs.value) {
+      try {
+        console.log(`Deploying ${config.flowName} to ${config.target} (${config.hierarchyValue})...`)
 
-    // Reset wizard
-    currentStep.value = 0
-    selectedFlows.value = []
-    deploymentTargets.value = {}
-    deploymentConfigs.value = []
+        if (!config.instanceId) {
+          throw new Error(`No NiFi instance found for ${config.hierarchyValue}`)
+        }
 
-  } catch (error) {
+        if (!config.selectedProcessGroupId) {
+          throw new Error('No process group selected')
+        }
+
+        // Prepare deployment request
+        const deploymentRequest = {
+          template_id: config.templateId,
+          parent_process_group_id: config.selectedProcessGroupId,
+          version: null, // Use latest version
+          x_position: 0,
+          y_position: 0,
+        }
+
+        console.log('Deployment request:', deploymentRequest)
+
+        // Call deployment API
+        const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
+          method: 'POST',
+          body: JSON.stringify(deploymentRequest),
+        })
+
+        console.log('Deployment result:', result)
+
+        if (result.status === 'success') {
+          successCount++
+          results.push({
+            config,
+            success: true,
+            message: result.message,
+            processGroupId: result.process_group_id,
+            processGroupName: result.process_group_name,
+          })
+        } else {
+          failCount++
+          results.push({
+            config,
+            success: false,
+            message: result.message || 'Deployment failed',
+          })
+        }
+      } catch (error: any) {
+        failCount++
+        console.error(`Deployment failed for ${config.flowName}:`, error)
+        results.push({
+          config,
+          success: false,
+          message: error.message || error.detail || 'Deployment failed',
+        })
+      }
+    }
+
+    // Show results
+    console.log('Deployment results:', results)
+
+    let message = `Deployment completed!\n\n`
+    message += `✓ Successful: ${successCount}\n`
+    if (failCount > 0) {
+      message += `✗ Failed: ${failCount}\n\n`
+
+      // Show failed deployments
+      const failures = results.filter(r => !r.success)
+      if (failures.length > 0) {
+        message += `Failed deployments:\n`
+        failures.forEach(f => {
+          message += `- ${f.config.flowName} (${f.config.target}): ${f.message}\n`
+        })
+      }
+    }
+
+    alert(message)
+
+    // Reset wizard on success
+    if (failCount === 0) {
+      currentStep.value = 0
+      selectedFlows.value = []
+      deploymentTargets.value = {}
+      deploymentConfigs.value = []
+    }
+
+  } catch (error: any) {
     console.error('Deployment error:', error)
-    alert('Deployment failed: ' + error)
+    alert('Deployment failed: ' + (error.message || error))
   } finally {
     isDeploying.value = false
   }
@@ -693,9 +788,22 @@ const loadNiFiInstances = async () => {
   }
 }
 
+const loadRegistryFlows = async () => {
+  try {
+    const flows = await apiRequest('/api/registry-flows/')
+    if (flows && Array.isArray(flows)) {
+      registryFlows.value = flows
+      console.log(`Loaded ${flows.length} registry flows`)
+    }
+  } catch (error) {
+    console.error('Error loading registry flows:', error)
+  }
+}
+
 onMounted(async () => {
   await loadHierarchyConfig()
   await loadNiFiInstances()
+  await loadRegistryFlows()
   await loadFlows()
 })
 </script>

@@ -7,7 +7,11 @@ from app.core.database import get_db
 from app.core.security import verify_token
 from app.models.nifi_instance import NiFiInstance
 from app.models.registry_flow import RegistryFlow
-from app.models.deployment import DeploymentRequest, DeploymentResponse
+from app.models.deployment import (
+    DeploymentRequest, DeploymentResponse,
+    PortsResponse, PortInfo,
+    ConnectionRequest, ConnectionResponse
+)
 from app.services.encryption_service import encryption_service
 
 router = APIRouter()
@@ -194,6 +198,70 @@ async def deploy_flow(
             vci = deployed_pg.component.version_control_information
             if vci and hasattr(vci, 'version'):
                 deployed_version = vci.version
+
+        # Rename process group if requested
+        if deployment.process_group_name and pg_id:
+            try:
+                print(f"Renaming process group from '{pg_name}' to '{deployment.process_group_name}'...")
+
+                # Use nipyapi.canvas.update_process_group to rename
+                # The update parameter should be a dictionary with key:value pairs
+                updated_pg = canvas.update_process_group(
+                    pg=deployed_pg,
+                    update={'name': deployment.process_group_name}
+                )
+
+                pg_name = updated_pg.component.name
+                print(f"✓ Successfully renamed process group to '{pg_name}'")
+
+            except Exception as rename_error:
+                print(f"⚠ Warning: Could not rename process group: {rename_error}")
+                # Continue anyway, renaming is not critical
+
+        # Auto-connect output ports if they exist
+        if pg_id and deployment.parent_process_group_id:
+            try:
+                print(f"Checking for output ports to auto-connect...")
+
+                from nipyapi.nifi import ProcessGroupsApi
+                pg_api = ProcessGroupsApi()
+
+                # Get output ports of the newly deployed process group
+                child_ports = pg_api.get_output_ports(id=pg_id)
+                child_output_ports = child_ports.output_ports if hasattr(child_ports, 'output_ports') else []
+
+                if child_output_ports:
+                    print(f"  Found {len(child_output_ports)} output port(s) in deployed process group")
+
+                    # Get output ports of the parent process group
+                    parent_ports = pg_api.get_output_ports(id=deployment.parent_process_group_id)
+                    parent_output_ports = parent_ports.output_ports if hasattr(parent_ports, 'output_ports') else []
+
+                    if parent_output_ports:
+                        print(f"  Found {len(parent_output_ports)} output port(s) in parent process group")
+
+                        # Connect the first output port of child to first output port of parent
+                        child_port = child_output_ports[0]
+                        parent_port = parent_output_ports[0]
+
+                        print(f"  Connecting '{child_port.component.name}' -> '{parent_port.component.name}'...")
+
+                        # Use nipyapi.canvas.create_connection which handles the details correctly
+                        created_conn = canvas.create_connection(
+                            source=child_port,
+                            target=parent_port,
+                            name=f"{child_port.component.name} to {parent_port.component.name}"
+                        )
+
+                        print(f"  ✓ Successfully created connection (ID: {created_conn.id})")
+                    else:
+                        print(f"  No output ports found in parent process group - skipping auto-connect")
+                else:
+                    print(f"  No output ports found in deployed process group - skipping auto-connect")
+
+            except Exception as connect_error:
+                print(f"⚠ Warning: Could not auto-connect output ports: {connect_error}")
+                # Continue anyway, auto-connection is not critical
 
         success_message = f"Flow deployed successfully to {instance.hierarchy_attribute}={instance.hierarchy_value}"
         if template_name:
@@ -812,4 +880,233 @@ async def get_root_process_group(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get root process group: {error_msg}",
+        )
+
+
+@router.get("/{instance_id}/process-group/{process_group_id}/output-ports", response_model=PortsResponse)
+async def get_output_ports(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Get all output ports for a specific process group.
+
+    Args:
+        instance_id: The NiFi instance ID
+        process_group_id: The process group ID to get output ports from
+
+    Returns:
+        List of output ports with their details
+    """
+    # Get the NiFi instance
+    instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+    if not instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"NiFi instance with ID {instance_id} not found",
+        )
+
+    try:
+        import nipyapi
+        from nipyapi import config, security, canvas
+
+        # Configure nipyapi
+        nifi_base_url = instance.nifi_url.rstrip("/")
+        if nifi_base_url.endswith('/nifi-api'):
+            nifi_base_url = nifi_base_url[:-9]
+
+        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
+        config.nifi_config.verify_ssl = instance.verify_ssl
+
+        if not instance.verify_ssl:
+            nipyapi.config.disable_insecure_request_warnings = True
+
+        # Decrypt password and authenticate
+        password = None
+        if instance.password_encrypted:
+            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+
+        if instance.username and password:
+            config.nifi_config.username = instance.username
+            config.nifi_config.password = password
+            access_token = security.service_login(service='nifi', username=instance.username, password=password)
+            if access_token:
+                print(f"Successfully obtained access token")
+
+        # Get process group info
+        pg = canvas.get_process_group(process_group_id, identifier_type='id', greedy=False)
+        if isinstance(pg, list):
+            pg = pg[0]
+        pg_name = pg.component.name if hasattr(pg, 'component') else None
+
+        # Get output ports
+        print(f"Getting output ports for process group {process_group_id} ({pg_name})")
+        output_ports = canvas.list_all_output_ports(pg_id=process_group_id, descendants=False)
+
+        ports = []
+        for port in output_ports:
+            ports.append(PortInfo(
+                id=port.id,
+                name=port.component.name,
+                state=port.component.state,
+                comments=port.component.comments if hasattr(port.component, 'comments') else None
+            ))
+
+        print(f"Found {len(ports)} output ports")
+        for port in ports:
+            print(f"  - {port.name} (ID: {port.id}, State: {port.state})")
+
+        return PortsResponse(
+            process_group_id=process_group_id,
+            process_group_name=pg_name,
+            ports=ports
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Failed to get output ports: {error_msg}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get output ports: {error_msg}",
+        )
+
+
+@router.post("/{instance_id}/connection", response_model=ConnectionResponse)
+async def create_connection(
+    instance_id: int,
+    connection_request: ConnectionRequest,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Create a connection between two components (ports, processors, etc).
+
+    Typically used to connect an output port from a deployed process group
+    to an output port of the parent process group.
+
+    Args:
+        instance_id: The NiFi instance ID
+        connection_request: Connection details (source_id, target_id, optional name and relationships)
+
+    Returns:
+        Connection details including the connection ID
+    """
+    # Get the NiFi instance
+    instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+    if not instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"NiFi instance with ID {instance_id} not found",
+        )
+
+    try:
+        import nipyapi
+        from nipyapi import config, security, canvas
+
+        # Configure nipyapi
+        nifi_base_url = instance.nifi_url.rstrip("/")
+        if nifi_base_url.endswith('/nifi-api'):
+            nifi_base_url = nifi_base_url[:-9]
+
+        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
+        config.nifi_config.verify_ssl = instance.verify_ssl
+
+        if not instance.verify_ssl:
+            nipyapi.config.disable_insecure_request_warnings = True
+
+        # Decrypt password and authenticate
+        password = None
+        if instance.password_encrypted:
+            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+
+        if instance.username and password:
+            config.nifi_config.username = instance.username
+            config.nifi_config.password = password
+            access_token = security.service_login(service='nifi', username=instance.username, password=password)
+            if access_token:
+                print(f"Successfully obtained access token")
+
+        # Get source and target components
+        # We need to get the actual component objects to pass to create_connection
+        from nipyapi.nifi import ProcessGroupsApi
+        pg_api = ProcessGroupsApi()
+
+        # Try to get source as output port first
+        try:
+            source = pg_api.get_output_port(connection_request.source_id)
+            source_name = source.component.name
+            source_type = "Output Port"
+        except:
+            # Try as processor or other component type
+            try:
+                from nipyapi.nifi import ProcessorsApi
+                proc_api = ProcessorsApi()
+                source = proc_api.get_processor(connection_request.source_id)
+                source_name = source.component.name
+                source_type = "Processor"
+            except:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Source component with ID {connection_request.source_id} not found",
+                )
+
+        # Try to get target as output port first
+        try:
+            target = pg_api.get_output_port(connection_request.target_id)
+            target_name = target.component.name
+            target_type = "Output Port"
+        except:
+            # Try as processor or other component type
+            try:
+                from nipyapi.nifi import ProcessorsApi
+                proc_api = ProcessorsApi()
+                target = proc_api.get_processor(connection_request.target_id)
+                target_name = target.component.name
+                target_type = "Processor"
+            except:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Target component with ID {connection_request.target_id} not found",
+                )
+
+        print(f"Creating connection:")
+        print(f"  Source: {source_name} ({source_type}, ID: {connection_request.source_id})")
+        print(f"  Target: {target_name} ({target_type}, ID: {connection_request.target_id})")
+
+        # Create connection
+        connection = canvas.create_connection(
+            source=source,
+            target=target,
+            relationships=connection_request.relationships,
+            name=connection_request.name
+        )
+
+        print(f"✓ Connection created: {connection.id}")
+
+        return ConnectionResponse(
+            status="success",
+            message=f"Connection created from {source_name} to {target_name}",
+            connection_id=connection.id,
+            source_id=connection_request.source_id,
+            source_name=source_name,
+            target_id=connection_request.target_id,
+            target_name=target_name
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Failed to create connection: {error_msg}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create connection: {error_msg}",
         )

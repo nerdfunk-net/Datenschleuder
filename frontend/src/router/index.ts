@@ -47,6 +47,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../pages/settings/Parameter.vue')
       },
       {
+        path: 'settings/deploy',
+        name: 'settings-deploy',
+        component: () => import('../pages/settings/Deploy.vue')
+      },
+      {
         path: 'settings/profile',
         name: 'settings-profile',
         component: () => import('../pages/settings/Profile.vue')

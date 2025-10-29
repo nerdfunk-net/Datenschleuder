@@ -193,11 +193,6 @@
             </div>
 
             <div class="pg-body">
-              <div class="default-suggestion" v-if="deployment.suggestedPath">
-                <i class="pe-7s-info-circle"></i>
-                <span>Suggested path based on {{ secondHierarchyName }}: <strong>{{ deployment.suggestedPath }}</strong></span>
-              </div>
-
               <div class="form-group">
                 <label>Select Process Group:</label>
                 <select
@@ -287,8 +282,12 @@
                   <span>{{ deployment.hierarchyValue }}</span>
                 </div>
                 <div class="review-row">
-                  <span class="review-label">Process Group:</span>
+                  <span class="review-label">Parent Process Group:</span>
                   <span>{{ getSelectedPathDisplay(deployment) }}</span>
+                </div>
+                <div class="review-row">
+                  <span class="review-label">Final Process Group Name:</span>
+                  <span class="final-pg-name">{{ deployment.processGroupName }}</span>
                 </div>
                 <div class="review-row">
                   <span class="review-label">Template:</span>
@@ -356,6 +355,7 @@ interface DeploymentConfig {
   suggestedPath: string | null
   templateId: number | null
   templateName: string | null
+  processGroupName: string
 }
 
 const steps = ['Select Flows', 'Choose Targets', 'Choose Process Groups', 'Review & Deploy']
@@ -376,6 +376,7 @@ const registryFlows = ref<any[]>([])
 const deploymentTargets = ref<Record<number, 'source' | 'destination' | 'both'>>({})
 const deploymentConfigs = ref<DeploymentConfig[]>([])
 const processGroupPaths = ref<Record<string, ProcessGroupPath[]>>({})
+const deploymentSettings = ref<any>(null)
 
 // Computed
 const allSelected = computed(() => {
@@ -493,12 +494,19 @@ const prepareDeploymentConfigs = async () => {
           suggestedPath: getSuggestedPath(flow, 'source'),
           templateId,
           templateName,
+          processGroupName: generateProcessGroupName(flow, 'source'),
         }
 
         // Load paths for this instance
         if (instanceId) {
-          const paths = await loadProcessGroupPaths(instanceId, hierarchyValue)
-          config.availablePaths = paths
+          const rawPaths = await loadProcessGroupPaths(instanceId, hierarchyValue)
+          config.availablePaths = rawPaths
+
+          // Auto-select process group based on deployment settings
+          const selectedPgId = autoSelectProcessGroup(flow, 'source', instanceId, processGroupPaths.value[hierarchyValue] || [])
+          if (selectedPgId) {
+            config.selectedProcessGroupId = selectedPgId
+          }
         }
 
         deploymentConfigs.value.push(config)
@@ -522,12 +530,19 @@ const prepareDeploymentConfigs = async () => {
           suggestedPath: getSuggestedPath(flow, 'destination'),
           templateId,
           templateName,
+          processGroupName: generateProcessGroupName(flow, 'destination'),
         }
 
         // Load paths for this instance
         if (instanceId) {
-          const paths = await loadProcessGroupPaths(instanceId, hierarchyValue)
-          config.availablePaths = paths
+          const rawPaths = await loadProcessGroupPaths(instanceId, hierarchyValue)
+          config.availablePaths = rawPaths
+
+          // Auto-select process group based on deployment settings
+          const selectedPgId = autoSelectProcessGroup(flow, 'destination', instanceId, processGroupPaths.value[hierarchyValue] || [])
+          if (selectedPgId) {
+            config.selectedProcessGroupId = selectedPgId
+          }
         }
 
         deploymentConfigs.value.push(config)
@@ -639,6 +654,136 @@ const getSelectedPathDisplay = (deployment: DeploymentConfig) => {
   return selected?.pathDisplay || 'Not selected'
 }
 
+const generateProcessGroupName = (flow: Flow, target: 'source' | 'destination'): string => {
+  // Get the template from deployment settings
+  const template = deploymentSettings.value?.global?.process_group_name_template || '{last_hierarchy_value}'
+
+  // Get hierarchy values for this flow
+  const prefix = target === 'source' ? 'src_' : 'dest_'
+  const hierarchyValues: string[] = []
+
+  for (let i = 0; i < hierarchyConfig.value.length; i++) {
+    const attrName = hierarchyConfig.value[i].name.toLowerCase()
+    const value = flow[`${prefix}${attrName}`] || ''
+    hierarchyValues.push(value)
+  }
+
+  // Replace placeholders in template
+  let result = template
+
+  // Replace {first_hierarchy_value}
+  if (hierarchyValues.length > 0) {
+    result = result.replace(/{first_hierarchy_value}/g, hierarchyValues[0])
+  }
+
+  // Replace {last_hierarchy_value}
+  if (hierarchyValues.length > 0) {
+    result = result.replace(/{last_hierarchy_value}/g, hierarchyValues[hierarchyValues.length - 1])
+  }
+
+  // Replace {N_hierarchy_value} where N is 1, 2, 3, etc.
+  for (let i = 0; i < hierarchyValues.length; i++) {
+    const placeholder = `{${i + 1}_hierarchy_value}`
+    result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), hierarchyValues[i])
+  }
+
+  return result
+}
+
+const autoSelectProcessGroup = (
+  flow: Flow,
+  target: 'source' | 'destination',
+  instanceId: number,
+  availablePaths: ProcessGroupPath[]
+): string | null => {
+  try {
+    // Get the search path from deployment settings
+    if (!deploymentSettings.value || !deploymentSettings.value.paths || !deploymentSettings.value.paths[instanceId]) {
+      return null
+    }
+
+    const searchPathId = target === 'source'
+      ? deploymentSettings.value.paths[instanceId].source_path
+      : deploymentSettings.value.paths[instanceId].dest_path
+
+    if (!searchPathId) {
+      return null
+    }
+
+    // Find the search path in available paths
+    const searchPath = availablePaths.find(p => p.id === searchPathId)
+    if (!searchPath) {
+      return null
+    }
+
+    // Get the search path as an array of names (reversed, since path is stored root-first)
+    const searchPathNames = searchPath.path.slice().reverse().map(p => p.name)
+
+    // Get hierarchy attributes for this flow, skipping:
+    // - Top hierarchy (index 0) - represents the NiFi instance
+    // - Last hierarchy (index length-1) - the final process group that will be created during deployment
+    // So we use attributes from index 1 to length-2
+    const hierarchyAttributes: string[] = []
+    const prefix = target === 'source' ? 'src_' : 'dest_'
+
+    for (let i = 1; i < hierarchyConfig.value.length - 1; i++) {
+      const attrName = hierarchyConfig.value[i].name.toLowerCase()
+      const value = flow[`${prefix}${attrName}`]
+      if (value) {
+        hierarchyAttributes.push(value)
+      }
+    }
+
+    // Now find a path that:
+    // 1. Starts with all elements from searchPathNames
+    // 2. Contains all hierarchyAttributes in order
+    for (const pg of availablePaths) {
+      const pgPathNames = pg.path.slice().reverse().map(p => p.name)
+
+      // Check if path starts with search path
+      let startsWithSearchPath = true
+      for (let i = 0; i < searchPathNames.length; i++) {
+        if (pgPathNames[i] !== searchPathNames[i]) {
+          startsWithSearchPath = false
+          break
+        }
+      }
+
+      if (!startsWithSearchPath) {
+        continue
+      }
+
+      // Check if path contains all hierarchy attributes in order
+      let matchesHierarchy = true
+      let searchIndex = searchPathNames.length // Start searching after the search path prefix
+
+      for (const attr of hierarchyAttributes) {
+        let found = false
+        for (let i = searchIndex; i < pgPathNames.length; i++) {
+          if (pgPathNames[i] === attr) {
+            found = true
+            searchIndex = i + 1
+            break
+          }
+        }
+        if (!found) {
+          matchesHierarchy = false
+          break
+        }
+      }
+
+      if (matchesHierarchy) {
+        return pg.id
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error('Error in autoSelectProcessGroup:', error)
+    return null
+  }
+}
+
 const deployFlows = async () => {
   isDeploying.value = true
 
@@ -666,6 +811,7 @@ const deployFlows = async () => {
         const deploymentRequest = {
           template_id: config.templateId,
           parent_process_group_id: config.selectedProcessGroupId,
+          process_group_name: config.processGroupName,
           version: null, // Use latest version
           x_position: 0,
           y_position: 0,
@@ -800,10 +946,33 @@ const loadRegistryFlows = async () => {
   }
 }
 
+const loadDeploymentSettings = async () => {
+  try {
+    const data = await apiRequest('/api/settings/deploy')
+
+    // Convert string keys to numbers since JSON serialization converts numeric keys to strings
+    const paths: { [key: number]: { source_path?: string; dest_path?: string } } = {}
+    if (data.paths) {
+      Object.keys(data.paths).forEach(key => {
+        const numKey = parseInt(key, 10)
+        paths[numKey] = data.paths[key]
+      })
+    }
+
+    deploymentSettings.value = {
+      global: data.global,
+      paths: paths
+    }
+  } catch (error) {
+    console.error('Error loading deployment settings:', error)
+  }
+}
+
 onMounted(async () => {
   await loadHierarchyConfig()
   await loadNiFiInstances()
   await loadRegistryFlows()
+  await loadDeploymentSettings()
   await loadFlows()
 })
 </script>
@@ -1225,7 +1394,13 @@ onMounted(async () => {
 .review-label {
   font-weight: 600;
   color: #6c757d;
-  min-width: 140px;
+  min-width: 180px;
+}
+
+.final-pg-name {
+  font-weight: 600;
+  color: #007bff;
+  font-family: monospace;
 }
 
 // Wizard Actions

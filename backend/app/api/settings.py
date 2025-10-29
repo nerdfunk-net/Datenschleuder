@@ -305,3 +305,65 @@ async def delete_attribute_values(
     db.commit()
 
     return {"message": f"Deleted {deleted_count} values for {attribute_name}"}
+
+
+@router.get("/deploy")
+async def get_deployment_settings(
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Get deployment settings (both global and per-instance paths)"""
+    # Get global deployment settings
+    global_settings = get_setting_value(db, "deployment_config")
+
+    if not global_settings:
+        # Return defaults
+        global_settings = {
+            "process_group_name_template": "{last_hierarchy_value}",
+            "disable_after_deploy": False,
+            "create_parameter_context": True
+        }
+
+    # Get per-instance path settings
+    path_settings = get_setting_value(db, "deployment_paths") or {}
+
+    return {
+        "global": global_settings,
+        "paths": path_settings
+    }
+
+
+@router.post("/deploy")
+async def save_deployment_settings(
+    data: dict,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Save deployment settings"""
+    try:
+        # Save global settings
+        if "global" in data:
+            upsert_setting(
+                db,
+                key="deployment_config",
+                value=data["global"],
+                category="deployment",
+                description="Global deployment configuration"
+            )
+
+        # Save path settings
+        if "paths" in data:
+            upsert_setting(
+                db,
+                key="deployment_paths",
+                value=data["paths"],
+                category="deployment",
+                description="Deployment path settings per instance"
+            )
+
+        return {"message": "Deployment settings saved successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save settings: {str(e)}"
+        )

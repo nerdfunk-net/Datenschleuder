@@ -58,6 +58,9 @@
             <router-link to="/settings/hierarchy" class="ds-nav-subitem" active-class="ds-active">
               <span>Hierarchy</span>
             </router-link>
+            <router-link to="/settings/deploy" class="ds-nav-subitem" active-class="ds-active">
+              <span>Deploy</span>
+            </router-link>
             <router-link to="/settings/profile" class="ds-nav-subitem" active-class="ds-active">
               <span>Profile</span>
             </router-link>
@@ -120,6 +123,7 @@ const pageTitle = computed(() => {
     '/settings/registry': 'Registry Settings',
     '/settings/parameter': 'Parameter Settings',
     '/settings/hierarchy': 'Hierarchy Settings',
+    '/settings/deploy': 'Deployment Settings',
     '/settings/profile': 'Profile Settings'
   }
   return titles[route.path] || 'Dashboard'

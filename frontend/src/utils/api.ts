@@ -40,7 +40,18 @@ export async function apiRequest<T = any>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: 'Request failed' }))
-    throw new Error(error.detail || `Request failed with status ${response.status}`)
+
+    // Create error object with proper structure
+    const apiError: any = new Error(
+      typeof error.detail === 'string'
+        ? error.detail
+        : error.message || `Request failed with status ${response.status}`
+    )
+    apiError.status = response.status
+    apiError.detail = error.detail
+    apiError.response = error
+
+    throw apiError
   }
 
   return response.json()

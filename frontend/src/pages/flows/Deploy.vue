@@ -315,6 +315,201 @@
         </div>
       </div>
     </div>
+
+    <!-- Conflict Resolution Modal -->
+    <b-modal v-model="showConflictModal" title="Process Group Already Exists" size="lg" hide-footer>
+      <div v-if="conflictInfo" class="conflict-modal">
+        <div class="alert alert-warning">
+          <i class="pe-7s-attention"></i>
+          <strong>A process group with this name already exists</strong>
+        </div>
+
+        <div class="conflict-details">
+          <h6>Existing Process Group:</h6>
+          <ul>
+            <li><strong>Name:</strong> {{ conflictInfo.existing_process_group.name }}</li>
+            <li><strong>ID:</strong> <code>{{ conflictInfo.existing_process_group.id }}</code></li>
+            <li><strong>Status:</strong>
+              {{ conflictInfo.existing_process_group.running_count }} running,
+              {{ conflictInfo.existing_process_group.stopped_count }} stopped
+            </li>
+            <li><strong>Version Control:</strong>
+              {{ conflictInfo.existing_process_group.has_version_control ? 'Yes' : 'No' }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="conflict-message mb-4">
+          <p>{{ conflictInfo.message }}</p>
+          <p class="text-muted">What would you like to do?</p>
+        </div>
+
+        <div class="conflict-actions">
+          <b-button
+            variant="primary"
+            @click="handleConflictResolution('deploy_anyway')"
+            :disabled="isResolvingConflict"
+            class="mb-2 w-100"
+          >
+            <b-spinner v-if="isResolvingConflict && conflictResolution === 'deploy_anyway'" small class="me-2"></b-spinner>
+            <i v-else class="pe-7s-plus"></i>
+            Deploy Anyway (Create Additional Process Group)
+          </b-button>
+
+          <b-button
+            variant="danger"
+            @click="handleConflictResolution('delete_and_deploy')"
+            :disabled="isResolvingConflict"
+            class="mb-2 w-100"
+          >
+            <b-spinner v-if="isResolvingConflict && conflictResolution === 'delete_and_deploy'" small class="me-2"></b-spinner>
+            <i v-else class="pe-7s-trash"></i>
+            Delete Existing and Deploy New
+          </b-button>
+
+          <b-button
+            v-if="conflictInfo.existing_process_group.has_version_control"
+            variant="info"
+            @click="handleConflictResolution('update_version')"
+            :disabled="isResolvingConflict"
+            class="mb-2 w-100"
+          >
+            <b-spinner v-if="isResolvingConflict && conflictResolution === 'update_version'" small class="me-2"></b-spinner>
+            <i v-else class="pe-7s-refresh-2"></i>
+            Update to New Version
+          </b-button>
+
+          <b-button
+            variant="outline-secondary"
+            @click="showConflictModal = false"
+            :disabled="isResolvingConflict"
+            class="w-100"
+          >
+            Cancel
+          </b-button>
+        </div>
+      </div>
+    </b-modal>
+
+    <!-- Deployment Results Modal -->
+    <b-modal v-model="showResultsModal" title="Deployment Results" size="lg" hide-footer>
+      <div class="deployment-results">
+        <!-- Summary Stats -->
+        <div class="results-summary">
+          <div class="stat-card success">
+            <div class="stat-icon">
+              <i class="pe-7s-check"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">{{ deploymentResults.successCount }}</div>
+              <div class="stat-label">Successful</div>
+            </div>
+          </div>
+          <div class="stat-card failed">
+            <div class="stat-icon">
+              <i class="pe-7s-close"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">{{ deploymentResults.failCount }}</div>
+              <div class="stat-label">Failed</div>
+            </div>
+          </div>
+          <div class="stat-card total">
+            <div class="stat-icon">
+              <i class="pe-7s-network"></i>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">{{ deploymentResults.total }}</div>
+              <div class="stat-label">Total</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Successful Deployments -->
+        <div v-if="deploymentResults.successful.length > 0" class="results-section success-section">
+          <h6 class="section-title">
+            <i class="pe-7s-check"></i>
+            Successful Deployments
+          </h6>
+          <div class="result-list">
+            <div v-for="(result, index) in deploymentResults.successful" :key="index" class="result-item success">
+              <div class="result-header">
+                <i class="pe-7s-check-circle"></i>
+                <strong>{{ result.config.flowName }}</strong>
+                <span class="badge" :class="result.config.target === 'source' ? 'badge-primary' : 'badge-success'">
+                  {{ result.config.target }}
+                </span>
+              </div>
+              <div class="result-details">
+                <div class="detail-row">
+                  <span class="label">Instance:</span>
+                  <span>{{ result.config.hierarchyValue }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Process Group:</span>
+                  <code>{{ result.processGroupName }}</code>
+                </div>
+                <div v-if="result.processGroupId" class="detail-row">
+                  <span class="label">ID:</span>
+                  <code class="small">{{ result.processGroupId }}</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Failed Deployments -->
+        <div v-if="deploymentResults.failed.length > 0" class="results-section failed-section">
+          <h6 class="section-title">
+            <i class="pe-7s-close"></i>
+            Failed Deployments
+          </h6>
+          <div class="result-list">
+            <div v-for="(result, index) in deploymentResults.failed" :key="index" class="result-item failed">
+              <div class="result-header">
+                <i class="pe-7s-close-circle"></i>
+                <strong>{{ result.config.flowName }}</strong>
+                <span class="badge" :class="result.config.target === 'source' ? 'badge-primary' : 'badge-success'">
+                  {{ result.config.target }}
+                </span>
+              </div>
+              <div class="result-details">
+                <div class="detail-row">
+                  <span class="label">Instance:</span>
+                  <span>{{ result.config.hierarchyValue }}</span>
+                </div>
+                <div class="detail-row error">
+                  <span class="label">Error:</span>
+                  <span>{{ result.message }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="results-actions">
+          <b-button
+            v-if="deploymentResults.failCount === 0"
+            variant="success"
+            @click="closeResultsAndReset"
+            class="w-100"
+          >
+            <i class="pe-7s-check"></i>
+            Done - Start New Deployment
+          </b-button>
+          <b-button
+            v-else
+            variant="primary"
+            @click="showResultsModal = false"
+            class="w-100"
+          >
+            <i class="pe-7s-angle-left"></i>
+            Review and Fix Issues
+          </b-button>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -363,6 +558,23 @@ const currentStep = ref(0)
 const isLoading = ref(false)
 const isLoadingPaths = ref(false)
 const isDeploying = ref(false)
+
+// Conflict resolution
+const showConflictModal = ref(false)
+const conflictInfo = ref<any>(null)
+const currentConflictDeployment = ref<any>(null)
+const isResolvingConflict = ref(false)
+const conflictResolution = ref<string>('')
+
+// Deployment results
+const showResultsModal = ref(false)
+const deploymentResults = ref({
+  successCount: 0,
+  failCount: 0,
+  total: 0,
+  successful: [] as any[],
+  failed: [] as any[]
+})
 
 // Flow data
 const flows = ref<Flow[]>([])
@@ -820,67 +1032,116 @@ const deployFlows = async () => {
         console.log('Deployment request:', deploymentRequest)
 
         // Call deployment API
-        const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
-          method: 'POST',
-          body: JSON.stringify(deploymentRequest),
-        })
-
-        console.log('Deployment result:', result)
-
-        if (result.status === 'success') {
-          successCount++
-          results.push({
-            config,
-            success: true,
-            message: result.message,
-            processGroupId: result.process_group_id,
-            processGroupName: result.process_group_name,
+        try {
+          const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
+            method: 'POST',
+            body: JSON.stringify(deploymentRequest),
           })
-        } else {
-          failCount++
-          results.push({
-            config,
-            success: false,
-            message: result.message || 'Deployment failed',
-          })
+
+          console.log('Deployment result:', result)
+
+          if (result.status === 'success') {
+            successCount++
+            results.push({
+              config,
+              success: true,
+              message: result.message,
+              processGroupId: result.process_group_id,
+              processGroupName: result.process_group_name,
+            })
+          } else {
+            failCount++
+            results.push({
+              config,
+              success: false,
+              message: result.message || 'Deployment failed',
+            })
+          }
+        } catch (apiError: any) {
+          // Check if it's a 409 Conflict (process group already exists)
+          if (apiError.status === 409 && apiError.detail) {
+            console.log('Conflict detected:', apiError.detail)
+
+            // Store conflict info and current deployment config
+            conflictInfo.value = apiError.detail
+            currentConflictDeployment.value = { config, deploymentRequest }
+
+            // Show conflict modal and wait for user decision
+            showConflictModal.value = true
+            isDeploying.value = false
+
+            // Stop the deployment loop - user needs to make a decision
+            // Don't show summary - modal is shown instead
+            return
+          }
+
+          // For other errors, add to results
+          throw apiError
         }
       } catch (error: any) {
         failCount++
         console.error(`Deployment failed for ${config.flowName}:`, error)
+        console.log('DEBUG - Error object:', JSON.parse(JSON.stringify(error)))
+
+        // Extract error message properly - handle all possible error structures
+        let errorMessage = 'Deployment failed'
+
+        // Try different paths to get the error message
+        const extractMessage = (obj: any): string => {
+          if (!obj) return 'Unknown error'
+          if (typeof obj === 'string') return obj
+
+          // Check common error message paths
+          if (obj.detail?.message) return obj.detail.message
+          if (obj.detail?.error) return obj.detail.error
+          if (obj.message) return obj.message
+          if (obj.error) return obj.error
+          if (obj.statusText) return obj.statusText
+
+          // If detail is an object, try to stringify it nicely
+          if (obj.detail && typeof obj.detail === 'object') {
+            try {
+              return JSON.stringify(obj.detail, null, 2)
+            } catch {
+              return 'Complex error - see console'
+            }
+          }
+
+          // Last resort - stringify the whole thing
+          try {
+            return JSON.stringify(obj, null, 2)
+          } catch {
+            return 'Error details unavailable'
+          }
+        }
+
+        errorMessage = extractMessage(error)
+
+        console.log('DEBUG - Extracted message:', errorMessage)
+
         results.push({
           config,
           success: false,
-          message: error.message || error.detail || 'Deployment failed',
+          message: errorMessage,
         })
       }
     }
 
-    // Show results
-    console.log('Deployment results:', results)
+    // Show results only if we completed the loop (no conflict modal shown)
+    if (!showConflictModal.value) {
+      console.log('Deployment results:', results)
 
-    let message = `Deployment completed!\n\n`
-    message += `✓ Successful: ${successCount}\n`
-    if (failCount > 0) {
-      message += `✗ Failed: ${failCount}\n\n`
-
-      // Show failed deployments
-      const failures = results.filter(r => !r.success)
-      if (failures.length > 0) {
-        message += `Failed deployments:\n`
-        failures.forEach(f => {
-          message += `- ${f.config.flowName} (${f.config.target}): ${f.message}\n`
-        })
+      // Populate results modal data
+      deploymentResults.value = {
+        successCount,
+        failCount,
+        total: successCount + failCount,
+        successful: results.filter(r => r.success),
+        failed: results.filter(r => !r.success)
       }
-    }
 
-    alert(message)
-
-    // Reset wizard on success
-    if (failCount === 0) {
-      currentStep.value = 0
-      selectedFlows.value = []
-      deploymentTargets.value = {}
-      deploymentConfigs.value = []
+      // Show results modal
+      showResultsModal.value = true
     }
 
   } catch (error: any) {
@@ -888,6 +1149,93 @@ const deployFlows = async () => {
     alert('Deployment failed: ' + (error.message || error))
   } finally {
     isDeploying.value = false
+  }
+}
+
+const handleConflictResolution = async (resolution: string) => {
+  conflictResolution.value = resolution
+  isResolvingConflict.value = true
+
+  try {
+    const { config, deploymentRequest } = currentConflictDeployment.value
+    const existingPgId = conflictInfo.value.existing_process_group.id
+
+    if (resolution === 'deploy_anyway') {
+      // Deploy anyway - just clear the process_group_name to let NiFi use default name
+      const modifiedRequest = { ...deploymentRequest, process_group_name: null }
+
+      const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
+        method: 'POST',
+        body: JSON.stringify(modifiedRequest),
+      })
+
+      if (result.status === 'success') {
+        alert(`✓ Successfully deployed!\nProcess Group: ${result.process_group_name}`)
+        showConflictModal.value = false
+        conflictInfo.value = null
+        currentConflictDeployment.value = null
+      }
+    } else if (resolution === 'delete_and_deploy') {
+      // Delete existing process group first
+      await apiRequest(`/api/deploy/${config.instanceId}/process-group/${existingPgId}`, {
+        method: 'DELETE',
+      })
+
+      // Then deploy new one
+      const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
+        method: 'POST',
+        body: JSON.stringify(deploymentRequest),
+      })
+
+      if (result.status === 'success') {
+        alert(`✓ Successfully deployed after deleting old process group!\nProcess Group: ${result.process_group_name}`)
+        showConflictModal.value = false
+        conflictInfo.value = null
+        currentConflictDeployment.value = null
+      }
+    } else if (resolution === 'update_version') {
+      // Update existing process group to new version
+      const updateRequest = {
+        version: deploymentRequest.version,
+      }
+
+      const result = await apiRequest(`/api/deploy/${config.instanceId}/process-group/${existingPgId}/update-version`, {
+        method: 'POST',
+        body: JSON.stringify(updateRequest),
+      })
+
+      if (result.status === 'success') {
+        alert(`✓ Successfully updated process group to new version!`)
+        showConflictModal.value = false
+        conflictInfo.value = null
+        currentConflictDeployment.value = null
+      }
+    }
+  } catch (error: any) {
+    console.error('Conflict resolution failed:', error)
+    alert(`✗ Failed to ${resolution.replace('_', ' ')}: ${error.message || error.detail || 'Unknown error'}`)
+  } finally {
+    isResolvingConflict.value = false
+    conflictResolution.value = ''
+  }
+}
+
+const closeResultsAndReset = () => {
+  showResultsModal.value = false
+
+  // Reset wizard to start
+  currentStep.value = 0
+  selectedFlows.value = []
+  deploymentTargets.value = {}
+  deploymentConfigs.value = []
+
+  // Clear results
+  deploymentResults.value = {
+    successCount: 0,
+    failCount: 0,
+    total: 0,
+    successful: [],
+    failed: []
   }
 }
 
@@ -1418,6 +1766,260 @@ onMounted(async () => {
 
   i {
     font-size: 4rem;
+  }
+}
+
+// Conflict Modal
+.conflict-modal {
+  .conflict-details {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+
+    h6 {
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+
+      li {
+        margin-bottom: 8px;
+      }
+    }
+
+    code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+  }
+
+  .conflict-actions {
+    .btn {
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      i {
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
+// Deployment Results Modal
+.deployment-results {
+  .results-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+
+    .stat-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      border: 2px solid transparent;
+
+      &.success {
+        border-color: #28a745;
+        background: #d4edda;
+      }
+
+      &.failed {
+        border-color: #dc3545;
+        background: #f8d7da;
+      }
+
+      &.total {
+        border-color: #007bff;
+        background: #d1ecf1;
+      }
+
+      .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+
+        .success & {
+          background: #28a745;
+          color: white;
+        }
+
+        .failed & {
+          background: #dc3545;
+          color: white;
+        }
+
+        .total & {
+          background: #007bff;
+          color: white;
+        }
+      }
+
+      .stat-content {
+        .stat-value {
+          font-size: 32px;
+          font-weight: 700;
+          line-height: 1;
+          margin-bottom: 5px;
+        }
+
+        .stat-label {
+          font-size: 14px;
+          color: #6c757d;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+
+  .results-section {
+    margin-bottom: 25px;
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      font-weight: 600;
+
+      i {
+        font-size: 20px;
+      }
+    }
+
+    &.success-section .section-title {
+      color: #28a745;
+    }
+
+    &.failed-section .section-title {
+      color: #dc3545;
+    }
+
+    .result-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .result-item {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 15px;
+      background: white;
+
+      &.success {
+        border-color: #28a745;
+        background: #f8fff9;
+      }
+
+      &.failed {
+        border-color: #dc3545;
+        background: #fff8f8;
+      }
+
+      .result-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+
+        i {
+          font-size: 20px;
+
+          .success & {
+            color: #28a745;
+          }
+
+          .failed & {
+            color: #dc3545;
+          }
+        }
+
+        strong {
+          flex: 1;
+        }
+
+        .badge {
+          padding: 4px 10px;
+          font-size: 12px;
+          border-radius: 4px;
+
+          &.badge-primary {
+            background: #007bff;
+            color: white;
+          }
+
+          &.badge-success {
+            background: #28a745;
+            color: white;
+          }
+        }
+      }
+
+      .result-details {
+        padding-left: 30px;
+
+        .detail-row {
+          display: flex;
+          gap: 10px;
+          margin-bottom: 8px;
+          font-size: 14px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          .label {
+            font-weight: 600;
+            color: #6c757d;
+            min-width: 120px;
+          }
+
+          &.error {
+            color: #dc3545;
+
+            .label {
+              color: #dc3545;
+            }
+          }
+
+          code {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #007bff;
+
+            &.small {
+              font-size: 11px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .results-actions {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid #e9ecef;
   }
 }
 </style>

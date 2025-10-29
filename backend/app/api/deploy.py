@@ -108,27 +108,35 @@ async def deploy_flow(
 
         # Get registry client
         reg_client = versioning.get_registry_client(registry_client_id, 'id')
-        print(f"  Registry Client: {reg_client.component.name if hasattr(reg_client, 'component') else registry_client_id}")
+        reg_client_name = reg_client.component.name if hasattr(reg_client, 'component') else registry_client_id
+        print(f"  Registry Client: {reg_client_name}")
 
         # Get bucket and flow identifiers
-        print(f"Getting bucket and flow identifiers...")
-        try:
-            bucket = versioning.get_registry_bucket(bucket_id, service='nifi')
-            print(f"  Bucket: {bucket.name} ({bucket.identifier})")
+        # Skip lookup for GitHub registries (they don't support bucket/flow lookup API)
+        is_github_registry = 'github' in reg_client_name.lower() if reg_client_name else False
 
-            flow = versioning.get_flow_in_bucket(
-                bucket.identifier,
-                identifier=flow_id,
-                service='nifi'
-            )
-            print(f"  Flow: {flow.name} ({flow.identifier})")
-
-            bucket_identifier = bucket.identifier
-            flow_identifier = flow.identifier
-        except Exception as lookup_error:
-            print(f"  Could not lookup bucket/flow, using provided values: {lookup_error}")
+        if is_github_registry:
+            print(f"GitHub registry detected, using provided bucket/flow IDs directly")
             bucket_identifier = bucket_id
             flow_identifier = flow_id
+        else:
+            print(f"Getting bucket and flow identifiers from NiFi Registry...")
+            try:
+                bucket = versioning.get_registry_bucket(bucket_id)
+                print(f"  Bucket: {bucket.name} ({bucket.identifier})")
+
+                flow = versioning.get_flow_in_bucket(
+                    bucket.identifier,
+                    identifier=flow_id
+                )
+                print(f"  Flow: {flow.name} ({flow.identifier})")
+
+                bucket_identifier = bucket.identifier
+                flow_identifier = flow.identifier
+            except Exception as lookup_error:
+                print(f"  Could not lookup bucket/flow, using provided values: {lookup_error}")
+                bucket_identifier = bucket_id
+                flow_identifier = flow_id
 
         # Determine version to deploy
         # For GitHub registries: need actual commit hash (last in list = latest)
@@ -168,6 +176,56 @@ async def deploy_flow(
                 print(f"  Warning: Could not fetch versions: {e}")
                 print(f"  Falling back to version=None")
                 deploy_version = None
+
+        # Pre-deployment check: Check if process group with same name already exists
+        if deployment.process_group_name:
+            print(f"Checking if process group '{deployment.process_group_name}' already exists in parent...")
+
+            from nipyapi.nifi import ProcessGroupsApi
+            pg_api = ProcessGroupsApi()
+
+            try:
+                parent_pg_response = pg_api.get_process_groups(id=deployment.parent_process_group_id)
+
+                existing_pg = None
+                if hasattr(parent_pg_response, 'process_groups'):
+                    for pg in parent_pg_response.process_groups:
+                        if hasattr(pg, 'component') and hasattr(pg.component, 'name'):
+                            if pg.component.name == deployment.process_group_name:
+                                existing_pg = pg
+                                break
+
+                if existing_pg:
+                    print(f"  ⚠ Process group '{deployment.process_group_name}' already exists (ID: {existing_pg.id})")
+
+                    # Check if there's version control information
+                    has_version_control = False
+                    if hasattr(existing_pg, 'component') and hasattr(existing_pg.component, 'version_control_information'):
+                        vci = existing_pg.component.version_control_information
+                        if vci:
+                            has_version_control = True
+
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail={
+                            "message": f"Process group '{deployment.process_group_name}' already exists",
+                            "existing_process_group": {
+                                "id": existing_pg.id,
+                                "name": existing_pg.component.name if hasattr(existing_pg, 'component') else None,
+                                "has_version_control": has_version_control,
+                                "running_count": existing_pg.running_count if hasattr(existing_pg, 'running_count') else 0,
+                                "stopped_count": existing_pg.stopped_count if hasattr(existing_pg, 'stopped_count') else 0,
+                            }
+                        }
+                    )
+                else:
+                    print(f"  ✓ No existing process group found with name '{deployment.process_group_name}'")
+
+            except HTTPException:
+                raise
+            except Exception as check_error:
+                print(f"  Warning: Could not check for existing process group: {check_error}")
+                # Continue with deployment if check fails
 
         # Deploy using nipyapi.versioning.deploy_flow_version
         print(f"Deploying flow using nipyapi.versioning.deploy_flow_version:")
@@ -470,21 +528,25 @@ async def get_process_group(
 async def search_process_groups(
     instance_id: int,
     name: str = None,
+    parent_id: str = None,
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
     """
-    Search for process groups on a NiFi instance by name.
+    Search for process groups on a NiFi instance by name and/or parent.
 
-    If name is not provided, returns all process groups.
+    If name is not provided, returns all process groups (or children of parent_id if specified).
     If name is provided, searches for process groups matching that name.
+    If parent_id is provided, only returns children of that process group.
 
     Args:
         instance_id: ID of the NiFi instance
         name: Optional name to search for (supports partial matching)
+        parent_id: Optional parent process group ID to search within
 
     Returns:
-        List of process groups with id, name, and parent information
+        List of process groups with id, name, and parent information.
+        If both name and parent_id are provided, checks if a child with that name exists.
     """
     instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
 
@@ -519,8 +581,32 @@ async def search_process_groups(
 
         process_groups = []
 
-        if name:
-            # Search for process groups by name
+        if parent_id and name:
+            # Check for a specific child process group by name within a parent
+            print(f"Checking for child process group with name '{name}' in parent '{parent_id}'")
+
+            # Get all process groups from the parent
+            from nipyapi.nifi import ProcessGroupsApi
+            pg_api = ProcessGroupsApi()
+            parent_pg_response = pg_api.get_process_groups(id=parent_id)
+
+            if hasattr(parent_pg_response, 'process_groups'):
+                for pg in parent_pg_response.process_groups:
+                    if hasattr(pg, 'component') and hasattr(pg.component, 'name'):
+                        if pg.component.name == name:
+                            process_groups.append(pg)
+        elif parent_id:
+            # List all children of a specific parent
+            print(f"Listing all child process groups of parent '{parent_id}'")
+
+            from nipyapi.nifi import ProcessGroupsApi
+            pg_api = ProcessGroupsApi()
+            parent_pg_response = pg_api.get_process_groups(id=parent_id)
+
+            if hasattr(parent_pg_response, 'process_groups'):
+                process_groups = parent_pg_response.process_groups
+        elif name:
+            # Search for process groups by name (globally)
             print(f"Searching for process groups with name: {name}")
             result = canvas.get_process_group(identifier=name, identifier_type='name', greedy=True)
 
@@ -560,6 +646,8 @@ async def search_process_groups(
             "process_groups": pg_list,
             "count": len(pg_list),
             "search_name": name,
+            "parent_id": parent_id,
+            "exists": len(pg_list) > 0 if (parent_id and name) else None,
         }
 
     except Exception as e:
@@ -1151,4 +1239,149 @@ async def create_connection(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create connection: {error_msg}",
+        )
+
+
+@router.delete("/{instance_id}/process-group/{process_group_id}")
+async def delete_process_group(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a process group from a NiFi instance.
+    """
+    instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+    if not instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"NiFi instance with ID {instance_id} not found",
+        )
+
+    try:
+        import nipyapi
+        from nipyapi import config, security, canvas
+
+        # Configure nipyapi
+        nifi_base_url = instance.nifi_url.rstrip("/")
+        if nifi_base_url.endswith('/nifi-api'):
+            nifi_base_url = nifi_base_url[:-9]
+
+        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
+        config.nifi_config.verify_ssl = instance.verify_ssl
+
+        if not instance.verify_ssl:
+            nipyapi.config.disable_insecure_request_warnings = True
+
+        # Decrypt password and authenticate
+        password = None
+        if instance.password_encrypted:
+            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+
+        if instance.username and password:
+            config.nifi_config.username = instance.username
+            config.nifi_config.password = password
+            security.service_login(service='nifi', username=instance.username, password=password)
+
+        print(f"Deleting process group {process_group_id}...")
+
+        # Get the process group first
+        from nipyapi.nifi import ProcessGroupsApi
+        pg_api = ProcessGroupsApi()
+        pg = pg_api.get_process_group(id=process_group_id)
+
+        # Delete the process group
+        result = canvas.delete_process_group(pg, force=True, refresh=True)
+
+        print(f"✓ Process group deleted successfully")
+
+        return {
+            "status": "success",
+            "message": f"Process group deleted successfully",
+            "process_group_id": process_group_id
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Failed to delete process group: {error_msg}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete process group: {error_msg}",
+        )
+
+
+@router.post("/{instance_id}/process-group/{process_group_id}/update-version")
+async def update_process_group_version(
+    instance_id: int,
+    process_group_id: str,
+    version_request: dict,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Update a version-controlled process group to a new version.
+    """
+    instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+    if not instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"NiFi instance with ID {instance_id} not found",
+        )
+
+    try:
+        import nipyapi
+        from nipyapi import config, security, versioning
+
+        # Configure nipyapi
+        nifi_base_url = instance.nifi_url.rstrip("/")
+        if nifi_base_url.endswith('/nifi-api'):
+            nifi_base_url = nifi_base_url[:-9]
+
+        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
+        config.nifi_config.verify_ssl = instance.verify_ssl
+
+        if not instance.verify_ssl:
+            nipyapi.config.disable_insecure_request_warnings = True
+
+        # Decrypt password and authenticate
+        password = None
+        if instance.password_encrypted:
+            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+
+        if instance.username and password:
+            config.nifi_config.username = instance.username
+            config.nifi_config.password = password
+            security.service_login(service='nifi', username=instance.username, password=password)
+
+        print(f"Updating process group {process_group_id} to new version...")
+
+        # Get the process group
+        from nipyapi.nifi import ProcessGroupsApi
+        pg_api = ProcessGroupsApi()
+        pg = pg_api.get_process_group(id=process_group_id)
+
+        # Update to latest version
+        target_version = version_request.get('version')  # None = latest
+        result = versioning.update_flow_version(process_group=pg, target_version=target_version)
+
+        print(f"✓ Process group updated successfully")
+
+        return {
+            "status": "success",
+            "message": f"Process group updated to new version",
+            "process_group_id": process_group_id,
+            "version": target_version
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        print(f"Failed to update process group version: {error_msg}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update process group version: {error_msg}",
         )

@@ -174,6 +174,14 @@
               </td>
               <td class="text-end">
                 <div class="action-buttons">
+                  <b-button size="sm" variant="outline-success" @click="handleQuickDeploySource(flow)" title="Deploy to Source" :disabled="deployingFlows[`${flow.id}-source`]">
+                    <b-spinner v-if="deployingFlows[`${flow.id}-source`]" small></b-spinner>
+                    <i v-else class="pe-7s-angle-right-circle"></i>
+                  </b-button>
+                  <b-button size="sm" variant="outline-success" @click="handleQuickDeployDest(flow)" title="Deploy to Destination" :disabled="deployingFlows[`${flow.id}-dest`]">
+                    <b-spinner v-if="deployingFlows[`${flow.id}-dest`]" small></b-spinner>
+                    <i v-else class="pe-7s-angle-left-circle"></i>
+                  </b-button>
                   <b-button size="sm" variant="outline-primary" @click="handleEdit(flow)" title="Edit">
                     <i class="pe-7s-pen"></i>
                   </b-button>
@@ -386,6 +394,157 @@
         </b-button>
       </template>
     </b-modal>
+
+    <!-- Conflict Resolution Modal -->
+    <b-modal v-model="showConflictModal" title="Process Group Already Exists" size="lg" hide-footer>
+      <div v-if="conflictInfo" class="conflict-modal">
+        <div class="alert alert-warning">
+          <i class="pe-7s-attention"></i>
+          <strong>A process group with this name already exists</strong>
+        </div>
+
+        <div class="conflict-details">
+          <h6>Existing Process Group:</h6>
+          <ul>
+            <li><strong>Name:</strong> {{ conflictInfo.existing_process_group.name }}</li>
+            <li><strong>ID:</strong> <code>{{ conflictInfo.existing_process_group.id }}</code></li>
+            <li><strong>Status:</strong>
+              {{ conflictInfo.existing_process_group.running_count }} running,
+              {{ conflictInfo.existing_process_group.stopped_count }} stopped
+            </li>
+            <li><strong>Version Control:</strong>
+              {{ conflictInfo.existing_process_group.has_version_control ? 'Yes' : 'No' }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="conflict-message mb-4">
+          <p>{{ conflictInfo.message }}</p>
+          <p class="text-muted">What would you like to do?</p>
+        </div>
+
+        <div class="conflict-actions">
+          <b-button
+            variant="primary"
+            @click="handleConflictResolution('deploy_anyway')"
+            :disabled="isResolvingConflict"
+            class="mb-2 w-100"
+          >
+            <b-spinner v-if="isResolvingConflict && conflictResolution === 'deploy_anyway'" small class="me-2"></b-spinner>
+            <i v-else class="pe-7s-plus"></i>
+            Deploy Anyway (Create Additional Process Group)
+          </b-button>
+
+          <b-button
+            variant="danger"
+            @click="handleConflictResolution('delete_and_deploy')"
+            :disabled="isResolvingConflict"
+            class="mb-2 w-100"
+          >
+            <b-spinner v-if="isResolvingConflict && conflictResolution === 'delete_and_deploy'" small class="me-2"></b-spinner>
+            <i v-else class="pe-7s-trash"></i>
+            Delete Existing and Deploy New
+          </b-button>
+
+          <b-button
+            v-if="conflictInfo.existing_process_group.has_version_control"
+            variant="info"
+            @click="handleConflictResolution('update_version')"
+            :disabled="isResolvingConflict"
+            class="mb-2 w-100"
+          >
+            <b-spinner v-if="isResolvingConflict && conflictResolution === 'update_version'" small class="me-2"></b-spinner>
+            <i v-else class="pe-7s-refresh-2"></i>
+            Update to New Version
+          </b-button>
+
+          <b-button
+            variant="outline-secondary"
+            @click="showConflictModal = false"
+            :disabled="isResolvingConflict"
+            class="w-100"
+          >
+            Cancel
+          </b-button>
+        </div>
+      </div>
+    </b-modal>
+
+    <!-- Deployment Result Modal -->
+    <b-modal v-model="showResultModal" :title="deploymentResult.success ? 'Deployment Successful' : 'Deployment Failed'" size="lg" hide-footer>
+      <div class="deployment-result">
+        <div v-if="deploymentResult.success" class="result-success">
+          <div class="result-icon success">
+            <i class="pe-7s-check"></i>
+          </div>
+          <h5 class="mb-3">Flow Deployed Successfully!</h5>
+
+          <div class="result-details">
+            <div class="detail-row">
+              <span class="label">Flow:</span>
+              <strong>{{ deploymentResult.flowName }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="label">Target:</span>
+              <span class="badge" :class="deploymentResult.target === 'source' ? 'badge-primary' : 'badge-success'">
+                {{ deploymentResult.target }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Instance:</span>
+              <span>{{ deploymentResult.instance }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Process Group:</span>
+              <code>{{ deploymentResult.processGroupName }}</code>
+            </div>
+            <div v-if="deploymentResult.processGroupId" class="detail-row">
+              <span class="label">Process Group ID:</span>
+              <code class="small">{{ deploymentResult.processGroupId }}</code>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="result-failed">
+          <div class="result-icon failed">
+            <i class="pe-7s-close"></i>
+          </div>
+          <h5 class="mb-3">Deployment Failed</h5>
+
+          <div class="result-details">
+            <div class="detail-row">
+              <span class="label">Flow:</span>
+              <strong>{{ deploymentResult.flowName }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="label">Target:</span>
+              <span class="badge" :class="deploymentResult.target === 'source' ? 'badge-primary' : 'badge-success'">
+                {{ deploymentResult.target }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Instance:</span>
+              <span>{{ deploymentResult.instance }}</span>
+            </div>
+            <div class="detail-row error">
+              <span class="label">Error:</span>
+              <span>{{ deploymentResult.error }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-actions">
+          <b-button
+            variant="primary"
+            @click="showResultModal = false"
+            class="w-100"
+          >
+            <i class="pe-7s-check"></i>
+            Close
+          </b-button>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -479,6 +638,31 @@ const itemsPerPage = ref(10)
 const showModal = ref(false)
 const selectedFlow = ref<any | null>(null)
 const isViewMode = ref(false)
+
+// Quick deploy state
+const deployingFlows = ref<Record<string, boolean>>({})
+const deploymentSettings = ref<any>(null)
+const nifiInstances = ref<any[]>([])
+const processGroupPaths = ref<Record<string, any[]>>({})
+
+// Conflict resolution
+const showConflictModal = ref(false)
+const conflictInfo = ref<any>(null)
+const currentConflictDeployment = ref<any>(null)
+const isResolvingConflict = ref(false)
+const conflictResolution = ref<string>('')
+
+// Deployment result
+const showResultModal = ref(false)
+const deploymentResult = ref({
+  success: false,
+  flowName: '',
+  target: '',
+  instance: '',
+  processGroupName: '',
+  processGroupId: '',
+  error: ''
+})
 
 const modalTitle = computed(() => {
   if (!selectedFlow.value) return ''
@@ -928,6 +1112,397 @@ const handleRemove = async (flow: any) => {
       alert('Error: ' + (error.message || 'Failed to remove flow'))
     }
   }
+}
+
+// Quick deploy functions
+const handleQuickDeploySource = async (flow: any) => {
+  await quickDeploy(flow, 'source')
+}
+
+const handleQuickDeployDest = async (flow: any) => {
+  await quickDeploy(flow, 'destination')
+}
+
+const quickDeploy = async (flow: any, target: 'source' | 'destination') => {
+  const deployKey = `${flow.id}-${target === 'source' ? 'source' : 'dest'}`
+  deployingFlows.value[deployKey] = true
+
+  try {
+    // Get hierarchy value for top level (instance identifier)
+    const topHierarchy = hierarchyColumns.value[0]
+    const prefix = target === 'source' ? 'src_' : 'dest_'
+    const hierarchyValue = flow[`${prefix}${topHierarchy.name.toLowerCase()}`]
+
+    // Get instance ID
+    const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue, topHierarchy.name)
+    if (!instanceId) {
+      throw new Error(`No NiFi instance found for ${topHierarchy.name}=${hierarchyValue}`)
+    }
+
+    // Get process group using auto-selection logic (same as Deploy.vue)
+    const processGroupId = await autoSelectProcessGroupForFlow(flow, target, instanceId, hierarchyValue)
+    if (!processGroupId) {
+      throw new Error('Could not auto-select process group. Please use the full deployment wizard.')
+    }
+
+    // Generate process group name
+    const processGroupName = generateProcessGroupNameForFlow(flow, target)
+
+    // Get template ID
+    const templateId = target === 'source' ? flow.src_template_id : flow.dest_template_id
+    if (!templateId) {
+      throw new Error('No template configured for this flow')
+    }
+
+    // Deploy
+    const deploymentRequest = {
+      template_id: templateId,
+      parent_process_group_id: processGroupId,
+      process_group_name: processGroupName,
+      version: null,
+      x_position: 0,
+      y_position: 0,
+    }
+
+    try {
+      const result = await apiRequest(`/api/deploy/${instanceId}/flow`, {
+        method: 'POST',
+        body: JSON.stringify(deploymentRequest),
+      })
+
+      if (result.status === 'success') {
+        // Show success modal
+        deploymentResult.value = {
+          success: true,
+          flowName: getFlowIdentifier(flow),
+          target,
+          instance: hierarchyValue,
+          processGroupName: result.process_group_name,
+          processGroupId: result.process_group_id || '',
+          error: ''
+        }
+        showResultModal.value = true
+      } else {
+        throw new Error(result.message || 'Deployment failed')
+      }
+    } catch (apiError: any) {
+      // Check if it's a 409 Conflict (process group already exists)
+      if (apiError.status === 409 && apiError.detail) {
+        // Store conflict info and show modal
+        conflictInfo.value = apiError.detail
+        currentConflictDeployment.value = {
+          flow,
+          target,
+          instanceId,
+          hierarchyValue,
+          processGroupName,
+          deploymentRequest
+        }
+        showConflictModal.value = true
+      } else {
+        throw apiError
+      }
+    }
+  } catch (error: any) {
+    console.error(`Error deploying to ${target}:`, error)
+
+    // Get flow identifier
+    const flowIdentifier = hierarchyColumns.value
+      .map(col => `${flow[`src_${col.name.toLowerCase()}`]} → ${flow[`dest_${col.name.toLowerCase()}`]}`)
+      .join(' / ')
+
+    // Show error modal
+    deploymentResult.value = {
+      success: false,
+      flowName: flowIdentifier,
+      target,
+      instance: flow[`${target === 'source' ? 'src_' : 'dest_'}${hierarchyColumns.value[0]?.name.toLowerCase()}`] || '',
+      processGroupName: '',
+      processGroupId: '',
+      error: error.message || 'Unknown error'
+    }
+    showResultModal.value = true
+  } finally {
+    deployingFlows.value[deployKey] = false
+  }
+}
+
+const getFlowIdentifier = (flow: any) => {
+  return hierarchyColumns.value
+    .map(col => `${flow[`src_${col.name.toLowerCase()}`]} → ${flow[`dest_${col.name.toLowerCase()}`]}`)
+    .join(' / ')
+}
+
+const handleConflictResolution = async (resolution: string) => {
+  conflictResolution.value = resolution
+  isResolvingConflict.value = true
+
+  try {
+    const { flow, target, instanceId, hierarchyValue, processGroupName, deploymentRequest } = currentConflictDeployment.value
+    const existingPgId = conflictInfo.value.existing_process_group.id
+
+    if (resolution === 'deploy_anyway') {
+      // Deploy anyway - clear the process_group_name to let NiFi use default name
+      const modifiedRequest = { ...deploymentRequest, process_group_name: null }
+
+      const result = await apiRequest(`/api/deploy/${instanceId}/flow`, {
+        method: 'POST',
+        body: JSON.stringify(modifiedRequest),
+      })
+
+      if (result.status === 'success') {
+        showConflictModal.value = false
+        conflictInfo.value = null
+        currentConflictDeployment.value = null
+
+        // Show success modal
+        deploymentResult.value = {
+          success: true,
+          flowName: getFlowIdentifier(flow),
+          target,
+          instance: hierarchyValue,
+          processGroupName: result.process_group_name,
+          processGroupId: result.process_group_id || '',
+          error: ''
+        }
+        showResultModal.value = true
+      }
+    } else if (resolution === 'delete_and_deploy') {
+      // Delete existing process group first
+      await apiRequest(`/api/deploy/${instanceId}/process-group/${existingPgId}`, {
+        method: 'DELETE',
+      })
+
+      // Then deploy new one
+      const result = await apiRequest(`/api/deploy/${instanceId}/flow`, {
+        method: 'POST',
+        body: JSON.stringify(deploymentRequest),
+      })
+
+      if (result.status === 'success') {
+        showConflictModal.value = false
+        conflictInfo.value = null
+        currentConflictDeployment.value = null
+
+        // Show success modal
+        deploymentResult.value = {
+          success: true,
+          flowName: getFlowIdentifier(flow),
+          target,
+          instance: hierarchyValue,
+          processGroupName: result.process_group_name,
+          processGroupId: result.process_group_id || '',
+          error: ''
+        }
+        showResultModal.value = true
+      }
+    } else if (resolution === 'update_version') {
+      // Update existing process group to new version
+      const updateRequest = {
+        version: deploymentRequest.version,
+      }
+
+      const result = await apiRequest(`/api/deploy/${instanceId}/process-group/${existingPgId}/update-version`, {
+        method: 'POST',
+        body: JSON.stringify(updateRequest),
+      })
+
+      if (result.status === 'success') {
+        showConflictModal.value = false
+        conflictInfo.value = null
+        currentConflictDeployment.value = null
+
+        // Show success modal
+        deploymentResult.value = {
+          success: true,
+          flowName: getFlowIdentifier(flow),
+          target,
+          instance: hierarchyValue,
+          processGroupName: processGroupName,
+          processGroupId: existingPgId,
+          error: ''
+        }
+        showResultModal.value = true
+      }
+    }
+  } catch (error: any) {
+    console.error('Conflict resolution failed:', error)
+
+    // Show error modal
+    const { flow, target, hierarchyValue } = currentConflictDeployment.value
+    deploymentResult.value = {
+      success: false,
+      flowName: getFlowIdentifier(flow),
+      target,
+      instance: hierarchyValue,
+      processGroupName: '',
+      processGroupId: '',
+      error: error.message || error.detail || 'Unknown error'
+    }
+    showConflictModal.value = false
+    showResultModal.value = true
+  } finally {
+    isResolvingConflict.value = false
+    conflictResolution.value = ''
+
+    // Clear deploying flag
+    if (currentConflictDeployment.value) {
+      const { flow, target } = currentConflictDeployment.value
+      const deployKey = `${flow.id}-${target === 'source' ? 'source' : 'dest'}`
+      deployingFlows.value[deployKey] = false
+    }
+  }
+}
+
+const getInstanceIdForHierarchyValue = async (hierarchyValue: string, hierarchyAttr: string): Promise<number | null> => {
+  try {
+    if (nifiInstances.value.length === 0) {
+      const data = await apiRequest('/api/nifi-instances/')
+      nifiInstances.value = data
+    }
+
+    const instance = nifiInstances.value.find(
+      inst => inst.hierarchy_attribute === hierarchyAttr && inst.hierarchy_value === hierarchyValue
+    )
+
+    return instance ? instance.id : null
+  } catch (error) {
+    console.error('Error getting instance ID:', error)
+    return null
+  }
+}
+
+const autoSelectProcessGroupForFlow = async (flow: any, target: 'source' | 'destination', instanceId: number, cacheKey: string): Promise<string | null> => {
+  try {
+    // Load deployment settings if not already loaded
+    if (!deploymentSettings.value) {
+      const data = await apiRequest('/api/settings/deploy')
+      const paths: { [key: number]: { source_path?: string; dest_path?: string } } = {}
+      if (data.paths) {
+        Object.keys(data.paths).forEach(key => {
+          const numKey = parseInt(key, 10)
+          paths[numKey] = data.paths[key]
+        })
+      }
+      deploymentSettings.value = {
+        global: data.global,
+        paths: paths
+      }
+    }
+
+    // Load process group paths for this instance
+    if (!processGroupPaths.value[cacheKey]) {
+      const data = await apiRequest(`/api/deploy/${instanceId}/get-all-paths`)
+      if (data.status === 'success' && data.process_groups) {
+        processGroupPaths.value[cacheKey] = data.process_groups
+      }
+    }
+
+    const availablePaths = processGroupPaths.value[cacheKey] || []
+    if (availablePaths.length === 0) return null
+
+    // Get search path from settings
+    if (!deploymentSettings.value.paths || !deploymentSettings.value.paths[instanceId]) {
+      return null
+    }
+
+    const searchPathId = target === 'source'
+      ? deploymentSettings.value.paths[instanceId].source_path
+      : deploymentSettings.value.paths[instanceId].dest_path
+
+    if (!searchPathId) return null
+
+    // Find the search path
+    const searchPath = availablePaths.find((p: any) => p.id === searchPathId)
+    if (!searchPath) return null
+
+    const searchPathNames = searchPath.path.slice().reverse().map((p: any) => p.name)
+
+    // Get hierarchy attributes (skip first and last)
+    const hierarchyAttributes: string[] = []
+    const prefix = target === 'source' ? 'src_' : 'dest_'
+
+    for (let i = 1; i < hierarchyColumns.value.length - 1; i++) {
+      const attrName = hierarchyColumns.value[i].name.toLowerCase()
+      const value = flow[`${prefix}${attrName}`]
+      if (value) {
+        hierarchyAttributes.push(value)
+      }
+    }
+
+    // Find matching path
+    for (const pg of availablePaths) {
+      const pgPathNames = pg.path.slice().reverse().map((p: any) => p.name)
+
+      // Check if starts with search path
+      let startsWithSearchPath = true
+      for (let i = 0; i < searchPathNames.length; i++) {
+        if (pgPathNames[i] !== searchPathNames[i]) {
+          startsWithSearchPath = false
+          break
+        }
+      }
+
+      if (!startsWithSearchPath) continue
+
+      // Check if contains hierarchy attributes in order
+      let matchesHierarchy = true
+      let searchIndex = searchPathNames.length
+
+      for (const attr of hierarchyAttributes) {
+        let found = false
+        for (let i = searchIndex; i < pgPathNames.length; i++) {
+          if (pgPathNames[i] === attr) {
+            found = true
+            searchIndex = i + 1
+            break
+          }
+        }
+        if (!found) {
+          matchesHierarchy = false
+          break
+        }
+      }
+
+      if (matchesHierarchy) {
+        return pg.id
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error('Error in autoSelectProcessGroupForFlow:', error)
+    return null
+  }
+}
+
+const generateProcessGroupNameForFlow = (flow: any, target: 'source' | 'destination'): string => {
+  const template = deploymentSettings.value?.global?.process_group_name_template || '{last_hierarchy_value}'
+  const prefix = target === 'source' ? 'src_' : 'dest_'
+  const hierarchyValues: string[] = []
+
+  for (let i = 0; i < hierarchyColumns.value.length; i++) {
+    const attrName = hierarchyColumns.value[i].name.toLowerCase()
+    const value = flow[`${prefix}${attrName}`] || ''
+    hierarchyValues.push(value)
+  }
+
+  let result = template
+
+  if (hierarchyValues.length > 0) {
+    result = result.replace(/{first_hierarchy_value}/g, hierarchyValues[0])
+  }
+
+  if (hierarchyValues.length > 0) {
+    result = result.replace(/{last_hierarchy_value}/g, hierarchyValues[hierarchyValues.length - 1])
+  }
+
+  for (let i = 0; i < hierarchyValues.length; i++) {
+    const placeholder = `{${i + 1}_hierarchy_value}`
+    result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), hierarchyValues[i])
+  }
+
+  return result
 }
 
 const handleModalOk = async () => {
@@ -1432,6 +2007,141 @@ onMounted(async () => {
     padding: 12px 20px;
     background: #f8f9fa;
     border-top: 2px solid #e9ecef;
+  }
+}
+
+// Conflict Modal (reuse from Deploy.vue)
+.conflict-modal {
+  .conflict-details {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+
+    h6 {
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+
+      li {
+        margin-bottom: 8px;
+      }
+    }
+
+    code {
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.875rem;
+    }
+  }
+
+  .conflict-actions {
+    .btn {
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      i {
+        font-size: 1.2rem;
+      }
+    }
+  }
+}
+
+// Deployment Result Modal
+.deployment-result {
+  text-align: center;
+
+  .result-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+
+    &.success {
+      background: #d4edda;
+      color: #28a745;
+    }
+
+    &.failed {
+      background: #f8d7da;
+      color: #dc3545;
+    }
+  }
+
+  .result-details {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+
+    .detail-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 14px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .label {
+        font-weight: 600;
+        color: #6c757d;
+        min-width: 140px;
+      }
+
+      &.error {
+        color: #dc3545;
+
+        .label {
+          color: #dc3545;
+        }
+      }
+
+      code {
+        background: #e9ecef;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #007bff;
+
+        &.small {
+          font-size: 11px;
+        }
+      }
+
+      .badge {
+        padding: 4px 10px;
+        font-size: 12px;
+        border-radius: 4px;
+
+        &.badge-primary {
+          background: #007bff;
+          color: white;
+        }
+
+        &.badge-success {
+          background: #28a745;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .result-actions {
+    margin-top: 20px;
   }
 }
 </style>

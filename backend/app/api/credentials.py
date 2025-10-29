@@ -12,7 +12,6 @@ from app.models.credential import (
     CredentialCreate,
     CredentialUpdate,
     CredentialResponse,
-    CredentialWithPassword,
 )
 from app.services.encryption_service import encryption_service
 

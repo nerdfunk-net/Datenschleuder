@@ -80,19 +80,27 @@ async def startup_event():
             print(f"✓ Created default admin user: {settings.DEFAULT_ADMIN_USERNAME}")
             print(f"  Username: {settings.DEFAULT_ADMIN_USERNAME}")
             print(f"  Password: {settings.DEFAULT_ADMIN_PASSWORD}")
-            print(f"  Role: Administrator")
+            print("  Role: Administrator")
         else:
-            admin_user = db.query(User).filter(User.username == settings.DEFAULT_ADMIN_USERNAME).first()
+            admin_user = (
+                db.query(User)
+                .filter(User.username == settings.DEFAULT_ADMIN_USERNAME)
+                .first()
+            )
             if admin_user:
                 print(f"✓ Admin user already exists: {settings.DEFAULT_ADMIN_USERNAME}")
             else:
-                print(f"⚠ Users exist but no admin user found. You may need to create one manually.")
+                print(
+                    "⚠ Users exist but no admin user found. You may need to create one manually."
+                )
     except Exception as e:
         print(f"✗ Failed to create admin user: {e}")
         import traceback
+
         traceback.print_exc()
         db.close()
         import sys
+
         sys.exit(1)
     finally:
         db.close()

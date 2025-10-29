@@ -13,6 +13,7 @@ class DeploymentRequest(BaseModel):
 
     Can specify either template_id (to lookup registry info) or direct registry parameters.
     """
+
     # Option 1: Use template_id to lookup registry flow information
     template_id: Optional[int] = None
 
@@ -23,14 +24,19 @@ class DeploymentRequest(BaseModel):
 
     # Common parameters
     parent_process_group_id: Optional[str] = None  # ID of parent PG, None = root
-    process_group_name: Optional[str] = None  # Name for the deployed process group (will rename after deployment)
-    version: Optional[Union[int, str]] = None  # None = latest; int for NiFi Registry, str (commit hash) for GitHub Registry
+    process_group_name: Optional[str] = (
+        None  # Name for the deployed process group (will rename after deployment)
+    )
+    version: Optional[Union[int, str]] = (
+        None  # None = latest; int for NiFi Registry, str (commit hash) for GitHub Registry
+    )
     x_position: Optional[int] = 0
     y_position: Optional[int] = 0
 
 
 class DeploymentResponse(BaseModel):
     """Response model for deployment operation"""
+
     status: str
     message: str
     process_group_id: Optional[str] = None
@@ -38,11 +44,14 @@ class DeploymentResponse(BaseModel):
     instance_id: int
     bucket_id: str
     flow_id: str
-    version: Optional[Union[int, str]] = None  # int for NiFi Registry, str (commit hash) for GitHub Registry
+    version: Optional[Union[int, str]] = (
+        None  # int for NiFi Registry, str (commit hash) for GitHub Registry
+    )
 
 
 class PortInfo(BaseModel):
     """Information about a NiFi port (input or output)"""
+
     id: str
     name: str
     state: str
@@ -51,6 +60,7 @@ class PortInfo(BaseModel):
 
 class PortsResponse(BaseModel):
     """Response model for listing ports"""
+
     process_group_id: str
     process_group_name: Optional[str] = None
     ports: List[PortInfo]
@@ -58,14 +68,18 @@ class PortsResponse(BaseModel):
 
 class ConnectionRequest(BaseModel):
     """Request to create a connection between two ports/processors"""
+
     source_id: str  # ID of source port/processor
     target_id: str  # ID of target port/processor
     name: Optional[str] = None  # Optional name for the connection
-    relationships: Optional[List[str]] = None  # For processors, list of relationships to connect
+    relationships: Optional[List[str]] = (
+        None  # For processors, list of relationships to connect
+    )
 
 
 class ConnectionResponse(BaseModel):
     """Response model for connection creation"""
+
     status: str
     message: str
     connection_id: str
@@ -77,13 +91,17 @@ class ConnectionResponse(BaseModel):
 
 class DeploymentPathSettings(BaseModel):
     """Deployment path settings for a specific NiFi instance"""
+
     instance_id: int
     source_path: Optional[str] = None  # Path for source element in top hierarchy
-    dest_path: Optional[str] = None    # Path for destination element in top hierarchy
+    dest_path: Optional[str] = None  # Path for destination element in top hierarchy
 
 
 class DeploymentSettings(BaseModel):
     """Global deployment settings"""
-    process_group_name_template: str = "{last_hierarchy_value}"  # Default: use last hierarchy value
+
+    process_group_name_template: str = (
+        "{last_hierarchy_value}"  # Default: use last hierarchy value
+    )
     disable_after_deploy: bool = False
     create_parameter_context: bool = True

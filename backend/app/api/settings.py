@@ -17,6 +17,7 @@ router = APIRouter(prefix="/api/settings", tags=["settings"])
 # Data Format Schemas
 class HierarchyAttribute(BaseModel):
     """Single attribute in the hierarchy"""
+
     name: str  # e.g., "CN", "O", "OU", "DC"
     label: str  # e.g., "Common Name", "Organization"
     order: int  # Position in hierarchy (0 = top level)
@@ -24,14 +25,15 @@ class HierarchyAttribute(BaseModel):
 
 class HierarchySettings(BaseModel):
     """Hierarchical data format configuration"""
+
     hierarchy: List[HierarchyAttribute]
 
-    @validator('hierarchy')
+    @validator("hierarchy")
     def validate_unique_names(cls, v):
         """Ensure all attribute names are unique"""
         names = [attr.name for attr in v]
         if len(names) != len(set(names)):
-            raise ValueError('Attribute names must be unique')
+            raise ValueError("Attribute names must be unique")
         return v
 
 
@@ -43,7 +45,9 @@ def get_setting_value(db: Session, key: str) -> Optional[dict]:
     return None
 
 
-def upsert_setting(db: Session, key: str, value: dict, category: str = None, description: str = None):
+def upsert_setting(
+    db: Session, key: str, value: dict, category: str = None, description: str = None
+):
     """Create or update a setting"""
     setting = db.query(Setting).filter(Setting.key == key).first()
 
@@ -61,10 +65,7 @@ def upsert_setting(db: Session, key: str, value: dict, category: str = None, des
     else:
         # Create new
         setting = Setting(
-            key=key,
-            value=value_json,
-            category=category,
-            description=description
+            key=key, value=value_json, category=category, description=description
         )
         db.add(setting)
 
@@ -88,13 +89,15 @@ async def get_nifi_settings(
             "username": "",
             "password": "",
             "useSSL": True,
-            "verifySSL": True
+            "verifySSL": True,
         }
 
     # Decrypt password if present
     if settings.get("password"):
         try:
-            settings["password"] = encryption_service.decrypt_from_string(settings["password"])
+            settings["password"] = encryption_service.decrypt_from_string(
+                settings["password"]
+            )
         except Exception:
             settings["password"] = ""
 
@@ -115,13 +118,13 @@ async def save_nifi_settings(
             key="nifi_config",
             value=settings_dict,
             category="nifi",
-            description="NiFi connection configuration"
+            description="NiFi connection configuration",
         )
         return {"message": "NiFi settings saved successfully"}
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save settings: {str(e)}"
+            detail=f"Failed to save settings: {str(e)}",
         )
 
 
@@ -140,13 +143,15 @@ async def get_registry_settings(
             "username": "",
             "password": "",
             "useSSL": True,
-            "verifySSL": True
+            "verifySSL": True,
         }
 
     # Decrypt password if present
     if settings.get("password"):
         try:
-            settings["password"] = encryption_service.decrypt_from_string(settings["password"])
+            settings["password"] = encryption_service.decrypt_from_string(
+                settings["password"]
+            )
         except Exception:
             settings["password"] = ""
 
@@ -167,13 +172,13 @@ async def save_registry_settings(
             key="registry_config",
             value=settings_dict,
             category="registry",
-            description="NiFi Registry connection configuration"
+            description="NiFi Registry connection configuration",
         )
         return {"message": "Registry settings saved successfully"}
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save settings: {str(e)}"
+            detail=f"Failed to save settings: {str(e)}",
         )
 
 
@@ -192,7 +197,7 @@ async def get_data_format_settings(
                 {"name": "CN", "label": "Common Name", "order": 0},
                 {"name": "O", "label": "Organization", "order": 1},
                 {"name": "OU", "label": "Organizational Unit", "order": 2},
-                {"name": "DC", "label": "Domain Component", "order": 3}
+                {"name": "DC", "label": "Domain Component", "order": 3},
             ]
         }
 
@@ -212,7 +217,7 @@ async def save_data_format_settings(
         if sorted(orders) != list(range(len(orders))):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Order values must be sequential starting from 0"
+                detail="Order values must be sequential starting from 0",
             )
 
         settings_dict = settings.dict()
@@ -221,18 +226,15 @@ async def save_data_format_settings(
             key="hierarchy_config",
             value=settings_dict,
             category="hierarchy",
-            description="Hierarchical data format configuration"
+            description="Hierarchical data format configuration",
         )
         return {"message": "Data format settings saved successfully"}
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save settings: {str(e)}"
+            detail=f"Failed to save settings: {str(e)}",
         )
 
 
@@ -245,9 +247,11 @@ async def get_attribute_values(
     """Get all values for a specific attribute"""
     from app.models.hierarchy import HierarchyValue
 
-    values = db.query(HierarchyValue).filter(
-        HierarchyValue.attribute_name == attribute_name
-    ).all()
+    values = (
+        db.query(HierarchyValue)
+        .filter(HierarchyValue.attribute_name == attribute_name)
+        .all()
+    )
 
     return {"attribute_name": attribute_name, "values": [v.value for v in values]}
 
@@ -266,8 +270,7 @@ async def save_attribute_values(
 
     if not attribute_name:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="attribute_name is required"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="attribute_name is required"
         )
 
     # Delete existing values for this attribute
@@ -279,8 +282,7 @@ async def save_attribute_values(
     for value in values:
         if value.strip():  # Only insert non-empty values
             db_value = HierarchyValue(
-                attribute_name=attribute_name,
-                value=value.strip()
+                attribute_name=attribute_name, value=value.strip()
             )
             db.add(db_value)
 
@@ -298,9 +300,11 @@ async def delete_attribute_values(
     """Delete all values for a specific attribute"""
     from app.models.hierarchy import HierarchyValue
 
-    deleted_count = db.query(HierarchyValue).filter(
-        HierarchyValue.attribute_name == attribute_name
-    ).delete()
+    deleted_count = (
+        db.query(HierarchyValue)
+        .filter(HierarchyValue.attribute_name == attribute_name)
+        .delete()
+    )
 
     db.commit()
 
@@ -321,16 +325,13 @@ async def get_deployment_settings(
         global_settings = {
             "process_group_name_template": "{last_hierarchy_value}",
             "disable_after_deploy": False,
-            "create_parameter_context": True
+            "create_parameter_context": True,
         }
 
     # Get per-instance path settings
     path_settings = get_setting_value(db, "deployment_paths") or {}
 
-    return {
-        "global": global_settings,
-        "paths": path_settings
-    }
+    return {"global": global_settings, "paths": path_settings}
 
 
 @router.post("/deploy")
@@ -348,7 +349,7 @@ async def save_deployment_settings(
                 key="deployment_config",
                 value=data["global"],
                 category="deployment",
-                description="Global deployment configuration"
+                description="Global deployment configuration",
             )
 
         # Save path settings
@@ -358,12 +359,12 @@ async def save_deployment_settings(
                 key="deployment_paths",
                 value=data["paths"],
                 category="deployment",
-                description="Deployment path settings per instance"
+                description="Deployment path settings per instance",
             )
 
         return {"message": "Deployment settings saved successfully"}
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to save settings: {str(e)}"
+            detail=f"Failed to save settings: {str(e)}",
         )

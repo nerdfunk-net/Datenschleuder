@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.models.flow_view import FlowView, FlowViewCreate, FlowViewUpdate, FlowViewResponse
+from app.models.flow_view import (
+    FlowView,
+    FlowViewCreate,
+    FlowViewUpdate,
+    FlowViewResponse,
+)
 
 router = APIRouter(prefix="/api/flow-views", tags=["flow-views"])
 
@@ -28,11 +33,13 @@ async def list_flow_views(
             "name": view.name,
             "description": view.description,
             "visible_columns": json.loads(view.visible_columns),
-            "column_widths": json.loads(view.column_widths) if view.column_widths else None,
+            "column_widths": json.loads(view.column_widths)
+            if view.column_widths
+            else None,
             "is_default": view.is_default,
             "created_by": view.created_by,
             "created_at": view.created_at,
-            "modified_at": view.modified_at
+            "modified_at": view.modified_at,
         }
         result.append(view_dict)
 
@@ -51,7 +58,7 @@ async def get_flow_view(
     if not view:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"View with id {view_id} not found"
+            detail=f"View with id {view_id} not found",
         )
 
     return {
@@ -63,7 +70,7 @@ async def get_flow_view(
         "is_default": view.is_default,
         "created_by": view.created_by,
         "created_at": view.created_at,
-        "modified_at": view.modified_at
+        "modified_at": view.modified_at,
     }
 
 
@@ -79,7 +86,7 @@ async def create_flow_view(
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"View with name '{data.name}' already exists"
+            detail=f"View with name '{data.name}' already exists",
         )
 
     # If this is set as default, unset other defaults
@@ -93,17 +100,14 @@ async def create_flow_view(
         visible_columns=json.dumps(data.visible_columns),
         column_widths=json.dumps(data.column_widths) if data.column_widths else None,
         is_default=data.is_default,
-        created_by=token_data.get("username", "admin")
+        created_by=token_data.get("username", "admin"),
     )
 
     db.add(view)
     db.commit()
     db.refresh(view)
 
-    return {
-        "message": "Flow view created successfully",
-        "id": view.id
-    }
+    return {"message": "Flow view created successfully", "id": view.id}
 
 
 @router.put("/{view_id}", response_model=dict)
@@ -119,7 +123,7 @@ async def update_flow_view(
     if not view:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"View with id {view_id} not found"
+            detail=f"View with id {view_id} not found",
         )
 
     # If setting as default, unset other defaults
@@ -129,14 +133,15 @@ async def update_flow_view(
     # Update fields
     if data.name is not None:
         # Check if new name conflicts
-        existing = db.query(FlowView).filter(
-            FlowView.name == data.name,
-            FlowView.id != view_id
-        ).first()
+        existing = (
+            db.query(FlowView)
+            .filter(FlowView.name == data.name, FlowView.id != view_id)
+            .first()
+        )
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"View with name '{data.name}' already exists"
+                detail=f"View with name '{data.name}' already exists",
             )
         view.name = data.name
 
@@ -147,17 +152,16 @@ async def update_flow_view(
         view.visible_columns = json.dumps(data.visible_columns)
 
     if data.column_widths is not None:
-        view.column_widths = json.dumps(data.column_widths) if data.column_widths else None
+        view.column_widths = (
+            json.dumps(data.column_widths) if data.column_widths else None
+        )
 
     if data.is_default is not None:
         view.is_default = data.is_default
 
     db.commit()
 
-    return {
-        "message": "Flow view updated successfully",
-        "id": view.id
-    }
+    return {"message": "Flow view updated successfully", "id": view.id}
 
 
 @router.delete("/{view_id}")
@@ -172,15 +176,13 @@ async def delete_flow_view(
     if not view:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"View with id {view_id} not found"
+            detail=f"View with id {view_id} not found",
         )
 
     db.delete(view)
     db.commit()
 
-    return {
-        "message": f"Flow view '{view.name}' deleted successfully"
-    }
+    return {"message": f"Flow view '{view.name}' deleted successfully"}
 
 
 @router.post("/{view_id}/set-default")
@@ -195,7 +197,7 @@ async def set_default_view(
     if not view:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"View with id {view_id} not found"
+            detail=f"View with id {view_id} not found",
         )
 
     # Unset all other defaults
@@ -205,6 +207,4 @@ async def set_default_view(
     view.is_default = True
     db.commit()
 
-    return {
-        "message": f"View '{view.name}' set as default"
-    }
+    return {"message": f"View '{view.name}' set as default"}

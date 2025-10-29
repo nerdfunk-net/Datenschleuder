@@ -17,11 +17,7 @@ Base = declarative_base()
 def initialize_engine():
     """Initialize the database engine"""
     global engine, SessionLocal
-    engine = create_engine(
-        settings.database_url,
-        pool_pre_ping=True,
-        echo=False
-    )
+    engine = create_engine(settings.database_url, pool_pre_ping=True, echo=False)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -50,7 +46,7 @@ def create_database_if_not_exists():
             port=settings.NOC_DATABASE_PORT,
             user=settings.NOC_USERNAME,
             password=settings.NOC_PASSWORD,
-            database="postgres"
+            database="postgres",
         )
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cursor = conn.cursor()
@@ -58,7 +54,7 @@ def create_database_if_not_exists():
         # Check if database exists
         cursor.execute(
             "SELECT 1 FROM pg_database WHERE datname = %s",
-            (settings.NOC_DATABASE_NAME,)
+            (settings.NOC_DATABASE_NAME,),
         )
         exists = cursor.fetchone()
 
@@ -75,7 +71,9 @@ def create_database_if_not_exists():
 
     except psycopg2.OperationalError as e:
         print(f"✗ Failed to connect to PostgreSQL server: {e}")
-        print(f"Please ensure PostgreSQL is running on {settings.NOC_DATABASE}:{settings.NOC_DATABASE_PORT}")
+        print(
+            f"Please ensure PostgreSQL is running on {settings.NOC_DATABASE}:{settings.NOC_DATABASE_PORT}"
+        )
         return False
     except Exception as e:
         print(f"✗ Failed to create database: {e}")
@@ -98,15 +96,16 @@ def verify_table_structure() -> bool:
     """Verify that existing tables match the current model structure"""
     try:
         # Import models to check
-        from app.models.user import User
 
         # Try to query the users table with all expected columns
         with engine.connect() as connection:
-            result = connection.execute(
-                text("SELECT id, username, hashed_password, is_active, is_superuser, created_at, updated_at FROM users LIMIT 1")
+            connection.execute(
+                text(
+                    "SELECT id, username, hashed_password, is_active, is_superuser, created_at, updated_at FROM users LIMIT 1"
+                )
             )
         return True
-    except Exception as e:
+    except Exception:
         # If query fails, table structure doesn't match
         return False
 
@@ -117,7 +116,9 @@ def init_db():
 
     # Step 1: Create database if it doesn't exist
     if not create_database_if_not_exists():
-        print("ERROR: Cannot connect to PostgreSQL server. Please check your database configuration.")
+        print(
+            "ERROR: Cannot connect to PostgreSQL server. Please check your database configuration."
+        )
         print(f"Host: {settings.NOC_DATABASE}")
         print(f"Port: {settings.NOC_DATABASE_PORT}")
         print(f"User: {settings.NOC_USERNAME}")
@@ -129,16 +130,15 @@ def init_db():
     # Step 3: Check database connection
     print("\nChecking database connection...")
     if not check_database_connection():
-        print("ERROR: Cannot connect to database. Please check your database configuration.")
-        print(f"Database URL: {settings.database_url.replace(settings.NOC_PASSWORD, '***')}")
+        print(
+            "ERROR: Cannot connect to database. Please check your database configuration."
+        )
+        print(
+            f"Database URL: {settings.database_url.replace(settings.NOC_PASSWORD, '***')}"
+        )
         sys.exit(1)
 
     # Step 4: Import all models to ensure they're registered with Base
-    from app.models.user import User
-    from app.models.credential import Credential
-    from app.models.setting import Setting
-    from app.models.hierarchy import HierarchyValue
-    from app.models.nifi_instance import NiFiInstance
 
     # Step 5: Create all tables
     try:

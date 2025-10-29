@@ -11,12 +11,15 @@ from app.core.database import Base
 
 class NiFiInstance(Base):
     """NiFi instance model - one instance per top hierarchy value"""
+
     __tablename__ = "nifi_instances"
 
     id = Column(Integer, primary_key=True, index=True)
     hierarchy_attribute = Column(String, nullable=False)  # e.g., "DC"
     hierarchy_value = Column(String, nullable=False, index=True)  # e.g., "DC1", "DC2"
-    nifi_url = Column(String, nullable=False)  # e.g., "https://dc1.nifi.com:8443/nifi-api"
+    nifi_url = Column(
+        String, nullable=False
+    )  # e.g., "https://dc1.nifi.com:8443/nifi-api"
     username = Column(String, nullable=True)
     password_encrypted = Column(Text, nullable=True)  # Fernet-encrypted password
     use_ssl = Column(Boolean, default=True)
@@ -28,6 +31,7 @@ class NiFiInstance(Base):
 # Pydantic schemas
 class NiFiInstanceCreate(BaseModel):
     """Schema for creating a NiFi instance"""
+
     hierarchy_attribute: str
     hierarchy_value: str
     nifi_url: str
@@ -39,6 +43,7 @@ class NiFiInstanceCreate(BaseModel):
 
 class NiFiInstanceUpdate(BaseModel):
     """Schema for updating a NiFi instance"""
+
     nifi_url: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
@@ -48,6 +53,7 @@ class NiFiInstanceUpdate(BaseModel):
 
 class NiFiInstanceResponse(BaseModel):
     """Schema for NiFi instance response"""
+
     id: int
     hierarchy_attribute: str
     hierarchy_value: str

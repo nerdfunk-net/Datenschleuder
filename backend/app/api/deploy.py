@@ -8,9 +8,12 @@ from app.core.security import verify_token
 from app.models.nifi_instance import NiFiInstance
 from app.models.registry_flow import RegistryFlow
 from app.models.deployment import (
-    DeploymentRequest, DeploymentResponse,
-    PortsResponse, PortInfo,
-    ConnectionRequest, ConnectionResponse
+    DeploymentRequest,
+    DeploymentResponse,
+    PortsResponse,
+    PortInfo,
+    ConnectionRequest,
+    ConnectionResponse,
 )
 from app.services.encryption_service import encryption_service
 
@@ -42,7 +45,11 @@ async def deploy_flow(
 
     # Determine registry information from template or direct parameters
     if deployment.template_id:
-        template = db.query(RegistryFlow).filter(RegistryFlow.id == deployment.template_id).first()
+        template = (
+            db.query(RegistryFlow)
+            .filter(RegistryFlow.id == deployment.template_id)
+            .first()
+        )
         if not template:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -59,7 +66,11 @@ async def deploy_flow(
         print(f"  Bucket: {template.bucket_name} ({bucket_id})")
         print(f"  Flow: {template.flow_name} ({flow_id})")
     else:
-        if not deployment.bucket_id or not deployment.flow_id or not deployment.registry_client_id:
+        if (
+            not deployment.bucket_id
+            or not deployment.flow_id
+            or not deployment.registry_client_id
+        ):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Either template_id or (bucket_id, flow_id, registry_client_id) must be provided",
@@ -83,7 +94,7 @@ async def deploy_flow(
 
         # Configure nipyapi
         nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith('/nifi-api'):
+        if nifi_base_url.endswith("/nifi-api"):
             nifi_base_url = nifi_base_url[:-9]
 
         config.nifi_config.host = f"{nifi_base_url}/nifi-api"
@@ -95,46 +106,59 @@ async def deploy_flow(
         # Decrypt password and authenticate
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            access_token = security.service_login(service='nifi', username=instance.username, password=password)
+            access_token = security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
             if access_token:
-                print(f"Successfully obtained access token")
+                print("Successfully obtained access token")
 
-        print(f"Deploying flow to NiFi instance {instance_id} ({instance.hierarchy_attribute}={instance.hierarchy_value})")
+        print(
+            f"Deploying flow to NiFi instance {instance_id} ({instance.hierarchy_attribute}={instance.hierarchy_value})"
+        )
 
         # Get registry client
-        reg_client = versioning.get_registry_client(registry_client_id, 'id')
-        reg_client_name = reg_client.component.name if hasattr(reg_client, 'component') else registry_client_id
+        reg_client = versioning.get_registry_client(registry_client_id, "id")
+        reg_client_name = (
+            reg_client.component.name
+            if hasattr(reg_client, "component")
+            else registry_client_id
+        )
         print(f"  Registry Client: {reg_client_name}")
 
         # Get bucket and flow identifiers
         # Skip lookup for GitHub registries (they don't support bucket/flow lookup API)
-        is_github_registry = 'github' in reg_client_name.lower() if reg_client_name else False
+        is_github_registry = (
+            "github" in reg_client_name.lower() if reg_client_name else False
+        )
 
         if is_github_registry:
-            print(f"GitHub registry detected, using provided bucket/flow IDs directly")
+            print("GitHub registry detected, using provided bucket/flow IDs directly")
             bucket_identifier = bucket_id
             flow_identifier = flow_id
         else:
-            print(f"Getting bucket and flow identifiers from NiFi Registry...")
+            print("Getting bucket and flow identifiers from NiFi Registry...")
             try:
                 bucket = versioning.get_registry_bucket(bucket_id)
                 print(f"  Bucket: {bucket.name} ({bucket.identifier})")
 
                 flow = versioning.get_flow_in_bucket(
-                    bucket.identifier,
-                    identifier=flow_id
+                    bucket.identifier, identifier=flow_id
                 )
                 print(f"  Flow: {flow.name} ({flow.identifier})")
 
                 bucket_identifier = bucket.identifier
                 flow_identifier = flow.identifier
             except Exception as lookup_error:
-                print(f"  Could not lookup bucket/flow, using provided values: {lookup_error}")
+                print(
+                    f"  Could not lookup bucket/flow, using provided values: {lookup_error}"
+                )
                 bucket_identifier = bucket_id
                 flow_identifier = flow_id
 
@@ -145,26 +169,31 @@ async def deploy_flow(
 
         if deploy_version is None:
             # Fetch available versions to get the latest
-            print(f"Fetching latest version for flow...")
+            print("Fetching latest version for flow...")
             try:
                 # Use NiFi's FlowApi to get versions (works with GitHub registries)
                 from nipyapi.nifi import FlowApi
+
                 flow_api = FlowApi()
 
                 versions = flow_api.get_versions(
                     registry_id=reg_client.id,
                     bucket_id=bucket_identifier,
-                    flow_id=flow_identifier
+                    flow_id=flow_identifier,
                 )
 
                 # VersionedFlowSnapshotMetadataSetEntity has 'versioned_flow_snapshot_metadata_set'
-                if versions and hasattr(versions, 'versioned_flow_snapshot_metadata_set'):
+                if versions and hasattr(
+                    versions, "versioned_flow_snapshot_metadata_set"
+                ):
                     metadata_set = versions.versioned_flow_snapshot_metadata_set
                     if metadata_set and len(metadata_set) > 0:
                         # Last version in the set is the latest (newest commit)
                         last_version_entity = metadata_set[-1]
                         # The version info is nested inside versioned_flow_snapshot_metadata
-                        snapshot_metadata = last_version_entity.versioned_flow_snapshot_metadata
+                        snapshot_metadata = (
+                            last_version_entity.versioned_flow_snapshot_metadata
+                        )
                         # Get the version (commit hash for GitHub registries, int for NiFi Registry)
                         deploy_version = snapshot_metadata.version
                         print(f"  Latest version: {deploy_version}")
@@ -174,33 +203,42 @@ async def deploy_flow(
                     raise ValueError("No versions found for this flow")
             except Exception as e:
                 print(f"  Warning: Could not fetch versions: {e}")
-                print(f"  Falling back to version=None")
+                print("  Falling back to version=None")
                 deploy_version = None
 
         # Pre-deployment check: Check if process group with same name already exists
         if deployment.process_group_name:
-            print(f"Checking if process group '{deployment.process_group_name}' already exists in parent...")
+            print(
+                f"Checking if process group '{deployment.process_group_name}' already exists in parent..."
+            )
 
             from nipyapi.nifi import ProcessGroupsApi
+
             pg_api = ProcessGroupsApi()
 
             try:
-                parent_pg_response = pg_api.get_process_groups(id=deployment.parent_process_group_id)
+                parent_pg_response = pg_api.get_process_groups(
+                    id=deployment.parent_process_group_id
+                )
 
                 existing_pg = None
-                if hasattr(parent_pg_response, 'process_groups'):
+                if hasattr(parent_pg_response, "process_groups"):
                     for pg in parent_pg_response.process_groups:
-                        if hasattr(pg, 'component') and hasattr(pg.component, 'name'):
+                        if hasattr(pg, "component") and hasattr(pg.component, "name"):
                             if pg.component.name == deployment.process_group_name:
                                 existing_pg = pg
                                 break
 
                 if existing_pg:
-                    print(f"  ⚠ Process group '{deployment.process_group_name}' already exists (ID: {existing_pg.id})")
+                    print(
+                        f"  ⚠ Process group '{deployment.process_group_name}' already exists (ID: {existing_pg.id})"
+                    )
 
                     # Check if there's version control information
                     has_version_control = False
-                    if hasattr(existing_pg, 'component') and hasattr(existing_pg.component, 'version_control_information'):
+                    if hasattr(existing_pg, "component") and hasattr(
+                        existing_pg.component, "version_control_information"
+                    ):
                         vci = existing_pg.component.version_control_information
                         if vci:
                             has_version_control = True
@@ -211,24 +249,34 @@ async def deploy_flow(
                             "message": f"Process group '{deployment.process_group_name}' already exists",
                             "existing_process_group": {
                                 "id": existing_pg.id,
-                                "name": existing_pg.component.name if hasattr(existing_pg, 'component') else None,
+                                "name": existing_pg.component.name
+                                if hasattr(existing_pg, "component")
+                                else None,
                                 "has_version_control": has_version_control,
-                                "running_count": existing_pg.running_count if hasattr(existing_pg, 'running_count') else 0,
-                                "stopped_count": existing_pg.stopped_count if hasattr(existing_pg, 'stopped_count') else 0,
-                            }
-                        }
+                                "running_count": existing_pg.running_count
+                                if hasattr(existing_pg, "running_count")
+                                else 0,
+                                "stopped_count": existing_pg.stopped_count
+                                if hasattr(existing_pg, "stopped_count")
+                                else 0,
+                            },
+                        },
                     )
                 else:
-                    print(f"  ✓ No existing process group found with name '{deployment.process_group_name}'")
+                    print(
+                        f"  ✓ No existing process group found with name '{deployment.process_group_name}'"
+                    )
 
             except HTTPException:
                 raise
             except Exception as check_error:
-                print(f"  Warning: Could not check for existing process group: {check_error}")
+                print(
+                    f"  Warning: Could not check for existing process group: {check_error}"
+                )
                 # Continue with deployment if check fails
 
         # Deploy using nipyapi.versioning.deploy_flow_version
-        print(f"Deploying flow using nipyapi.versioning.deploy_flow_version:")
+        print("Deploying flow using nipyapi.versioning.deploy_flow_version:")
         print(f"  Parent PG: {deployment.parent_process_group_id}")
         print(f"  Bucket ID: {bucket_identifier}")
         print(f"  Flow ID: {flow_identifier}")
@@ -242,31 +290,39 @@ async def deploy_flow(
             bucket_id=bucket_identifier,
             flow_id=flow_identifier,
             reg_client_id=reg_client.id,
-            version=deploy_version
+            version=deploy_version,
         )
 
         print(f"✓ Successfully deployed process group: {deployed_pg.id}")
 
         # Extract process group information
-        pg_id = deployed_pg.id if hasattr(deployed_pg, 'id') else None
-        pg_name = deployed_pg.component.name if hasattr(deployed_pg, 'component') and hasattr(deployed_pg.component, 'name') else None
+        pg_id = deployed_pg.id if hasattr(deployed_pg, "id") else None
+        pg_name = (
+            deployed_pg.component.name
+            if hasattr(deployed_pg, "component")
+            and hasattr(deployed_pg.component, "name")
+            else None
+        )
         deployed_version = None
 
-        if hasattr(deployed_pg, 'component') and hasattr(deployed_pg.component, 'version_control_information'):
+        if hasattr(deployed_pg, "component") and hasattr(
+            deployed_pg.component, "version_control_information"
+        ):
             vci = deployed_pg.component.version_control_information
-            if vci and hasattr(vci, 'version'):
+            if vci and hasattr(vci, "version"):
                 deployed_version = vci.version
 
         # Rename process group if requested
         if deployment.process_group_name and pg_id:
             try:
-                print(f"Renaming process group from '{pg_name}' to '{deployment.process_group_name}'...")
+                print(
+                    f"Renaming process group from '{pg_name}' to '{deployment.process_group_name}'..."
+                )
 
                 # Use nipyapi.canvas.update_process_group to rename
                 # The update parameter should be a dictionary with key:value pairs
                 updated_pg = canvas.update_process_group(
-                    pg=deployed_pg,
-                    update={'name': deployment.process_group_name}
+                    pg=deployed_pg, update={"name": deployment.process_group_name}
                 )
 
                 pg_name = updated_pg.component.name
@@ -279,85 +335,132 @@ async def deploy_flow(
         # Auto-connect ports if they exist
         if pg_id and deployment.parent_process_group_id:
             from nipyapi.nifi import ProcessGroupsApi
+
             pg_api = ProcessGroupsApi()
 
             # Connect output ports
             try:
-                print(f"Checking for output ports to auto-connect...")
+                print("Checking for output ports to auto-connect...")
 
                 # Get output ports of the newly deployed process group
                 child_output_response = pg_api.get_output_ports(id=pg_id)
-                child_output_ports = child_output_response.output_ports if hasattr(child_output_response, 'output_ports') else []
+                child_output_ports = (
+                    child_output_response.output_ports
+                    if hasattr(child_output_response, "output_ports")
+                    else []
+                )
 
                 if child_output_ports:
-                    print(f"  Found {len(child_output_ports)} output port(s) in deployed process group")
+                    print(
+                        f"  Found {len(child_output_ports)} output port(s) in deployed process group"
+                    )
 
                     # Get output ports of the parent process group
-                    parent_output_response = pg_api.get_output_ports(id=deployment.parent_process_group_id)
-                    parent_output_ports = parent_output_response.output_ports if hasattr(parent_output_response, 'output_ports') else []
+                    parent_output_response = pg_api.get_output_ports(
+                        id=deployment.parent_process_group_id
+                    )
+                    parent_output_ports = (
+                        parent_output_response.output_ports
+                        if hasattr(parent_output_response, "output_ports")
+                        else []
+                    )
 
                     if parent_output_ports:
-                        print(f"  Found {len(parent_output_ports)} output port(s) in parent process group")
+                        print(
+                            f"  Found {len(parent_output_ports)} output port(s) in parent process group"
+                        )
 
                         # Connect the first output port of child to first output port of parent
                         child_port = child_output_ports[0]
                         parent_port = parent_output_ports[0]
 
-                        print(f"  Connecting output: '{child_port.component.name}' -> '{parent_port.component.name}'...")
+                        print(
+                            f"  Connecting output: '{child_port.component.name}' -> '{parent_port.component.name}'..."
+                        )
 
                         # Use nipyapi.canvas.create_connection which handles the details correctly
                         created_conn = canvas.create_connection(
                             source=child_port,
                             target=parent_port,
-                            name=f"{child_port.component.name} to {parent_port.component.name}"
+                            name=f"{child_port.component.name} to {parent_port.component.name}",
                         )
 
-                        print(f"  ✓ Successfully created output connection (ID: {created_conn.id})")
+                        print(
+                            f"  ✓ Successfully created output connection (ID: {created_conn.id})"
+                        )
                     else:
-                        print(f"  No output ports found in parent process group - skipping output auto-connect")
+                        print(
+                            "  No output ports found in parent process group - skipping output auto-connect"
+                        )
                 else:
-                    print(f"  No output ports found in deployed process group - skipping output auto-connect")
+                    print(
+                        "  No output ports found in deployed process group - skipping output auto-connect"
+                    )
 
             except Exception as connect_error:
-                print(f"⚠ Warning: Could not auto-connect output ports: {connect_error}")
+                print(
+                    f"⚠ Warning: Could not auto-connect output ports: {connect_error}"
+                )
                 # Continue anyway, auto-connection is not critical
 
             # Connect input ports
             try:
-                print(f"Checking for input ports to auto-connect...")
+                print("Checking for input ports to auto-connect...")
 
                 # Get input ports of the newly deployed process group
                 child_input_response = pg_api.get_input_ports(id=pg_id)
-                child_input_ports = child_input_response.input_ports if hasattr(child_input_response, 'input_ports') else []
+                child_input_ports = (
+                    child_input_response.input_ports
+                    if hasattr(child_input_response, "input_ports")
+                    else []
+                )
 
                 if child_input_ports:
-                    print(f"  Found {len(child_input_ports)} input port(s) in deployed process group")
+                    print(
+                        f"  Found {len(child_input_ports)} input port(s) in deployed process group"
+                    )
 
                     # Get input ports of the parent process group
-                    parent_input_response = pg_api.get_input_ports(id=deployment.parent_process_group_id)
-                    parent_input_ports = parent_input_response.input_ports if hasattr(parent_input_response, 'input_ports') else []
+                    parent_input_response = pg_api.get_input_ports(
+                        id=deployment.parent_process_group_id
+                    )
+                    parent_input_ports = (
+                        parent_input_response.input_ports
+                        if hasattr(parent_input_response, "input_ports")
+                        else []
+                    )
 
                     if parent_input_ports:
-                        print(f"  Found {len(parent_input_ports)} input port(s) in parent process group")
+                        print(
+                            f"  Found {len(parent_input_ports)} input port(s) in parent process group"
+                        )
 
                         # Connect the first input port of parent to first input port of child
                         parent_port = parent_input_ports[0]
                         child_port = child_input_ports[0]
 
-                        print(f"  Connecting input: '{parent_port.component.name}' -> '{child_port.component.name}'...")
+                        print(
+                            f"  Connecting input: '{parent_port.component.name}' -> '{child_port.component.name}'..."
+                        )
 
                         # Use nipyapi.canvas.create_connection which handles the details correctly
                         created_conn = canvas.create_connection(
                             source=parent_port,
                             target=child_port,
-                            name=f"{parent_port.component.name} to {child_port.component.name}"
+                            name=f"{parent_port.component.name} to {child_port.component.name}",
                         )
 
-                        print(f"  ✓ Successfully created input connection (ID: {created_conn.id})")
+                        print(
+                            f"  ✓ Successfully created input connection (ID: {created_conn.id})"
+                        )
                     else:
-                        print(f"  No input ports found in parent process group - skipping input auto-connect")
+                        print(
+                            "  No input ports found in parent process group - skipping input auto-connect"
+                        )
                 else:
-                    print(f"  No input ports found in deployed process group - skipping input auto-connect")
+                    print(
+                        "  No input ports found in deployed process group - skipping input auto-connect"
+                    )
 
             except Exception as connect_error:
                 print(f"⚠ Warning: Could not auto-connect input ports: {connect_error}")
@@ -387,6 +490,7 @@ async def deploy_flow(
         error_msg = str(e)
         print(f"✗ Deployment failed: {error_msg}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -450,23 +554,31 @@ async def get_process_group(
         # Decrypt password if present
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         # Set credentials
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            security.service_login(service='nifi', username=instance.username, password=password)
+            security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
 
         # Search for process group by ID or name
         process_group_result = None
 
         if id:
             print(f"Searching for process group with ID: {id} (greedy={greedy})")
-            process_group_result = canvas.get_process_group(identifier=id, identifier_type='id', greedy=greedy)
+            process_group_result = canvas.get_process_group(
+                identifier=id, identifier_type="id", greedy=greedy
+            )
         elif name:
             print(f"Searching for process group with name: {name} (greedy={greedy})")
-            process_group_result = canvas.get_process_group(identifier=name, identifier_type='name', greedy=greedy)
+            process_group_result = canvas.get_process_group(
+                identifier=name, identifier_type="name", greedy=greedy
+            )
 
         if process_group_result is None:
             raise HTTPException(
@@ -477,13 +589,25 @@ async def get_process_group(
         # Helper function to extract process group info
         def extract_pg_info(pg):
             return {
-                "id": pg.id if hasattr(pg, 'id') else None,
-                "name": pg.component.name if hasattr(pg, 'component') and hasattr(pg.component, 'name') else None,
-                "parent_group_id": pg.component.parent_group_id if hasattr(pg, 'component') and hasattr(pg.component, 'parent_group_id') else None,
-                "comments": pg.component.comments if hasattr(pg, 'component') and hasattr(pg.component, 'comments') else None,
-                "running_count": pg.running_count if hasattr(pg, 'running_count') else 0,
-                "stopped_count": pg.stopped_count if hasattr(pg, 'stopped_count') else 0,
-                "invalid_count": pg.invalid_count if hasattr(pg, 'invalid_count') else 0,
+                "id": pg.id if hasattr(pg, "id") else None,
+                "name": pg.component.name
+                if hasattr(pg, "component") and hasattr(pg.component, "name")
+                else None,
+                "parent_group_id": pg.component.parent_group_id
+                if hasattr(pg, "component") and hasattr(pg.component, "parent_group_id")
+                else None,
+                "comments": pg.component.comments
+                if hasattr(pg, "component") and hasattr(pg.component, "comments")
+                else None,
+                "running_count": pg.running_count
+                if hasattr(pg, "running_count")
+                else 0,
+                "stopped_count": pg.stopped_count
+                if hasattr(pg, "stopped_count")
+                else 0,
+                "invalid_count": pg.invalid_count
+                if hasattr(pg, "invalid_count")
+                else 0,
             }
 
         # Handle different return types
@@ -571,28 +695,35 @@ async def search_process_groups(
         # Decrypt password if present
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         # Set credentials
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            security.service_login(service='nifi', username=instance.username, password=password)
+            security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
 
         process_groups = []
 
         if parent_id and name:
             # Check for a specific child process group by name within a parent
-            print(f"Checking for child process group with name '{name}' in parent '{parent_id}'")
+            print(
+                f"Checking for child process group with name '{name}' in parent '{parent_id}'"
+            )
 
             # Get all process groups from the parent
             from nipyapi.nifi import ProcessGroupsApi
+
             pg_api = ProcessGroupsApi()
             parent_pg_response = pg_api.get_process_groups(id=parent_id)
 
-            if hasattr(parent_pg_response, 'process_groups'):
+            if hasattr(parent_pg_response, "process_groups"):
                 for pg in parent_pg_response.process_groups:
-                    if hasattr(pg, 'component') and hasattr(pg.component, 'name'):
+                    if hasattr(pg, "component") and hasattr(pg.component, "name"):
                         if pg.component.name == name:
                             process_groups.append(pg)
         elif parent_id:
@@ -600,15 +731,18 @@ async def search_process_groups(
             print(f"Listing all child process groups of parent '{parent_id}'")
 
             from nipyapi.nifi import ProcessGroupsApi
+
             pg_api = ProcessGroupsApi()
             parent_pg_response = pg_api.get_process_groups(id=parent_id)
 
-            if hasattr(parent_pg_response, 'process_groups'):
+            if hasattr(parent_pg_response, "process_groups"):
                 process_groups = parent_pg_response.process_groups
         elif name:
             # Search for process groups by name (globally)
             print(f"Searching for process groups with name: {name}")
-            result = canvas.get_process_group(identifier=name, identifier_type='name', greedy=True)
+            result = canvas.get_process_group(
+                identifier=name, identifier_type="name", greedy=True
+            )
 
             # Handle different return types
             if result is None:
@@ -629,13 +763,25 @@ async def search_process_groups(
         pg_list = []
         for pg in process_groups:
             pg_info = {
-                "id": pg.id if hasattr(pg, 'id') else None,
-                "name": pg.component.name if hasattr(pg, 'component') and hasattr(pg.component, 'name') else None,
-                "parent_group_id": pg.component.parent_group_id if hasattr(pg, 'component') and hasattr(pg.component, 'parent_group_id') else None,
-                "comments": pg.component.comments if hasattr(pg, 'component') and hasattr(pg.component, 'comments') else None,
-                "running_count": pg.running_count if hasattr(pg, 'running_count') else 0,
-                "stopped_count": pg.stopped_count if hasattr(pg, 'stopped_count') else 0,
-                "invalid_count": pg.invalid_count if hasattr(pg, 'invalid_count') else 0,
+                "id": pg.id if hasattr(pg, "id") else None,
+                "name": pg.component.name
+                if hasattr(pg, "component") and hasattr(pg.component, "name")
+                else None,
+                "parent_group_id": pg.component.parent_group_id
+                if hasattr(pg, "component") and hasattr(pg.component, "parent_group_id")
+                else None,
+                "comments": pg.component.comments
+                if hasattr(pg, "component") and hasattr(pg.component, "comments")
+                else None,
+                "running_count": pg.running_count
+                if hasattr(pg, "running_count")
+                else 0,
+                "stopped_count": pg.stopped_count
+                if hasattr(pg, "stopped_count")
+                else 0,
+                "invalid_count": pg.invalid_count
+                if hasattr(pg, "invalid_count")
+                else 0,
             }
             pg_list.append(pg_info)
 
@@ -704,13 +850,17 @@ async def get_process_group_path(
         # Decrypt password if present
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         # Set credentials
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            security.service_login(service='nifi', username=instance.username, password=password)
+            security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
 
         # Get root process group ID for comparison
         root_pg_id = canvas.get_root_pg_id()
@@ -734,7 +884,9 @@ async def get_process_group_path(
 
             # Get current process group
             try:
-                current_pg = canvas.get_process_group(identifier=current_pg_id, identifier_type='id', greedy=False)
+                current_pg = canvas.get_process_group(
+                    identifier=current_pg_id, identifier_type="id", greedy=False
+                )
             except Exception as e:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -758,13 +910,21 @@ async def get_process_group_path(
 
             # Extract process group info
             pg_info = {
-                "id": current_pg.id if hasattr(current_pg, 'id') else None,
-                "name": current_pg.component.name if hasattr(current_pg, 'component') and hasattr(current_pg.component, 'name') else None,
-                "parent_group_id": current_pg.component.parent_group_id if hasattr(current_pg, 'component') and hasattr(current_pg.component, 'parent_group_id') else None,
+                "id": current_pg.id if hasattr(current_pg, "id") else None,
+                "name": current_pg.component.name
+                if hasattr(current_pg, "component")
+                and hasattr(current_pg.component, "name")
+                else None,
+                "parent_group_id": current_pg.component.parent_group_id
+                if hasattr(current_pg, "component")
+                and hasattr(current_pg.component, "parent_group_id")
+                else None,
             }
 
             path.append(pg_info)
-            print(f"Added to path: {pg_info['name']} (ID: {pg_info['id']}, Parent: {pg_info['parent_group_id']})")
+            print(
+                f"Added to path: {pg_info['name']} (ID: {pg_info['id']}, Parent: {pg_info['parent_group_id']})"
+            )
 
             # Check if we've reached the root
             if current_pg_id == root_pg_id:
@@ -772,7 +932,7 @@ async def get_process_group_path(
                 break
 
             # Move to parent
-            parent_id = pg_info['parent_group_id']
+            parent_id = pg_info["parent_group_id"]
             if not parent_id:
                 # No parent means we're at root
                 print("No parent ID - reached root")
@@ -846,13 +1006,17 @@ async def get_all_process_group_paths(
         # Decrypt password if present
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         # Set credentials
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            security.service_login(service='nifi', username=instance.username, password=password)
+            security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
 
         # Get root process group ID
         root_pg_id = canvas.get_root_pg_id()
@@ -866,13 +1030,20 @@ async def get_all_process_group_paths(
         # Build a map of process groups for quick lookup
         pg_map = {}
         for pg in all_process_groups:
-            pg_id = pg.id if hasattr(pg, 'id') else None
+            pg_id = pg.id if hasattr(pg, "id") else None
             if pg_id:
                 pg_map[pg_id] = {
                     "id": pg_id,
-                    "name": pg.component.name if hasattr(pg, 'component') and hasattr(pg.component, 'name') else None,
-                    "parent_group_id": pg.component.parent_group_id if hasattr(pg, 'component') and hasattr(pg.component, 'parent_group_id') else None,
-                    "comments": pg.component.comments if hasattr(pg, 'component') and hasattr(pg.component, 'comments') else None,
+                    "name": pg.component.name
+                    if hasattr(pg, "component") and hasattr(pg.component, "name")
+                    else None,
+                    "parent_group_id": pg.component.parent_group_id
+                    if hasattr(pg, "component")
+                    and hasattr(pg.component, "parent_group_id")
+                    else None,
+                    "comments": pg.component.comments
+                    if hasattr(pg, "component") and hasattr(pg.component, "comments")
+                    else None,
                 }
 
         # Function to build path for a process group
@@ -888,11 +1059,13 @@ async def get_all_process_group_paths(
                 visited.add(current_id)
 
                 pg_info = pg_map[current_id]
-                path.append({
-                    "id": pg_info["id"],
-                    "name": pg_info["name"],
-                    "parent_group_id": pg_info["parent_group_id"],
-                })
+                path.append(
+                    {
+                        "id": pg_info["id"],
+                        "name": pg_info["name"],
+                        "parent_group_id": pg_info["parent_group_id"],
+                    }
+                )
 
                 # Check if we've reached root
                 if current_id == root_pg_id or not pg_info["parent_group_id"]:
@@ -907,14 +1080,17 @@ async def get_all_process_group_paths(
         for pg_id, pg_info in pg_map.items():
             path = build_path(pg_id)
 
-            result.append({
-                "id": pg_info["id"],
-                "name": pg_info["name"],
-                "parent_group_id": pg_info["parent_group_id"],
-                "comments": pg_info["comments"],
-                "path": path,
-                "depth": len(path) - 1,  # depth is path length minus 1 (root is depth 0)
-            })
+            result.append(
+                {
+                    "id": pg_info["id"],
+                    "name": pg_info["name"],
+                    "parent_group_id": pg_info["parent_group_id"],
+                    "comments": pg_info["comments"],
+                    "path": path,
+                    "depth": len(path)
+                    - 1,  # depth is path length minus 1 (root is depth 0)
+                }
+            )
 
         # Sort by depth (root first, then children, etc.)
         result.sort(key=lambda x: x["depth"])
@@ -979,23 +1155,31 @@ async def get_root_process_group(
         # Decrypt password if present
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         # Set credentials
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            security.service_login(service='nifi', username=instance.username, password=password)
+            security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
 
         # Get root process group ID
         root_pg_id = canvas.get_root_pg_id()
         print(f"Root process group ID: {root_pg_id}")
 
         # Get root process group details
-        root_pg = canvas.get_process_group(root_pg_id, identifier_type='id')
+        root_pg = canvas.get_process_group(root_pg_id, identifier_type="id")
 
         root_pg_name = None
-        if root_pg and hasattr(root_pg, 'component') and hasattr(root_pg.component, 'name'):
+        if (
+            root_pg
+            and hasattr(root_pg, "component")
+            and hasattr(root_pg.component, "name")
+        ):
             root_pg_name = root_pg.component.name
 
         return {
@@ -1013,7 +1197,10 @@ async def get_root_process_group(
         )
 
 
-@router.get("/{instance_id}/process-group/{process_group_id}/output-ports", response_model=PortsResponse)
+@router.get(
+    "/{instance_id}/process-group/{process_group_id}/output-ports",
+    response_model=PortsResponse,
+)
 async def get_output_ports(
     instance_id: int,
     process_group_id: str,
@@ -1044,7 +1231,7 @@ async def get_output_ports(
 
         # Configure nipyapi
         nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith('/nifi-api'):
+        if nifi_base_url.endswith("/nifi-api"):
             nifi_base_url = nifi_base_url[:-9]
 
         config.nifi_config.host = f"{nifi_base_url}/nifi-api"
@@ -1056,42 +1243,52 @@ async def get_output_ports(
         # Decrypt password and authenticate
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            access_token = security.service_login(service='nifi', username=instance.username, password=password)
+            access_token = security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
             if access_token:
-                print(f"Successfully obtained access token")
+                print("Successfully obtained access token")
 
         # Get process group info
-        pg = canvas.get_process_group(process_group_id, identifier_type='id', greedy=False)
+        pg = canvas.get_process_group(
+            process_group_id, identifier_type="id", greedy=False
+        )
         if isinstance(pg, list):
             pg = pg[0]
-        pg_name = pg.component.name if hasattr(pg, 'component') else None
+        pg_name = pg.component.name if hasattr(pg, "component") else None
 
         # Get output ports
         print(f"Getting output ports for process group {process_group_id} ({pg_name})")
-        output_ports = canvas.list_all_output_ports(pg_id=process_group_id, descendants=False)
+        output_ports = canvas.list_all_output_ports(
+            pg_id=process_group_id, descendants=False
+        )
 
         ports = []
         for port in output_ports:
-            ports.append(PortInfo(
-                id=port.id,
-                name=port.component.name,
-                state=port.component.state,
-                comments=port.component.comments if hasattr(port.component, 'comments') else None
-            ))
+            ports.append(
+                PortInfo(
+                    id=port.id,
+                    name=port.component.name,
+                    state=port.component.state,
+                    comments=port.component.comments
+                    if hasattr(port.component, "comments")
+                    else None,
+                )
+            )
 
         print(f"Found {len(ports)} output ports")
         for port in ports:
             print(f"  - {port.name} (ID: {port.id}, State: {port.state})")
 
         return PortsResponse(
-            process_group_id=process_group_id,
-            process_group_name=pg_name,
-            ports=ports
+            process_group_id=process_group_id, process_group_name=pg_name, ports=ports
         )
 
     except HTTPException:
@@ -1100,6 +1297,7 @@ async def get_output_ports(
         error_msg = str(e)
         print(f"Failed to get output ports: {error_msg}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1141,7 +1339,7 @@ async def create_connection(
 
         # Configure nipyapi
         nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith('/nifi-api'):
+        if nifi_base_url.endswith("/nifi-api"):
             nifi_base_url = nifi_base_url[:-9]
 
         config.nifi_config.host = f"{nifi_base_url}/nifi-api"
@@ -1153,18 +1351,23 @@ async def create_connection(
         # Decrypt password and authenticate
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            access_token = security.service_login(service='nifi', username=instance.username, password=password)
+            access_token = security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
             if access_token:
-                print(f"Successfully obtained access token")
+                print("Successfully obtained access token")
 
         # Get source and target components
         # We need to get the actual component objects to pass to create_connection
         from nipyapi.nifi import ProcessGroupsApi
+
         pg_api = ProcessGroupsApi()
 
         # Try to get source as output port first
@@ -1172,15 +1375,16 @@ async def create_connection(
             source = pg_api.get_output_port(connection_request.source_id)
             source_name = source.component.name
             source_type = "Output Port"
-        except:
+        except Exception:
             # Try as processor or other component type
             try:
                 from nipyapi.nifi import ProcessorsApi
+
                 proc_api = ProcessorsApi()
                 source = proc_api.get_processor(connection_request.source_id)
                 source_name = source.component.name
                 source_type = "Processor"
-            except:
+            except Exception:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Source component with ID {connection_request.source_id} not found",
@@ -1191,30 +1395,35 @@ async def create_connection(
             target = pg_api.get_output_port(connection_request.target_id)
             target_name = target.component.name
             target_type = "Output Port"
-        except:
+        except Exception:
             # Try as processor or other component type
             try:
                 from nipyapi.nifi import ProcessorsApi
+
                 proc_api = ProcessorsApi()
                 target = proc_api.get_processor(connection_request.target_id)
                 target_name = target.component.name
                 target_type = "Processor"
-            except:
+            except Exception:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Target component with ID {connection_request.target_id} not found",
                 )
 
-        print(f"Creating connection:")
-        print(f"  Source: {source_name} ({source_type}, ID: {connection_request.source_id})")
-        print(f"  Target: {target_name} ({target_type}, ID: {connection_request.target_id})")
+        print("Creating connection:")
+        print(
+            f"  Source: {source_name} ({source_type}, ID: {connection_request.source_id})"
+        )
+        print(
+            f"  Target: {target_name} ({target_type}, ID: {connection_request.target_id})"
+        )
 
         # Create connection
         connection = canvas.create_connection(
             source=source,
             target=target,
             relationships=connection_request.relationships,
-            name=connection_request.name
+            name=connection_request.name,
         )
 
         print(f"✓ Connection created: {connection.id}")
@@ -1226,7 +1435,7 @@ async def create_connection(
             source_id=connection_request.source_id,
             source_name=source_name,
             target_id=connection_request.target_id,
-            target_name=target_name
+            target_name=target_name,
         )
 
     except HTTPException:
@@ -1235,6 +1444,7 @@ async def create_connection(
         error_msg = str(e)
         print(f"Failed to create connection: {error_msg}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1265,7 +1475,7 @@ async def delete_process_group(
 
         # Configure nipyapi
         nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith('/nifi-api'):
+        if nifi_base_url.endswith("/nifi-api"):
             nifi_base_url = nifi_base_url[:-9]
 
         config.nifi_config.host = f"{nifi_base_url}/nifi-api"
@@ -1277,29 +1487,34 @@ async def delete_process_group(
         # Decrypt password and authenticate
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            security.service_login(service='nifi', username=instance.username, password=password)
+            security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
 
         print(f"Deleting process group {process_group_id}...")
 
         # Get the process group first
         from nipyapi.nifi import ProcessGroupsApi
+
         pg_api = ProcessGroupsApi()
         pg = pg_api.get_process_group(id=process_group_id)
 
         # Delete the process group
-        result = canvas.delete_process_group(pg, force=True, refresh=True)
+        canvas.delete_process_group(pg, force=True, refresh=True)
 
-        print(f"✓ Process group deleted successfully")
+        print("✓ Process group deleted successfully")
 
         return {
             "status": "success",
-            "message": f"Process group deleted successfully",
-            "process_group_id": process_group_id
+            "message": "Process group deleted successfully",
+            "process_group_id": process_group_id,
         }
 
     except HTTPException:
@@ -1337,7 +1552,7 @@ async def update_process_group_version(
 
         # Configure nipyapi
         nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith('/nifi-api'):
+        if nifi_base_url.endswith("/nifi-api"):
             nifi_base_url = nifi_base_url[:-9]
 
         config.nifi_config.host = f"{nifi_base_url}/nifi-api"
@@ -1349,31 +1564,36 @@ async def update_process_group_version(
         # Decrypt password and authenticate
         password = None
         if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(instance.password_encrypted)
+            password = encryption_service.decrypt_from_string(
+                instance.password_encrypted
+            )
 
         if instance.username and password:
             config.nifi_config.username = instance.username
             config.nifi_config.password = password
-            security.service_login(service='nifi', username=instance.username, password=password)
+            security.service_login(
+                service="nifi", username=instance.username, password=password
+            )
 
         print(f"Updating process group {process_group_id} to new version...")
 
         # Get the process group
         from nipyapi.nifi import ProcessGroupsApi
+
         pg_api = ProcessGroupsApi()
         pg = pg_api.get_process_group(id=process_group_id)
 
         # Update to latest version
-        target_version = version_request.get('version')  # None = latest
-        result = versioning.update_flow_version(process_group=pg, target_version=target_version)
+        target_version = version_request.get("version")  # None = latest
+        versioning.update_flow_version(process_group=pg, target_version=target_version)
 
-        print(f"✓ Process group updated successfully")
+        print("✓ Process group updated successfully")
 
         return {
             "status": "success",
-            "message": f"Process group updated to new version",
+            "message": "Process group updated to new version",
             "process_group_id": process_group_id,
-            "version": target_version
+            "version": target_version,
         }
 
     except HTTPException:

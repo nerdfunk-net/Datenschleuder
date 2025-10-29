@@ -11,10 +11,13 @@ from app.core.database import Base
 
 class RegistryFlow(Base):
     """Registry flow - stores selected flows from NiFi registries"""
+
     __tablename__ = "registry_flows"
 
     id = Column(Integer, primary_key=True, index=True)
-    nifi_instance_name = Column(String, nullable=False, index=True)  # Name of NiFi instance
+    nifi_instance_name = Column(
+        String, nullable=False, index=True
+    )  # Name of NiFi instance
     nifi_instance_url = Column(String, nullable=False)  # URL of NiFi instance
     registry_id = Column(String, nullable=False)  # Registry ID from NiFi
     registry_name = Column(String, nullable=False)  # Registry name
@@ -24,12 +27,15 @@ class RegistryFlow(Base):
     flow_name = Column(String, nullable=False)  # Flow name
     flow_description = Column(Text, nullable=True)  # Flow description
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    modified_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    modified_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 # Pydantic schemas
 class RegistryFlowCreate(BaseModel):
     """Schema for creating a registry flow"""
+
     nifi_instance_name: str
     nifi_instance_url: str
     registry_id: str
@@ -43,6 +49,7 @@ class RegistryFlowCreate(BaseModel):
 
 class RegistryFlowResponse(BaseModel):
     """Schema for registry flow response"""
+
     id: int
     nifi_instance_name: str
     nifi_instance_url: str

@@ -3,6 +3,7 @@
 Startup script for Datenschleuder Backend
 Run with: python start.py
 """
+
 import uvicorn
 import sys
 import os

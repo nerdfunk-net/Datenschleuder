@@ -4,14 +4,14 @@ from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, Any
-import json
+from typing import Optional
 
 from app.core.database import Base
 
 
 class Setting(Base):
     """Settings database model - stores key-value configuration"""
+
     __tablename__ = "settings"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -26,6 +26,7 @@ class Setting(Base):
 # Pydantic schemas for API validation
 class NifiSettings(BaseModel):
     """NiFi connection settings"""
+
     nifiUrl: str
     username: Optional[str] = None
     password: Optional[str] = None
@@ -35,6 +36,7 @@ class NifiSettings(BaseModel):
 
 class RegistrySettings(BaseModel):
     """NiFi Registry settings"""
+
     registryUrl: str
     username: Optional[str] = None
     password: Optional[str] = None
@@ -44,6 +46,7 @@ class RegistrySettings(BaseModel):
 
 class SettingCreate(BaseModel):
     """Setting creation schema"""
+
     key: str
     value: str
     category: Optional[str] = None
@@ -52,12 +55,14 @@ class SettingCreate(BaseModel):
 
 class SettingUpdate(BaseModel):
     """Setting update schema"""
+
     value: str
     description: Optional[str] = None
 
 
 class SettingResponse(BaseModel):
     """Setting response schema"""
+
     id: int
     key: str
     value: str

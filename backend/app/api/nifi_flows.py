@@ -3,17 +3,24 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import (
-    Table, Column, Integer, String, Boolean, DateTime, Text, MetaData,
-    inspect, text
+    Table,
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    Text,
+    MetaData,
+    inspect,
+    text,
 )
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
-from datetime import datetime
 
 from app.core.database import get_db
 from app.core import database
 from app.core.security import verify_token
-from app.models.nifi_flow import NiFiFlowCreate, NiFiFlowUpdate, NiFiFlowResponse
+from app.models.nifi_flow import NiFiFlowCreate, NiFiFlowUpdate
 from app.api.settings import get_setting_value
 
 router = APIRouter(prefix="/api/nifi-flows", tags=["nifi-flows"])
@@ -24,7 +31,7 @@ def get_engine():
     if database.engine is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database engine not initialized"
+            detail="Database engine not initialized",
         )
     return database.engine
 
@@ -39,7 +46,7 @@ def get_hierarchy_config(db: Session) -> List[dict]:
             {"name": "CN", "label": "Common Name", "order": 0},
             {"name": "O", "label": "Organization", "order": 1},
             {"name": "OU", "label": "Organizational Unit", "order": 2},
-            {"name": "DC", "label": "Domain Component", "order": 3}
+            {"name": "DC", "label": "Domain Component", "order": 3},
         ]
 
     return settings.get("hierarchy", [])
@@ -78,38 +85,47 @@ def create_nifi_flows_table(db: Session):
         columns.append(Column(f"dest_{attr_name}", String, nullable=False, index=True))
 
     # Add standard flow columns
-    columns.extend([
-        Column("source", String, nullable=False),
-        Column("destination", String, nullable=False),
-        Column("src_connection_param", String, nullable=False),
-        Column("dest_connection_param", String, nullable=False),
-        Column("src_template_id", Integer, nullable=True),  # FK to registry_flows
-        Column("dest_template_id", Integer, nullable=True),  # FK to registry_flows
-        Column("active", Boolean, nullable=False, default=True),
-        Column("description", Text, nullable=True),
-        Column("creator_name", String, nullable=True),
-        Column("created_at", DateTime(timezone=True), server_default=func.now()),
-        Column("modified_at", DateTime(timezone=True), server_default=func.now(), onupdate=func.now()),
-    ])
+    columns.extend(
+        [
+            Column("source", String, nullable=False),
+            Column("destination", String, nullable=False),
+            Column("src_connection_param", String, nullable=False),
+            Column("dest_connection_param", String, nullable=False),
+            Column("src_template_id", Integer, nullable=True),  # FK to registry_flows
+            Column("dest_template_id", Integer, nullable=True),  # FK to registry_flows
+            Column("active", Boolean, nullable=False, default=True),
+            Column("description", Text, nullable=True),
+            Column("creator_name", String, nullable=True),
+            Column("created_at", DateTime(timezone=True), server_default=func.now()),
+            Column(
+                "modified_at",
+                DateTime(timezone=True),
+                server_default=func.now(),
+                onupdate=func.now(),
+            ),
+        ]
+    )
 
     # Create table
-    table = Table("nifi_flows", metadata, *columns)
+    Table("nifi_flows", metadata, *columns)
     metadata.create_all(engine)
 
     # Build list of hierarchy column pairs (src_ and dest_)
     hierarchy_columns = []
     for attr in hierarchy:
         attr_name = attr["name"]
-        hierarchy_columns.append({
-            "name": attr_name,
-            "src_column": f"src_{attr_name.lower()}",
-            "dest_column": f"dest_{attr_name.lower()}"
-        })
+        hierarchy_columns.append(
+            {
+                "name": attr_name,
+                "src_column": f"src_{attr_name.lower()}",
+                "dest_column": f"dest_{attr_name.lower()}",
+            }
+        )
 
     return {
         "table_name": "nifi_flows",
         "hierarchy_columns": hierarchy_columns,
-        "total_columns": len(columns)
+        "total_columns": len(columns),
     }
 
 
@@ -124,14 +140,11 @@ async def recreate_nifi_flows_table(
     """
     try:
         result = create_nifi_flows_table(db)
-        return {
-            "message": "NiFi flows table recreated successfully",
-            "details": result
-        }
+        return {"message": "NiFi flows table recreated successfully", "details": result}
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to recreate table: {str(e)}"
+            detail=f"Failed to recreate table: {str(e)}",
         )
 
 
@@ -148,7 +161,7 @@ async def get_table_info(
         if not inspector.has_table("nifi_flows"):
             return {
                 "exists": False,
-                "message": "Table does not exist. Use POST /recreate-table to create it."
+                "message": "Table does not exist. Use POST /recreate-table to create it.",
             }
 
         columns = inspector.get_columns("nifi_flows")
@@ -158,11 +171,13 @@ async def get_table_info(
         hierarchy_columns = []
         for attr in hierarchy:
             attr_name = attr["name"]
-            hierarchy_columns.append({
-                "name": attr_name,
-                "src_column": f"src_{attr_name.lower()}",
-                "dest_column": f"dest_{attr_name.lower()}"
-            })
+            hierarchy_columns.append(
+                {
+                    "name": attr_name,
+                    "src_column": f"src_{attr_name.lower()}",
+                    "dest_column": f"dest_{attr_name.lower()}",
+                }
+            )
 
         return {
             "exists": True,
@@ -172,17 +187,17 @@ async def get_table_info(
                     "name": col["name"],
                     "type": str(col["type"]),
                     "nullable": col["nullable"],
-                    "primary_key": col.get("primary_key", False)
+                    "primary_key": col.get("primary_key", False),
                 }
                 for col in columns
             ],
             "hierarchy_columns": hierarchy_columns,
-            "current_hierarchy": hierarchy
+            "current_hierarchy": hierarchy,
         }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get table info: {str(e)}"
+            detail=f"Failed to get table info: {str(e)}",
         )
 
 
@@ -200,7 +215,7 @@ async def create_nifi_flow(
         if not inspector.has_table("nifi_flows"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="NiFi flows table does not exist. Use POST /recreate-table first."
+                detail="NiFi flows table does not exist. Use POST /recreate-table first.",
             )
 
         # Get current hierarchy
@@ -212,18 +227,21 @@ async def create_nifi_flow(
             if name not in data.hierarchy_values:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Missing hierarchy value: {name}"
+                    detail=f"Missing hierarchy value: {name}",
                 )
             # Validate that each hierarchy value has both source and destination
             if not isinstance(data.hierarchy_values[name], dict):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Hierarchy value for {name} must be a dict with 'source' and 'destination'"
+                    detail=f"Hierarchy value for {name} must be a dict with 'source' and 'destination'",
                 )
-            if "source" not in data.hierarchy_values[name] or "destination" not in data.hierarchy_values[name]:
+            if (
+                "source" not in data.hierarchy_values[name]
+                or "destination" not in data.hierarchy_values[name]
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Hierarchy value for {name} must contain both 'source' and 'destination'"
+                    detail=f"Hierarchy value for {name} must contain both 'source' and 'destination'",
                 )
 
         # Build insert query with src_ and dest_ columns
@@ -240,40 +258,53 @@ async def create_nifi_flow(
             values.append(data.hierarchy_values[attr_name]["destination"])
 
         # Add standard columns
-        columns.extend(["source", "destination", "src_connection_param", "dest_connection_param", "src_template_id", "dest_template_id", "active", "description", "creator_name"])
-        values.extend([
-            data.source,
-            data.destination,
-            data.src_connection_param,
-            data.dest_connection_param,
-            data.src_template_id,
-            data.dest_template_id,
-            data.active,
-            data.description,
-            data.creator_name
-        ])
+        columns.extend(
+            [
+                "source",
+                "destination",
+                "src_connection_param",
+                "dest_connection_param",
+                "src_template_id",
+                "dest_template_id",
+                "active",
+                "description",
+                "creator_name",
+            ]
+        )
+        values.extend(
+            [
+                data.source,
+                data.destination,
+                data.src_connection_param,
+                data.dest_connection_param,
+                data.src_template_id,
+                data.dest_template_id,
+                data.active,
+                data.description,
+                data.creator_name,
+            ]
+        )
 
         placeholders = ", ".join([f":{i}" for i in range(len(values))])
         cols_str = ", ".join(columns)
 
-        query = text(f"INSERT INTO nifi_flows ({cols_str}) VALUES ({placeholders}) RETURNING id")
+        query = text(
+            f"INSERT INTO nifi_flows ({cols_str}) VALUES ({placeholders}) RETURNING id"
+        )
 
         with engine.connect() as conn:
             result = conn.execute(query, {str(i): v for i, v in enumerate(values)})
             conn.commit()
             row_id = result.fetchone()[0]
 
-        return {
-            "message": "NiFi flow created successfully",
-            "id": row_id
-        }
+        return {"message": "NiFi flow created successfully", "id": row_id}
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create flow: {str(e)}"
+            detail=f"Failed to create flow: {str(e)}",
         )
 
 
@@ -290,11 +321,13 @@ async def list_nifi_flows(
         if not inspector.has_table("nifi_flows"):
             return {
                 "flows": [],
-                "message": "Table does not exist. Use POST /recreate-table to create it."
+                "message": "Table does not exist. Use POST /recreate-table to create it.",
             }
 
         with engine.connect() as conn:
-            result = conn.execute(text("SELECT * FROM nifi_flows ORDER BY created_at DESC"))
+            result = conn.execute(
+                text("SELECT * FROM nifi_flows ORDER BY created_at DESC")
+            )
             rows = result.fetchall()
             columns = result.keys()
 
@@ -308,7 +341,7 @@ async def list_nifi_flows(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list flows: {str(e)}"
+            detail=f"Failed to list flows: {str(e)}",
         )
 
 
@@ -327,7 +360,7 @@ async def update_nifi_flow(
         if not inspector.has_table("nifi_flows"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="NiFi flows table does not exist. Use POST /recreate-table first."
+                detail="NiFi flows table does not exist. Use POST /recreate-table first.",
             )
 
         # Get current hierarchy
@@ -347,21 +380,29 @@ async def update_nifi_flow(
                     if not isinstance(data.hierarchy_values[attr_name], dict):
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Hierarchy value for {attr_name} must be a dict with 'source' and 'destination'"
+                            detail=f"Hierarchy value for {attr_name} must be a dict with 'source' and 'destination'",
                         )
 
                     attr_lower = attr_name.lower()
 
                     # Update source if provided
                     if "source" in data.hierarchy_values[attr_name]:
-                        update_parts.append(f"src_{attr_lower} = :param_{param_counter}")
-                        values[f"param_{param_counter}"] = data.hierarchy_values[attr_name]["source"]
+                        update_parts.append(
+                            f"src_{attr_lower} = :param_{param_counter}"
+                        )
+                        values[f"param_{param_counter}"] = data.hierarchy_values[
+                            attr_name
+                        ]["source"]
                         param_counter += 1
 
                     # Update destination if provided
                     if "destination" in data.hierarchy_values[attr_name]:
-                        update_parts.append(f"dest_{attr_lower} = :param_{param_counter}")
-                        values[f"param_{param_counter}"] = data.hierarchy_values[attr_name]["destination"]
+                        update_parts.append(
+                            f"dest_{attr_lower} = :param_{param_counter}"
+                        )
+                        values[f"param_{param_counter}"] = data.hierarchy_values[
+                            attr_name
+                        ]["destination"]
                         param_counter += 1
 
         # Update standard fields if provided
@@ -411,7 +452,7 @@ async def update_nifi_flow(
         if not update_parts:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No fields provided to update"
+                detail="No fields provided to update",
             )
 
         # Build and execute update query
@@ -427,20 +468,17 @@ async def update_nifi_flow(
             if result.rowcount == 0:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Flow with id {flow_id} not found"
+                    detail=f"Flow with id {flow_id} not found",
                 )
 
-        return {
-            "message": "NiFi flow updated successfully",
-            "id": flow_id
-        }
+        return {"message": "NiFi flow updated successfully", "id": flow_id}
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update flow: {str(e)}"
+            detail=f"Failed to update flow: {str(e)}",
         )
 
 
@@ -458,7 +496,7 @@ async def delete_nifi_flow(
         if not inspector.has_table("nifi_flows"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="NiFi flows table does not exist."
+                detail="NiFi flows table does not exist.",
             )
 
         query = text("DELETE FROM nifi_flows WHERE id = :flow_id")
@@ -470,17 +508,15 @@ async def delete_nifi_flow(
             if result.rowcount == 0:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Flow with id {flow_id} not found"
+                    detail=f"Flow with id {flow_id} not found",
                 )
 
-        return {
-            "message": f"NiFi flow {flow_id} deleted successfully"
-        }
+        return {"message": f"NiFi flow {flow_id} deleted successfully"}
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete flow: {str(e)}"
+            detail=f"Failed to delete flow: {str(e)}",
         )

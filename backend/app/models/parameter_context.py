@@ -6,6 +6,7 @@ from typing import Optional, List, Dict, Any
 
 class ParameterEntity(BaseModel):
     """Model for a single parameter in a parameter context"""
+
     name: str
     description: Optional[str] = None
     sensitive: bool = False
@@ -17,6 +18,7 @@ class ParameterEntity(BaseModel):
 
 class ParameterContext(BaseModel):
     """Model for a NiFi parameter context"""
+
     id: str
     name: str
     description: Optional[str] = None
@@ -29,6 +31,7 @@ class ParameterContext(BaseModel):
 
 class ParameterContextListResponse(BaseModel):
     """Response model for listing parameter contexts"""
+
     status: str
     parameter_contexts: List[ParameterContext]
     count: int
@@ -37,6 +40,7 @@ class ParameterContextListResponse(BaseModel):
 
 class ParameterInput(BaseModel):
     """Input model for parameter creation/update"""
+
     name: str
     description: Optional[str] = None
     sensitive: bool = False
@@ -45,6 +49,7 @@ class ParameterInput(BaseModel):
 
 class ParameterContextCreate(BaseModel):
     """Model for creating a parameter context"""
+
     name: str
     description: Optional[str] = None
     parameters: List[ParameterInput] = []
@@ -52,6 +57,7 @@ class ParameterContextCreate(BaseModel):
 
 class ParameterContextUpdate(BaseModel):
     """Model for updating a parameter context"""
+
     name: Optional[str] = None
     description: Optional[str] = None
     parameters: Optional[List[ParameterInput]] = None

@@ -93,29 +93,28 @@ async def check_nifi_connection(
         # Attempt to authenticate
         try:
             from nipyapi.nifi import FlowApi
+
             flow_api = FlowApi()
 
             # If credentials provided, try to login
             if username and password:
-                security.service_login(service='nifi', username=username, password=password)
+                security.service_login(
+                    service="nifi", username=username, password=password
+                )
 
             # Test the connection
             controller_status = flow_api.get_controller_status()
 
             # Extract version info
             version = "unknown"
-            if hasattr(controller_status, 'controller_status'):
-                if hasattr(controller_status.controller_status, 'version'):
+            if hasattr(controller_status, "controller_status"):
+                if hasattr(controller_status.controller_status, "version"):
                     version = controller_status.controller_status.version
 
             return {
                 "status": "success",
                 "message": "Successfully connected to NiFi",
-                "details": {
-                    "connected": True,
-                    "nifiUrl": nifi_url,
-                    "version": version
-                },
+                "details": {"connected": True, "nifiUrl": nifi_url, "version": version},
             }
 
         except Exception as conn_error:

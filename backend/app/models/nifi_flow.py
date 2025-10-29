@@ -7,6 +7,7 @@ from typing import Optional
 
 class NiFiFlowCreate(BaseModel):
     """Schema for creating a NiFi flow"""
+
     hierarchy_values: dict  # Dynamic hierarchy values e.g., {"CN": {"source": "test1", "destination": "test2"}, "O": {"source": "myOrg", "destination": "yourOrg"}, ...}
     source: str
     destination: str
@@ -21,6 +22,7 @@ class NiFiFlowCreate(BaseModel):
 
 class NiFiFlowUpdate(BaseModel):
     """Schema for updating a NiFi flow"""
+
     hierarchy_values: Optional[dict] = None
     source: Optional[str] = None
     destination: Optional[str] = None
@@ -34,6 +36,7 @@ class NiFiFlowUpdate(BaseModel):
 
 class NiFiFlowResponse(BaseModel):
     """Schema for NiFi flow response"""
+
     id: int
     hierarchy_values: dict
     source: str

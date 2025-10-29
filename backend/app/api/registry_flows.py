@@ -6,7 +6,11 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.models.registry_flow import RegistryFlow, RegistryFlowCreate, RegistryFlowResponse
+from app.models.registry_flow import (
+    RegistryFlow,
+    RegistryFlowCreate,
+    RegistryFlowResponse,
+)
 
 router = APIRouter(prefix="/api/registry-flows", tags=["registry-flows"])
 
@@ -17,11 +21,15 @@ async def list_registry_flows(
     db: Session = Depends(get_db),
 ):
     """List all registry flows"""
-    flows = db.query(RegistryFlow).order_by(
-        RegistryFlow.nifi_instance_name,
-        RegistryFlow.bucket_name,
-        RegistryFlow.flow_name
-    ).all()
+    flows = (
+        db.query(RegistryFlow)
+        .order_by(
+            RegistryFlow.nifi_instance_name,
+            RegistryFlow.bucket_name,
+            RegistryFlow.flow_name,
+        )
+        .all()
+    )
     return flows
 
 
@@ -37,7 +45,7 @@ async def get_registry_flow(
     if not flow:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Registry flow with id {flow_id} not found"
+            detail=f"Registry flow with id {flow_id} not found",
         )
 
     return flow
@@ -55,11 +63,15 @@ async def create_registry_flows(
 
     for flow_data in flows:
         # Check if flow already exists
-        existing = db.query(RegistryFlow).filter(
-            RegistryFlow.nifi_instance_url == flow_data.nifi_instance_url,
-            RegistryFlow.bucket_id == flow_data.bucket_id,
-            RegistryFlow.flow_id == flow_data.flow_id
-        ).first()
+        existing = (
+            db.query(RegistryFlow)
+            .filter(
+                RegistryFlow.nifi_instance_url == flow_data.nifi_instance_url,
+                RegistryFlow.bucket_id == flow_data.bucket_id,
+                RegistryFlow.flow_id == flow_data.flow_id,
+            )
+            .first()
+        )
 
         if existing:
             skipped_count += 1
@@ -75,7 +87,7 @@ async def create_registry_flows(
             bucket_name=flow_data.bucket_name,
             flow_id=flow_data.flow_id,
             flow_name=flow_data.flow_name,
-            flow_description=flow_data.flow_description
+            flow_description=flow_data.flow_description,
         )
 
         db.add(new_flow)
@@ -86,7 +98,7 @@ async def create_registry_flows(
     return {
         "message": f"Created {created_count} flows, skipped {skipped_count} duplicates",
         "created": created_count,
-        "skipped": skipped_count
+        "skipped": skipped_count,
     }
 
 
@@ -102,16 +114,14 @@ async def delete_registry_flow(
     if not flow:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Registry flow with id {flow_id} not found"
+            detail=f"Registry flow with id {flow_id} not found",
         )
 
     flow_name = flow.flow_name
     db.delete(flow)
     db.commit()
 
-    return {
-        "message": f"Registry flow '{flow_name}' deleted successfully"
-    }
+    return {"message": f"Registry flow '{flow_name}' deleted successfully"}
 
 
 @router.get("/templates/list", response_model=List[dict])
@@ -128,7 +138,7 @@ async def list_flow_templates(
             "name": flow.flow_name,
             "label": f"{flow.flow_name} ({flow.nifi_instance_name} / {flow.bucket_name})",
             "nifi_instance": flow.nifi_instance_name,
-            "bucket": flow.bucket_name
+            "bucket": flow.bucket_name,
         }
         for flow in flows
     ]

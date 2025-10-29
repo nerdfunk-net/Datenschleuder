@@ -11,10 +11,13 @@ from app.core.database import Base
 
 class HierarchyValue(Base):
     """Hierarchy values - stores individual values for each attribute"""
+
     __tablename__ = "hierarchy"
 
     id = Column(Integer, primary_key=True, index=True)
-    attribute_name = Column(String, index=True, nullable=False)  # e.g., "CN", "O", "OU", "DC"
+    attribute_name = Column(
+        String, index=True, nullable=False
+    )  # e.g., "CN", "O", "OU", "DC"
     value = Column(String, nullable=False)  # e.g., "test1", "test2", "myOrg"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -22,12 +25,14 @@ class HierarchyValue(Base):
 # Pydantic schemas
 class HierarchyValueCreate(BaseModel):
     """Schema for creating a value"""
+
     attribute_name: str
     value: str
 
 
 class HierarchyValueResponse(BaseModel):
     """Schema for value response"""
+
     id: int
     attribute_name: str
     value: str
@@ -39,5 +44,6 @@ class HierarchyValueResponse(BaseModel):
 
 class HierarchyValuesRequest(BaseModel):
     """Schema for batch creating/updating values for an attribute"""
+
     attribute_name: str
     values: List[str]

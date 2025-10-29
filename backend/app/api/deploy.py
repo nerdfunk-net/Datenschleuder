@@ -218,24 +218,25 @@ async def deploy_flow(
                 print(f"⚠ Warning: Could not rename process group: {rename_error}")
                 # Continue anyway, renaming is not critical
 
-        # Auto-connect output ports if they exist
+        # Auto-connect ports if they exist
         if pg_id and deployment.parent_process_group_id:
+            from nipyapi.nifi import ProcessGroupsApi
+            pg_api = ProcessGroupsApi()
+
+            # Connect output ports
             try:
                 print(f"Checking for output ports to auto-connect...")
 
-                from nipyapi.nifi import ProcessGroupsApi
-                pg_api = ProcessGroupsApi()
-
                 # Get output ports of the newly deployed process group
-                child_ports = pg_api.get_output_ports(id=pg_id)
-                child_output_ports = child_ports.output_ports if hasattr(child_ports, 'output_ports') else []
+                child_output_response = pg_api.get_output_ports(id=pg_id)
+                child_output_ports = child_output_response.output_ports if hasattr(child_output_response, 'output_ports') else []
 
                 if child_output_ports:
                     print(f"  Found {len(child_output_ports)} output port(s) in deployed process group")
 
                     # Get output ports of the parent process group
-                    parent_ports = pg_api.get_output_ports(id=deployment.parent_process_group_id)
-                    parent_output_ports = parent_ports.output_ports if hasattr(parent_ports, 'output_ports') else []
+                    parent_output_response = pg_api.get_output_ports(id=deployment.parent_process_group_id)
+                    parent_output_ports = parent_output_response.output_ports if hasattr(parent_output_response, 'output_ports') else []
 
                     if parent_output_ports:
                         print(f"  Found {len(parent_output_ports)} output port(s) in parent process group")
@@ -244,7 +245,7 @@ async def deploy_flow(
                         child_port = child_output_ports[0]
                         parent_port = parent_output_ports[0]
 
-                        print(f"  Connecting '{child_port.component.name}' -> '{parent_port.component.name}'...")
+                        print(f"  Connecting output: '{child_port.component.name}' -> '{parent_port.component.name}'...")
 
                         # Use nipyapi.canvas.create_connection which handles the details correctly
                         created_conn = canvas.create_connection(
@@ -253,14 +254,55 @@ async def deploy_flow(
                             name=f"{child_port.component.name} to {parent_port.component.name}"
                         )
 
-                        print(f"  ✓ Successfully created connection (ID: {created_conn.id})")
+                        print(f"  ✓ Successfully created output connection (ID: {created_conn.id})")
                     else:
-                        print(f"  No output ports found in parent process group - skipping auto-connect")
+                        print(f"  No output ports found in parent process group - skipping output auto-connect")
                 else:
-                    print(f"  No output ports found in deployed process group - skipping auto-connect")
+                    print(f"  No output ports found in deployed process group - skipping output auto-connect")
 
             except Exception as connect_error:
                 print(f"⚠ Warning: Could not auto-connect output ports: {connect_error}")
+                # Continue anyway, auto-connection is not critical
+
+            # Connect input ports
+            try:
+                print(f"Checking for input ports to auto-connect...")
+
+                # Get input ports of the newly deployed process group
+                child_input_response = pg_api.get_input_ports(id=pg_id)
+                child_input_ports = child_input_response.input_ports if hasattr(child_input_response, 'input_ports') else []
+
+                if child_input_ports:
+                    print(f"  Found {len(child_input_ports)} input port(s) in deployed process group")
+
+                    # Get input ports of the parent process group
+                    parent_input_response = pg_api.get_input_ports(id=deployment.parent_process_group_id)
+                    parent_input_ports = parent_input_response.input_ports if hasattr(parent_input_response, 'input_ports') else []
+
+                    if parent_input_ports:
+                        print(f"  Found {len(parent_input_ports)} input port(s) in parent process group")
+
+                        # Connect the first input port of parent to first input port of child
+                        parent_port = parent_input_ports[0]
+                        child_port = child_input_ports[0]
+
+                        print(f"  Connecting input: '{parent_port.component.name}' -> '{child_port.component.name}'...")
+
+                        # Use nipyapi.canvas.create_connection which handles the details correctly
+                        created_conn = canvas.create_connection(
+                            source=parent_port,
+                            target=child_port,
+                            name=f"{parent_port.component.name} to {child_port.component.name}"
+                        )
+
+                        print(f"  ✓ Successfully created input connection (ID: {created_conn.id})")
+                    else:
+                        print(f"  No input ports found in parent process group - skipping input auto-connect")
+                else:
+                    print(f"  No input ports found in deployed process group - skipping input auto-connect")
+
+            except Exception as connect_error:
+                print(f"⚠ Warning: Could not auto-connect input ports: {connect_error}")
                 # Continue anyway, auto-connection is not critical
 
         success_message = f"Flow deployed successfully to {instance.hierarchy_attribute}={instance.hierarchy_value}"

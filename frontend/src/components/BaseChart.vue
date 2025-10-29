@@ -23,8 +23,8 @@ import {
   LineController,
   BarController,
   PolarAreaController,
-  RadarController
-} from 'chart.js'
+  RadarController,
+} from "chart.js";
 
 ChartJS.register(
   CategoryScale,
@@ -43,82 +43,82 @@ ChartJS.register(
   LineController,
   BarController,
   PolarAreaController,
-  RadarController
-)
+  RadarController,
+);
 
 export default {
-  name: 'BaseChart',
+  name: "BaseChart",
   props: {
     type: {
       type: String,
-      required: true
+      required: true,
     },
     data: {
       type: Object,
-      required: true
+      required: true,
     },
     options: {
       type: Object,
-      default: () => ({})
-    }
+      default: () => ({}),
+    },
   },
   data() {
     return {
-      chart: null
-    }
+      chart: null,
+    };
   },
   mounted() {
-    this.createChart()
+    this.createChart();
   },
   beforeUnmount() {
     if (this.chart) {
-      this.chart.destroy()
+      this.chart.destroy();
     }
   },
   watch: {
     data: {
       handler() {
-        this.updateChart()
+        this.updateChart();
       },
-      deep: true
+      deep: true,
     },
     options: {
       handler() {
-        this.updateChart()
+        this.updateChart();
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   methods: {
     createChart() {
       if (this.chart) {
-        this.chart.destroy()
+        this.chart.destroy();
       }
 
-      const ctx = this.$refs.chartCanvas.getContext('2d')
+      const ctx = this.$refs.chartCanvas.getContext("2d");
       this.chart = new ChartJS(ctx, {
         type: this.type,
         data: this.data,
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          ...this.options
-        }
-      })
+          ...this.options,
+        },
+      });
     },
     updateChart() {
       if (this.chart) {
-        this.chart.data = this.data
+        this.chart.data = this.data;
         this.chart.options = {
           responsive: true,
           maintainAspectRatio: false,
-          ...this.options
-        }
-        this.chart.update()
+          ...this.options,
+        };
+        this.chart.update();
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>

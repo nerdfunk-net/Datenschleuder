@@ -25,8 +25,8 @@
   }
 
   // Fix for invisible buttons (like the BootstrapVueNext ID issue)
-  &[id*='BootstrapVueNext'],
-  &[id*='dropdown'] {
+  &[id*="BootstrapVueNext"],
+  &[id*="dropdown"] {
     opacity: 1 !important;
     visibility: visible !important;
     display: inline-flex !important;

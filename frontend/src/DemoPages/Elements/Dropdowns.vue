@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
 
     <div class="content">
       <b-row>
@@ -20,11 +24,16 @@
                   'alternate',
                   'light',
                   'dark',
-                  'link'
+                  'link',
                 ]"
                 :key="variant"
               >
-                <b-dropdown no-flip :text="variant" class="mb-2 me-2" :variant="variant">
+                <b-dropdown
+                  no-flip
+                  :text="variant"
+                  class="mb-2 me-2"
+                  :variant="variant"
+                >
                   <b-dropdown-item>Menus</b-dropdown-item>
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
@@ -50,11 +59,17 @@
                   'alternate',
                   'light',
                   'dark',
-                  'link'
+                  'link',
                 ]"
                 :key="variant"
               >
-                <b-dropdown no-flip split :text="variant" class="mb-2 me-2" :variant="variant">
+                <b-dropdown
+                  no-flip
+                  split
+                  :text="variant"
+                  class="mb-2 me-2"
+                  :variant="variant"
+                >
                   <b-dropdown-item>Menus</b-dropdown-item>
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
@@ -80,11 +95,17 @@
                   'outline-alternate',
                   'outline-light',
                   'outline-dark',
-                  'outline-link'
+                  'outline-link',
                 ]"
                 :key="variant"
               >
-                <b-dropdown no-flip split :text="variant" class="mb-2 me-2" :variant="variant">
+                <b-dropdown
+                  no-flip
+                  split
+                  :text="variant"
+                  class="mb-2 me-2"
+                  :variant="variant"
+                >
                   <b-dropdown-item>Menus</b-dropdown-item>
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
@@ -112,11 +133,16 @@
                   'outline-alternate',
                   'outline-light',
                   'outline-dark',
-                  'outline-link'
+                  'outline-link',
                 ]"
                 :key="variant"
               >
-                <b-dropdown no-flip :text="variant" class="mb-2 me-2" :variant="variant">
+                <b-dropdown
+                  no-flip
+                  :text="variant"
+                  class="mb-2 me-2"
+                  :variant="variant"
+                >
                   <b-dropdown-item>Menus</b-dropdown-item>
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
@@ -131,13 +157,27 @@
             <div class="card-body">
               <h5 class="card-title">Sizing</h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
-                <b-dropdown no-flip :text="'Button ' + size" class="mb-2 me-2" variant="outline-primary" :size="size">
-                  <button type="button" tabindex="0" class="dropdown-item">Menus</button>
-                  <button type="button" tabindex="0" class="dropdown-item">Settings</button>
+                <b-dropdown
+                  no-flip
+                  :text="'Button ' + size"
+                  class="mb-2 me-2"
+                  variant="outline-primary"
+                  :size="size"
+                >
+                  <button type="button" tabindex="0" class="dropdown-item">
+                    Menus
+                  </button>
+                  <button type="button" tabindex="0" class="dropdown-item">
+                    Settings
+                  </button>
                   <h6 tabindex="-1" class="dropdown-header">Header</h6>
-                  <button type="button" tabindex="0" class="dropdown-item">Actions</button>
+                  <button type="button" tabindex="0" class="dropdown-item">
+                    Actions
+                  </button>
                   <div tabindex="-1" class="dropdown-divider"></div>
-                  <button type="button" tabindex="0" class="dropdown-item">Dividers</button>
+                  <button type="button" tabindex="0" class="dropdown-item">
+                    Dividers
+                  </button>
                 </b-dropdown>
               </template>
             </div>
@@ -145,26 +185,60 @@
           <div class="main-card mb-3 card">
             <div class="card-body">
               <h5 class="card-title">Split Sizing</h5>
-              <b-dropdown no-flip id="ddown-lg" size="lg" text="Large" class="m-2">
+              <b-dropdown
+                no-flip
+                id="ddown-lg"
+                size="lg"
+                text="Large"
+                class="m-2"
+              >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button>Something else here</b-dropdown-item-button>
+                <b-dropdown-item-button
+                  >Something else here</b-dropdown-item-button
+                >
               </b-dropdown>
-              <b-dropdown no-flip id="ddown-lg-split" size="lg" split text="Large Split" class="m-2">
+              <b-dropdown
+                no-flip
+                id="ddown-lg-split"
+                size="lg"
+                split
+                text="Large Split"
+                class="m-2"
+              >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button>Something else here...</b-dropdown-item-button>
+                <b-dropdown-item-button
+                  >Something else here...</b-dropdown-item-button
+                >
               </b-dropdown>
               <br />
-              <b-dropdown no-flip id="ddown-sm" size="sm" text="Small" class="m-2">
+              <b-dropdown
+                no-flip
+                id="ddown-sm"
+                size="sm"
+                text="Small"
+                class="m-2"
+              >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button>Something else here...</b-dropdown-item-button>
+                <b-dropdown-item-button
+                  >Something else here...</b-dropdown-item-button
+                >
               </b-dropdown>
-              <b-dropdown no-flip id="ddown-sm-split" size="sm" split text="Small Split" class="m-2">
+              <b-dropdown
+                no-flip
+                id="ddown-sm-split"
+                size="sm"
+                split
+                text="Small Split"
+                class="m-2"
+              >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button>Something else here...</b-dropdown-item-button>
+                <b-dropdown-item-button
+                  >Something else here...</b-dropdown-item-button
+                >
               </b-dropdown>
             </div>
           </div>
@@ -175,18 +249,19 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
 // import VuePerfectScrollbar from 'vue-perfect-scrollbar'
 
 export default {
   components: {
-    PageTitle
+    PageTitle,
   },
   data: () => ({
-    heading: 'Dropdowns',
-    subheading: 'Multiple styles, actions and effects are available for the Archited Framework dropdown buttons.\n',
-    icon: 'pe-7s-umbrella icon-gradient bg-sunny-morning'
-  })
-}
+    heading: "Dropdowns",
+    subheading:
+      "Multiple styles, actions and effects are available for the Archited Framework dropdown buttons.\n",
+    icon: "pe-7s-umbrella icon-gradient bg-sunny-morning",
+  }),
+};
 </script>

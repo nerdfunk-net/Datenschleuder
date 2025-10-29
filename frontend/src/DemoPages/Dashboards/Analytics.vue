@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
     <div class="mb-3 card">
       <div class="card-header-tab card-header">
         <div class="card-header-title font-size-lg text-capitalize fw-normal">
@@ -10,11 +14,19 @@
       </div>
       <div class="row g-0">
         <div class="col-sm-6 col-md-4 col-xl-4">
-          <DashboardWidget stat-key="cashDeposits" icon-class="pe-7s-scissors" icon-bg-class="bg-warning" />
+          <DashboardWidget
+            stat-key="cashDeposits"
+            icon-class="pe-7s-scissors"
+            icon-bg-class="bg-warning"
+          />
           <div class="divider m-0 d-md-none d-sm-block"></div>
         </div>
         <div class="col-sm-6 col-md-4 col-xl-4">
-          <DashboardWidget stat-key="investedDividends" icon-class="pe-7s-radio" icon-bg-class="bg-danger" />
+          <DashboardWidget
+            stat-key="investedDividends"
+            icon-class="pe-7s-radio"
+            icon-bg-class="bg-danger"
+          />
           <div class="divider m-0 d-md-none d-sm-block"></div>
         </div>
         <div class="col-sm-12 col-md-4 col-xl-4">
@@ -27,7 +39,9 @@
         </div>
       </div>
       <div class="text-center d-block p-3 card-footer">
-        <button class="btn-pill btn-shadow btn-wide fsize-1 btn btn-primary btn-lg">
+        <button
+          class="btn-pill btn-shadow btn-wide fsize-1 btn btn-primary btn-lg"
+        >
           <span class="me-2 opacity-7">
             <i class="icon icon-anim-pulse ion-ios-analytics-outline"></i>
           </span>
@@ -39,8 +53,13 @@
       <div class="col-sm-12 col-lg-6">
         <div class="mb-3 card">
           <div class="card-header-tab card-header">
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
-              <i class="header-icon lnr-cloud-download icon-gradient bg-happy-itmeo"> </i>
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
+              <i
+                class="header-icon lnr-cloud-download icon-gradient bg-happy-itmeo"
+              >
+              </i>
               Technical Support
             </div>
           </div>
@@ -48,16 +67,24 @@
             <div class="p-1 slick-slider-sm mx-auto">
               <div class="widget-chart widget-chart2 text-start p-0">
                 <div class="widget-chat-wrapper-outer">
-                  <div class="widget-chart-content widget-chart-content-lg pb-0">
+                  <div
+                    class="widget-chart-content widget-chart-content-lg pb-0"
+                  >
                     <div class="widget-chart-flex">
-                      <div class="widget-title opacity-5 text-muted text-uppercase">Helpdesk Tickets</div>
+                      <div
+                        class="widget-title opacity-5 text-muted text-uppercase"
+                      >
+                        Helpdesk Tickets
+                      </div>
                     </div>
                     <div class="widget-numbers">
                       <div class="widget-chart-flex">
                         <div>
                           <span class="text-warning">34</span>
                         </div>
-                        <div class="widget-title ms-2 font-size-lg fw-normal text-dark">
+                        <div
+                          class="widget-title ms-2 font-size-lg fw-normal text-dark"
+                        >
                           <span class="opacity-5 text-muted ps-2 pe-1">5%</span>
                           increase
                         </div>
@@ -71,7 +98,11 @@
               </div>
             </div>
 
-            <h6 class="text-muted text-uppercase font-size-md opacity-5 ps-3 pe-3 pb-1 fw-normal">Sales Progress</h6>
+            <h6
+              class="text-muted text-uppercase font-size-md opacity-5 ps-3 pe-3 pb-1 fw-normal"
+            >
+              Sales Progress
+            </h6>
             <ul class="list-group list-group-flush">
               <li class="p-3 bg-transparent list-group-item">
                 <div class="widget-content p-0">
@@ -89,7 +120,9 @@
                       </div>
                     </div>
                     <div class="widget-progress-wrapper">
-                      <div class="progress-bar-sm progress-bar-animated-alt progress">
+                      <div
+                        class="progress-bar-sm progress-bar-animated-alt progress"
+                      >
                         <div
                           class="progress-bar bg-primary"
                           role="progressbar"
@@ -114,20 +147,28 @@
       <div class="col-sm-12 col-lg-6">
         <div class="card-hover-shadow-2x mb-3 card">
           <div class="card-header-tab card-header">
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
-              <i class="header-icon lnr-lighter icon-gradient bg-amy-crisp"> </i>
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
+              <i class="header-icon lnr-lighter icon-gradient bg-amy-crisp">
+              </i>
               Timeline Example
             </div>
           </div>
           <div class="scroll-area-lg" style="overflow-x: hidden">
-            <PerfectScrollbar class="scrollbar-container" :options="{ suppressScrollX: true }">
+            <PerfectScrollbar
+              class="scrollbar-container"
+              :options="{ suppressScrollX: true }"
+            >
               <div class="p-4">
                 <div
                   class="vertical-time-simple vertical-without-time vertical-timeline vertical-timeline--animate vertical-timeline--one-column"
                 >
                   <div class="dot-danger vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">All Hands Meeting</h4>
                       </div>
@@ -135,15 +176,22 @@
                   </div>
                   <div class="dot-warning vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <p>Yet another one, at <span class="text-success">15:00 PM</span></p>
+                        <p>
+                          Yet another one, at
+                          <span class="text-success">15:00 PM</span>
+                        </p>
                       </div>
                     </div>
                   </div>
                   <div class="dot-success vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">
                           Build the production release
@@ -154,7 +202,9 @@
                   </div>
                   <div class="dot-primary vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">Something not important</h4>
                       </div>
@@ -162,15 +212,22 @@
                   </div>
                   <div class="dot-warning vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <p>Yet another one, at <span class="text-success">15:00 PM</span></p>
+                        <p>
+                          Yet another one, at
+                          <span class="text-success">15:00 PM</span>
+                        </p>
                       </div>
                     </div>
                   </div>
                   <div class="dot-success vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">
                           Build the production release
@@ -181,23 +238,33 @@
                   </div>
                   <div class="dot-info vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <h4 class="timeline-title">This dot has an info state</h4>
+                        <h4 class="timeline-title">
+                          This dot has an info state
+                        </h4>
                       </div>
                     </div>
                   </div>
                   <div class="dot-dark vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <h4 class="timeline-title">This dot has a dark state</h4>
+                        <h4 class="timeline-title">
+                          This dot has a dark state
+                        </h4>
                       </div>
                     </div>
                   </div>
                   <div class="dot-danger vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">All Hands Meeting</h4>
                       </div>
@@ -205,15 +272,22 @@
                   </div>
                   <div class="dot-warning vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <p>Yet another one, at <span class="text-success">15:00 PM</span></p>
+                        <p>
+                          Yet another one, at
+                          <span class="text-success">15:00 PM</span>
+                        </p>
                       </div>
                     </div>
                   </div>
                   <div class="dot-success vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">
                           Build the production release
@@ -224,7 +298,9 @@
                   </div>
                   <div class="dot-primary vertical-timeline-element">
                     <div>
-                      <span class="vertical-timeline-element-icon bounce-in"></span>
+                      <span
+                        class="vertical-timeline-element-icon bounce-in"
+                      ></span>
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">Something not important</h4>
                       </div>
@@ -235,14 +311,18 @@
             </PerfectScrollbar>
           </div>
           <div class="d-block text-center card-footer">
-            <button class="btn-shadow btn-wide btn-pill btn btn-focus">View All Messages</button>
+            <button class="btn-shadow btn-wide btn-pill btn btn-focus">
+              View All Messages
+            </button>
           </div>
         </div>
       </div>
     </div>
     <div class="row">
       <div class="col-md-6 col-xl-3">
-        <div class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-success">
+        <div
+          class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-success"
+        >
           <div class="widget-chat-wrapper-outer">
             <div class="widget-chart-content pt-3 ps-3 pb-1">
               <div class="widget-chart-flex">
@@ -261,7 +341,9 @@
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
-        <div class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-primary">
+        <div
+          class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-primary"
+        >
           <div class="widget-chat-wrapper-outer">
             <div class="widget-chart-content pt-3 ps-3 pb-1">
               <div class="widget-chart-flex">
@@ -280,7 +362,9 @@
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
-        <div class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-warning">
+        <div
+          class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-warning"
+        >
           <div class="widget-chat-wrapper-outer">
             <div class="widget-chart-content pt-3 ps-3 pb-1">
               <div class="widget-chart-flex">
@@ -299,7 +383,9 @@
         </div>
       </div>
       <div class="col-md-6 col-xl-3">
-        <div class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-danger">
+        <div
+          class="card mb-3 widget-chart widget-chart2 text-start card-btm-border border-danger"
+        >
           <div class="widget-chat-wrapper-outer">
             <div class="widget-chart-content pt-3 ps-3 pb-1">
               <div class="widget-chart-flex">
@@ -322,12 +408,19 @@
       <div class="col-sm-12 col-lg-6">
         <div class="card-hover-shadow-2x mb-3 card">
           <div class="card-header-tab card-header">
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
-              <i class="header-icon lnr-database icon-gradient bg-malibu-beach"> </i>Tasks List
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
+              <i class="header-icon lnr-database icon-gradient bg-malibu-beach">
+              </i
+              >Tasks List
             </div>
           </div>
           <div class="scroll-area-lg" style="overflow-x: hidden">
-            <PerfectScrollbar class="scrollbar-container" :options="{ suppressScrollX: true }">
+            <PerfectScrollbar
+              class="scrollbar-container"
+              :options="{ suppressScrollX: true }"
+            >
               <ul class="todo-list-wrapper list-group list-group-flush">
                 <li class="list-group-item">
                   <div class="todo-indicator bg-warning"></div>
@@ -335,7 +428,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox12" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox12"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox12"
                             >&nbsp;</label
@@ -347,13 +444,19 @@
                           Wash the car
                           <div class="badge bg-danger ms-2">Rejected</div>
                         </div>
-                        <div class="widget-subheading"><i>Written by Bob</i></div>
+                        <div class="widget-subheading">
+                          <i>Written by Bob</i>
+                        </div>
                       </div>
                       <div class="widget-content-right widget-content-actions">
-                        <button class="border-0 btn-transition btn btn-outline-success">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-success"
+                        >
                           <font-awesome-icon icon="check" />
                         </button>
-                        <button class="border-0 btn-transition btn btn-outline-danger">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-danger"
+                        >
                           <font-awesome-icon icon="trash-alt" />
                         </button>
                       </div>
@@ -366,7 +469,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox1" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox1"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox1"
                             >&nbsp;</label
@@ -374,11 +481,15 @@
                         </div>
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Task with hover dropdown menu</div>
+                        <div class="widget-heading">
+                          Task with hover dropdown menu
+                        </div>
                         <div class="widget-subheading">
                           <div>
                             By Johnny
-                            <div class="badge rounded-pill bg-info ms-2">NEW</div>
+                            <div class="badge rounded-pill bg-info ms-2">
+                              NEW
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -391,7 +502,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox4" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox4"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox4"
                             >&nbsp;</label
@@ -399,16 +514,24 @@
                         </div>
                       </div>
                       <div class="widget-content-left flex2">
-                        <div class="widget-heading">Badge on the right task</div>
-                        <div class="widget-subheading">This task has show on hover actions!</div>
+                        <div class="widget-heading">
+                          Badge on the right task
+                        </div>
+                        <div class="widget-subheading">
+                          This task has show on hover actions!
+                        </div>
                       </div>
                       <div class="widget-content-right widget-content-actions">
-                        <button class="border-0 btn-transition btn btn-outline-success">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-success"
+                        >
                           <font-awesome-icon icon="check" />
                         </button>
                       </div>
                       <div class="widget-content-right ms-3">
-                        <div class="badge rounded-pill bg-success">Latest Task</div>
+                        <div class="badge rounded-pill bg-success">
+                          Latest Task
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -419,7 +542,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox2" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox2"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox2"
                             >&nbsp;</label
@@ -428,18 +555,29 @@
                       </div>
                       <div class="widget-content-left me-3">
                         <div class="widget-content-left">
-                          <img width="42" class="rounded" src="@/assets/images/avatars/1.jpg" alt="" />
+                          <img
+                            width="42"
+                            class="rounded"
+                            src="@/assets/images/avatars/1.jpg"
+                            alt=""
+                          />
                         </div>
                       </div>
                       <div class="widget-content-left">
                         <div class="widget-heading">Go grocery shopping</div>
-                        <div class="widget-subheading">A short description for this todo item</div>
+                        <div class="widget-subheading">
+                          A short description for this todo item
+                        </div>
                       </div>
                       <div class="widget-content-right widget-content-actions">
-                        <button class="border-0 btn-transition btn btn-outline-success">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-success"
+                        >
                           <font-awesome-icon icon="check" />
                         </button>
-                        <button class="border-0 btn-transition btn btn-outline-danger">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-danger"
+                        >
                           <font-awesome-icon icon="trash-alt" />
                         </button>
                       </div>
@@ -452,7 +590,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox12" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox12"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox12"
                             >&nbsp;</label
@@ -464,13 +606,19 @@
                           Wash the car
                           <div class="badge bg-danger ms-2">Rejected</div>
                         </div>
-                        <div class="widget-subheading"><i>Written by Bob</i></div>
+                        <div class="widget-subheading">
+                          <i>Written by Bob</i>
+                        </div>
                       </div>
                       <div class="widget-content-right widget-content-actions">
-                        <button class="border-0 btn-transition btn btn-outline-success">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-success"
+                        >
                           <font-awesome-icon icon="check" />
                         </button>
-                        <button class="border-0 btn-transition btn btn-outline-danger">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-danger"
+                        >
                           <font-awesome-icon icon="trash-alt" />
                         </button>
                       </div>
@@ -483,7 +631,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox1" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox1"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox1"
                             >&nbsp;</label
@@ -491,19 +643,27 @@
                         </div>
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Task with hover dropdown menu</div>
+                        <div class="widget-heading">
+                          Task with hover dropdown menu
+                        </div>
                         <div class="widget-subheading">
                           <div>
                             By Johnny
-                            <div class="badge rounded-pill bg-info ms-2">NEW</div>
+                            <div class="badge rounded-pill bg-info ms-2">
+                              NEW
+                            </div>
                           </div>
                         </div>
                       </div>
                       <div class="widget-content-right widget-content-actions">
-                        <button class="border-0 btn-transition btn btn-outline-success">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-success"
+                        >
                           <font-awesome-icon icon="check" />
                         </button>
-                        <button class="border-0 btn-transition btn btn-outline-danger">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-danger"
+                        >
                           <font-awesome-icon icon="trash-alt" />
                         </button>
                       </div>
@@ -516,7 +676,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox4" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox4"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox4"
                             >&nbsp;</label
@@ -524,16 +688,24 @@
                         </div>
                       </div>
                       <div class="widget-content-left flex2">
-                        <div class="widget-heading">Badge on the right task</div>
-                        <div class="widget-subheading">This task has show on hover actions!</div>
+                        <div class="widget-heading">
+                          Badge on the right task
+                        </div>
+                        <div class="widget-subheading">
+                          This task has show on hover actions!
+                        </div>
                       </div>
                       <div class="widget-content-right widget-content-actions">
-                        <button class="border-0 btn-transition btn btn-outline-success">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-success"
+                        >
                           <font-awesome-icon icon="check" />
                         </button>
                       </div>
                       <div class="widget-content-right ms-3">
-                        <div class="badge rounded-pill bg-success">Latest Task</div>
+                        <div class="badge rounded-pill bg-success">
+                          Latest Task
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -544,7 +716,11 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left me-2">
                         <div class="form-check">
-                          <input type="checkbox" id="exampleCustomCheckbox3" class="form-check-input" /><label
+                          <input
+                            type="checkbox"
+                            id="exampleCustomCheckbox3"
+                            class="form-check-input"
+                          /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox3"
                             >&nbsp;</label
@@ -553,16 +729,22 @@
                       </div>
                       <div class="widget-content-left flex2">
                         <div class="widget-heading">Development Task</div>
-                        <div class="widget-subheading">Finish Vue ToDo List App</div>
+                        <div class="widget-subheading">
+                          Finish Vue ToDo List App
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div class="badge bg-warning me-2">69</div>
                       </div>
                       <div class="widget-content-right">
-                        <button class="border-0 btn-transition btn btn-outline-success">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-success"
+                        >
                           <font-awesome-icon icon="check" />
                         </button>
-                        <button class="border-0 btn-transition btn btn-outline-danger">
+                        <button
+                          class="border-0 btn-transition btn btn-outline-danger"
+                        >
                           <font-awesome-icon icon="trash-alt" />
                         </button>
                       </div>
@@ -581,8 +763,11 @@
       <div class="col-sm-12 col-lg-6">
         <div class="card-hover-shadow-2x mb-3 card">
           <div class="card-header-tab card-header">
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
-              <i class="header-icon lnr-laptop-phone me-3 text-muted opacity-6"> </i>
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
+              <i class="header-icon lnr-laptop-phone me-3 text-muted opacity-6">
+              </i>
               Tables Examples
             </div>
           </div>
@@ -596,16 +781,58 @@
               <thead role="rowgroup" class="">
                 <!---->
                 <tr role="row">
-                  <th role="columnheader" scope="col" aria-colindex="1" class="">First Name</th>
-                  <th role="columnheader" scope="col" aria-colindex="2" class="">Last Name</th>
-                  <th role="columnheader" scope="col" aria-colindex="3" class="">Age</th>
+                  <th
+                    role="columnheader"
+                    scope="col"
+                    aria-colindex="1"
+                    class=""
+                  >
+                    First Name
+                  </th>
+                  <th
+                    role="columnheader"
+                    scope="col"
+                    aria-colindex="2"
+                    class=""
+                  >
+                    Last Name
+                  </th>
+                  <th
+                    role="columnheader"
+                    scope="col"
+                    aria-colindex="3"
+                    class=""
+                  >
+                    Age
+                  </th>
                 </tr>
               </thead>
               <tfoot role="rowgroup" class="">
                 <tr role="row">
-                  <th role="columnheader" scope="col" aria-colindex="1" class="">First Name</th>
-                  <th role="columnheader" scope="col" aria-colindex="2" class="">Last Name</th>
-                  <th role="columnheader" scope="col" aria-colindex="3" class="">Age</th>
+                  <th
+                    role="columnheader"
+                    scope="col"
+                    aria-colindex="1"
+                    class=""
+                  >
+                    First Name
+                  </th>
+                  <th
+                    role="columnheader"
+                    scope="col"
+                    aria-colindex="2"
+                    class=""
+                  >
+                    Last Name
+                  </th>
+                  <th
+                    role="columnheader"
+                    scope="col"
+                    aria-colindex="3"
+                    class=""
+                  >
+                    Age
+                  </th>
                 </tr>
               </tfoot>
               <tbody role="rowgroup" class="">
@@ -773,67 +1000,68 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
-import { PerfectScrollbar } from 'vue3-perfect-scrollbar'
-import 'vue3-perfect-scrollbar/style.css'
-import DashboardWidget from '../../components/DashboardWidget.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
+import { PerfectScrollbar } from "vue3-perfect-scrollbar";
+import "vue3-perfect-scrollbar/style.css";
+import DashboardWidget from "../../components/DashboardWidget.vue";
 
-import chart1 from './Analytics/chart1.vue'
+import chart1 from "./Analytics/chart1.vue";
 // import chart2 from './Analytics/chart2.vue';
 // import chart3 from './Analytics/chart3.vue';
 
 // Import Pinia stores
-import { useDashboardStore } from '@/stores/dashboard'
-import { useUIStore } from '@/stores/ui'
-import { useNotificationsStore } from '@/stores/notifications'
+import { useDashboardStore } from "@/stores/dashboard";
+import { useUIStore } from "@/stores/ui";
+import { useNotificationsStore } from "@/stores/notifications";
 
 export default {
   components: {
     PageTitle,
     PerfectScrollbar,
     DashboardWidget,
-    chart1
+    chart1,
     // chart2,
     // chart3,
   },
   data: () => ({
-    heading: 'Analytics Dashboard',
-    subheading: 'This is an example dashboard created using build-in elements and components.',
-    icon: 'pe-7s-plane icon-gradient bg-tempting-azure'
+    heading: "Analytics Dashboard",
+    subheading:
+      "This is an example dashboard created using build-in elements and components.",
+    icon: "pe-7s-plane icon-gradient bg-tempting-azure",
   }),
 
   setup() {
     // Initialize stores
-    const dashboardStore = useDashboardStore()
-    const uiStore = useUIStore()
-    const notificationsStore = useNotificationsStore()
+    const dashboardStore = useDashboardStore();
+    const uiStore = useUIStore();
+    const notificationsStore = useNotificationsStore();
 
     return {
       dashboardStore,
       uiStore,
-      notificationsStore
-    }
+      notificationsStore,
+    };
   },
 
   mounted() {
     // Set page title using UI store
     this.uiStore.setPageTitle(
-      'Analytics Dashboard',
-      'This is an example dashboard created using build-in elements and components.'
-    )
+      "Analytics Dashboard",
+      "This is an example dashboard created using build-in elements and components.",
+    );
 
     // Initialize dashboard data
-    this.dashboardStore.refreshDashboard()
+    this.dashboardStore.refreshDashboard();
 
     // Show welcome notification
-    this.notificationsStore.success('Dashboard loaded successfully!', {
-      title: 'Welcome',
-      duration: 3000
-    })
+    this.notificationsStore.success("Dashboard loaded successfully!", {
+      title: "Welcome",
+      duration: 3000,
+    });
   },
 
-  methods: {}
-}
+  methods: {},
+};
 </script>
 
 <style scoped>

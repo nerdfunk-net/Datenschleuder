@@ -32,10 +32,16 @@
               </template>
 
               <b-dropdown-header>User Menu</b-dropdown-header>
-              <b-dropdown-item @click="handleMenuAction('profile')">Profile</b-dropdown-item>
-              <b-dropdown-item @click="handleMenuAction('settings')">Settings</b-dropdown-item>
+              <b-dropdown-item @click="handleMenuAction('profile')"
+                >Profile</b-dropdown-item
+              >
+              <b-dropdown-item @click="handleMenuAction('settings')"
+                >Settings</b-dropdown-item
+              >
               <b-dropdown-divider></b-dropdown-divider>
-              <b-dropdown-item @click="handleMenuAction('logout')">Logout</b-dropdown-item>
+              <b-dropdown-item @click="handleMenuAction('logout')"
+                >Logout</b-dropdown-item
+              >
             </b-dropdown>
 
             <!-- User Info - Direct in same flex container -->
@@ -56,7 +62,9 @@
               @click="handleCalendarClick"
             >
               <font-awesome-icon icon="calendar-alt" />
-              <b-tooltip target="calendar-btn" placement="bottom"> View Calendar Events </b-tooltip>
+              <b-tooltip target="calendar-btn" placement="bottom">
+                View Calendar Events
+              </b-tooltip>
             </b-button>
           </div>
         </div>
@@ -66,59 +74,59 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { getCurrentUser, logout } from '@/utils/api'
+import { defineComponent, ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { getCurrentUser, logout } from "@/utils/api";
 
 export default defineComponent({
-  name: 'HeaderUserArea',
+  name: "HeaderUserArea",
   setup() {
-    const router = useRouter()
+    const router = useRouter();
     const user = ref({
-      name: 'Loading...',
-      role: 'User',
-      avatar: '@/assets/images/avatars/1.jpg'
-    })
+      name: "Loading...",
+      role: "User",
+      avatar: "@/assets/images/avatars/1.jpg",
+    });
 
     // Load current user from backend
     onMounted(async () => {
       try {
-        const userData = await getCurrentUser()
+        const userData = await getCurrentUser();
         user.value = {
           name: userData.username,
-          role: userData.is_superuser ? 'Administrator' : 'User',
-          avatar: '@/assets/images/avatars/1.jpg'
-        }
+          role: userData.is_superuser ? "Administrator" : "User",
+          avatar: "@/assets/images/avatars/1.jpg",
+        };
       } catch (error) {
-        console.error('Failed to load user data:', error)
+        console.error("Failed to load user data:", error);
       }
-    })
+    });
 
     const handleCalendarClick = () => {
       // Handle calendar functionality
-    }
+    };
 
-    const handleMenuAction = action => {
+    const handleMenuAction = (action) => {
       switch (action) {
-      case 'profile':
-        router.push('/settings/profile')
-        break
-      case 'settings':
-        router.push('/settings/nifi')
-        break
-      case 'logout':
-        logout()
-        break
+        case "profile":
+          router.push("/settings/profile");
+          break;
+        case "settings":
+          router.push("/settings/nifi");
+          break;
+        case "logout":
+          logout();
+          break;
       }
-    }
+    };
 
     return {
       user,
       handleCalendarClick,
-      handleMenuAction
-    }
-  }
-})
+      handleMenuAction,
+    };
+  },
+});
 </script>
 
 <style scoped>

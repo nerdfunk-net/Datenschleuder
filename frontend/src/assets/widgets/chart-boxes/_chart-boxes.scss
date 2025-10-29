@@ -247,7 +247,7 @@ $widget-spacer: $spacer;
   position: relative;
   overflow: hidden;
 
-  &[class*='border-'] {
+  &[class*="border-"] {
     border-width: 1px;
     border-style: solid;
   }

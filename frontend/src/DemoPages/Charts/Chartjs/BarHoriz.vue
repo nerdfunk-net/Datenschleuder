@@ -3,49 +3,72 @@
 </template>
 
 <script>
-import { Bar } from 'vue-chartjs'
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js'
+import { Bar } from "vue-chartjs";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+);
 
 export default {
-  name: 'HorizontalBarChart',
+  name: "HorizontalBarChart",
   components: {
-    Bar
+    Bar,
   },
   data() {
     return {
       chartData: {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+        labels: [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+        ],
         datasets: [
           {
-            label: 'Dataset 1',
+            label: "Dataset 1",
             data: [65, 59, 80, 81, 56, 55, 40],
-            backgroundColor: '#3f6ad8'
+            backgroundColor: "#3f6ad8",
           },
           {
-            label: 'Dataset 2',
+            label: "Dataset 2",
             data: [28, 48, 40, 19, 86, 27, 90],
-            backgroundColor: '#e83e8c'
-          }
-        ]
+            backgroundColor: "#e83e8c",
+          },
+        ],
       },
       chartOptions: {
         responsive: true,
         maintainAspectRatio: false,
-        indexAxis: 'y',
+        indexAxis: "y",
         plugins: {
           legend: {
-            position: 'top'
-          }
+            position: "top",
+          },
         },
         scales: {
           x: {
-            beginAtZero: true
-          }
-        }
-      }
-    }
-  }
-}
+            beginAtZero: true,
+          },
+        },
+      },
+    };
+  },
+};
 </script>

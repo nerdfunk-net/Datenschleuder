@@ -5,7 +5,11 @@
     </div>
   </div>
 
-  <div v-else-if="item.type === 'link'" class="vsm-item" :class="{ 'active-item': isActiveRoute(item.route) }">
+  <div
+    v-else-if="item.type === 'link'"
+    class="vsm-item"
+    :class="{ 'active-item': isActiveRoute(item.route) }"
+  >
     <router-link :to="item.route" class="vsm-link">
       <i :class="`vsm-icon ${item.icon}`"></i>
       <span class="vsm-title">{{ item.title }}</span>
@@ -15,7 +19,10 @@
   <div
     v-else-if="item.type === 'submenu'"
     class="vsm-item"
-    :class="{ 'parent-active-item': isParentActive, 'open-item': isSubmenuOpen }"
+    :class="{
+      'parent-active-item': isParentActive,
+      'open-item': isSubmenuOpen,
+    }"
   >
     <div
       class="vsm-link"
@@ -51,36 +58,36 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { useSidebarStore } from '@/stores/sidebar'
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { useSidebarStore } from "@/stores/sidebar";
 
 const props = defineProps({
   item: {
     type: Object,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const route = useRoute()
-const sidebarStore = useSidebarStore()
+const route = useRoute();
+const sidebarStore = useSidebarStore();
 
-const isActiveRoute = routePath => {
-  return route.path === routePath
-}
+const isActiveRoute = (routePath) => {
+  return route.path === routePath;
+};
 
 const isParentActive = computed(() => {
-  if (props.item.type !== 'submenu') return false
-  return props.item.children?.some(child => isActiveRoute(child.route))
-})
+  if (props.item.type !== "submenu") return false;
+  return props.item.children?.some((child) => isActiveRoute(child.route));
+});
 
 const isSubmenuOpen = computed(() => {
-  return sidebarStore.isSubmenuActive(props.item.id)
-})
+  return sidebarStore.isSubmenuActive(props.item.id);
+});
 
 const toggleSubmenu = () => {
-  sidebarStore.toggleSubmenu(props.item.id)
-}
+  sidebarStore.toggleSubmenu(props.item.id);
+};
 </script>
 
 <style scoped>

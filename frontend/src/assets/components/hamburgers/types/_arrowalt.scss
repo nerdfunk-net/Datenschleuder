@@ -21,7 +21,11 @@
       .hamburger-inner {
         &::before {
           top: 0;
-          transform: translate3d($hamburger-layer-width * -0.2, $hamburger-layer-width * -0.25, 0)
+          transform: translate3d(
+              $hamburger-layer-width * -0.2,
+              $hamburger-layer-width * -0.25,
+              0
+            )
             rotate(-45deg)
             scale(0.7, 1);
           transition:
@@ -31,7 +35,11 @@
 
         &::after {
           bottom: 0;
-          transform: translate3d($hamburger-layer-width * -0.2, $hamburger-layer-width * 0.25, 0)
+          transform: translate3d(
+              $hamburger-layer-width * -0.2,
+              $hamburger-layer-width * 0.25,
+              0
+            )
             rotate(45deg)
             scale(0.7, 1);
           transition:

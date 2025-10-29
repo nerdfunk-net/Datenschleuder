@@ -9,7 +9,10 @@
             v-for="(step, index) in steps"
             :key="index"
             class="wizard-step"
-            :class="{ active: currentStep === index, completed: currentStep > index }"
+            :class="{
+              active: currentStep === index,
+              completed: currentStep > index,
+            }"
           >
             <div class="step-number">{{ index + 1 }}</div>
             <div class="step-label">{{ step }}</div>
@@ -62,7 +65,7 @@
                   />
                 </td>
                 <td v-for="col in visibleColumns" :key="col.key">
-                  {{ flow[col.key] || '-' }}
+                  {{ flow[col.key] || "-" }}
                 </td>
                 <td>{{ flow.source }}</td>
                 <td>{{ flow.destination }}</td>
@@ -83,7 +86,10 @@
         </div>
 
         <div class="wizard-actions">
-          <b-button variant="outline-secondary" @click="$router.push('/flows/manage')">
+          <b-button
+            variant="outline-secondary"
+            @click="$router.push('/flows/manage')"
+          >
             Cancel
           </b-button>
           <b-button
@@ -105,18 +111,30 @@
         </div>
 
         <div class="deployment-targets">
-          <div v-for="flow in selectedFlowObjects" :key="flow.id" class="target-card">
+          <div
+            v-for="flow in selectedFlowObjects"
+            :key="flow.id"
+            class="target-card"
+          >
             <div class="target-header">
               <h5>{{ getFlowName(flow) }}</h5>
-              <span class="text-muted">{{ flow.source }} → {{ flow.destination }}</span>
+              <span class="text-muted"
+                >{{ flow.source }} → {{ flow.destination }}</span
+              >
             </div>
 
             <div class="target-body">
               <div class="hierarchy-info">
                 <div class="hierarchy-item">
-                  <span class="label">Top Hierarchy ({{ topHierarchyName }}):</span>
-                  <span class="value-badge source">Source: {{ getTopHierarchyValue(flow, 'source') }}</span>
-                  <span class="value-badge dest">Dest: {{ getTopHierarchyValue(flow, 'destination') }}</span>
+                  <span class="label"
+                    >Top Hierarchy ({{ topHierarchyName }}):</span
+                  >
+                  <span class="value-badge source"
+                    >Source: {{ getTopHierarchyValue(flow, "source") }}</span
+                  >
+                  <span class="value-badge dest"
+                    >Dest: {{ getTopHierarchyValue(flow, "destination") }}</span
+                  >
                 </div>
               </div>
 
@@ -124,23 +142,37 @@
                 <label class="option-label">Deploy to:</label>
                 <div class="option-buttons">
                   <b-button
-                    :variant="getDeploymentTarget(flow.id) === 'source' ? 'primary' : 'outline-primary'"
+                    :variant="
+                      getDeploymentTarget(flow.id) === 'source'
+                        ? 'primary'
+                        : 'outline-primary'
+                    "
                     @click="setDeploymentTarget(flow.id, 'source')"
                     class="target-btn"
                   >
                     <i class="pe-7s-angle-right-circle"></i>
-                    Source ({{ getTopHierarchyValue(flow, 'source') }})
+                    Source ({{ getTopHierarchyValue(flow, "source") }})
                   </b-button>
                   <b-button
-                    :variant="getDeploymentTarget(flow.id) === 'destination' ? 'primary' : 'outline-primary'"
+                    :variant="
+                      getDeploymentTarget(flow.id) === 'destination'
+                        ? 'primary'
+                        : 'outline-primary'
+                    "
                     @click="setDeploymentTarget(flow.id, 'destination')"
                     class="target-btn"
                   >
                     <i class="pe-7s-angle-left-circle"></i>
-                    Destination ({{ getTopHierarchyValue(flow, 'destination') }})
+                    Destination ({{
+                      getTopHierarchyValue(flow, "destination")
+                    }})
                   </b-button>
                   <b-button
-                    :variant="getDeploymentTarget(flow.id) === 'both' ? 'primary' : 'outline-primary'"
+                    :variant="
+                      getDeploymentTarget(flow.id) === 'both'
+                        ? 'primary'
+                        : 'outline-primary'
+                    "
                     @click="setDeploymentTarget(flow.id, 'both')"
                     class="target-btn"
                   >
@@ -173,7 +205,9 @@
       <div v-if="currentStep === 2" class="wizard-content">
         <div class="step-header">
           <h3>Step 3: Choose Process Groups</h3>
-          <p class="text-muted">Select the target process group for each deployment</p>
+          <p class="text-muted">
+            Select the target process group for each deployment
+          </p>
         </div>
 
         <div v-if="isLoadingPaths" class="text-center py-5">
@@ -182,12 +216,22 @@
         </div>
 
         <div v-else class="process-group-selection">
-          <div v-for="deployment in deploymentConfigs" :key="deployment.key" class="pg-card">
+          <div
+            v-for="deployment in deploymentConfigs"
+            :key="deployment.key"
+            class="pg-card"
+          >
             <div class="pg-header">
               <h5>{{ deployment.flowName }}</h5>
               <span class="text-muted">
-                <i :class="deployment.target === 'source' ? 'pe-7s-angle-right-circle' : 'pe-7s-angle-left-circle'"></i>
-                {{ deployment.target === 'source' ? 'Source' : 'Destination' }}
+                <i
+                  :class="
+                    deployment.target === 'source'
+                      ? 'pe-7s-angle-right-circle'
+                      : 'pe-7s-angle-left-circle'
+                  "
+                ></i>
+                {{ deployment.target === "source" ? "Source" : "Destination" }}
                 ({{ deployment.hierarchyValue }})
               </span>
             </div>
@@ -211,9 +255,17 @@
                 </select>
               </div>
 
-              <div v-if="deployment.selectedProcessGroupId" class="selected-info">
+              <div
+                v-if="deployment.selectedProcessGroupId"
+                class="selected-info"
+              >
                 <i class="pe-7s-check text-success"></i>
-                <span>Selected: <strong>{{ getSelectedPathDisplay(deployment) }}</strong></span>
+                <span
+                  >Selected:
+                  <strong>{{
+                    getSelectedPathDisplay(deployment)
+                  }}</strong></span
+                >
               </div>
             </div>
           </div>
@@ -239,7 +291,9 @@
       <div v-if="currentStep === 3" class="wizard-content">
         <div class="step-header">
           <h3>Step 4: Review & Deploy</h3>
-          <p class="text-muted">Review your deployment configuration before proceeding</p>
+          <p class="text-muted">
+            Review your deployment configuration before proceeding
+          </p>
         </div>
 
         <div class="review-section">
@@ -269,10 +323,21 @@
 
           <div class="review-details">
             <h5>Deployment Details</h5>
-            <div v-for="deployment in deploymentConfigs" :key="deployment.key" class="review-card">
+            <div
+              v-for="deployment in deploymentConfigs"
+              :key="deployment.key"
+              class="review-card"
+            >
               <div class="review-card-header">
                 <strong>{{ deployment.flowName }}</strong>
-                <span class="badge" :class="deployment.target === 'source' ? 'badge-primary' : 'badge-success'">
+                <span
+                  class="badge"
+                  :class="
+                    deployment.target === 'source'
+                      ? 'badge-primary'
+                      : 'badge-success'
+                  "
+                >
                   {{ deployment.target }}
                 </span>
               </div>
@@ -287,11 +352,13 @@
                 </div>
                 <div class="review-row">
                   <span class="review-label">Final Process Group Name:</span>
-                  <span class="final-pg-name">{{ deployment.processGroupName }}</span>
+                  <span class="final-pg-name">{{
+                    deployment.processGroupName
+                  }}</span>
                 </div>
                 <div class="review-row">
                   <span class="review-label">Template:</span>
-                  <span>{{ deployment.templateName || 'No Template' }}</span>
+                  <span>{{ deployment.templateName || "No Template" }}</span>
                 </div>
               </div>
             </div>
@@ -317,7 +384,12 @@
     </div>
 
     <!-- Conflict Resolution Modal -->
-    <b-modal v-model="showConflictModal" title="Process Group Already Exists" size="lg" hide-footer>
+    <b-modal
+      v-model="showConflictModal"
+      title="Process Group Already Exists"
+      size="lg"
+      hide-footer
+    >
       <div v-if="conflictInfo" class="conflict-modal">
         <div class="alert alert-warning">
           <i class="pe-7s-attention"></i>
@@ -327,14 +399,26 @@
         <div class="conflict-details">
           <h6>Existing Process Group:</h6>
           <ul>
-            <li><strong>Name:</strong> {{ conflictInfo.existing_process_group.name }}</li>
-            <li><strong>ID:</strong> <code>{{ conflictInfo.existing_process_group.id }}</code></li>
-            <li><strong>Status:</strong>
+            <li>
+              <strong>Name:</strong>
+              {{ conflictInfo.existing_process_group.name }}
+            </li>
+            <li>
+              <strong>ID:</strong>
+              <code>{{ conflictInfo.existing_process_group.id }}</code>
+            </li>
+            <li>
+              <strong>Status:</strong>
               {{ conflictInfo.existing_process_group.running_count }} running,
               {{ conflictInfo.existing_process_group.stopped_count }} stopped
             </li>
-            <li><strong>Version Control:</strong>
-              {{ conflictInfo.existing_process_group.has_version_control ? 'Yes' : 'No' }}
+            <li>
+              <strong>Version Control:</strong>
+              {{
+                conflictInfo.existing_process_group.has_version_control
+                  ? "Yes"
+                  : "No"
+              }}
             </li>
           </ul>
         </div>
@@ -351,7 +435,13 @@
             :disabled="isResolvingConflict"
             class="mb-2 w-100"
           >
-            <b-spinner v-if="isResolvingConflict && conflictResolution === 'deploy_anyway'" small class="me-2"></b-spinner>
+            <b-spinner
+              v-if="
+                isResolvingConflict && conflictResolution === 'deploy_anyway'
+              "
+              small
+              class="me-2"
+            ></b-spinner>
             <i v-else class="pe-7s-plus"></i>
             Deploy Anyway (Create Additional Process Group)
           </b-button>
@@ -362,7 +452,14 @@
             :disabled="isResolvingConflict"
             class="mb-2 w-100"
           >
-            <b-spinner v-if="isResolvingConflict && conflictResolution === 'delete_and_deploy'" small class="me-2"></b-spinner>
+            <b-spinner
+              v-if="
+                isResolvingConflict &&
+                conflictResolution === 'delete_and_deploy'
+              "
+              small
+              class="me-2"
+            ></b-spinner>
             <i v-else class="pe-7s-trash"></i>
             Delete Existing and Deploy New
           </b-button>
@@ -374,7 +471,13 @@
             :disabled="isResolvingConflict"
             class="mb-2 w-100"
           >
-            <b-spinner v-if="isResolvingConflict && conflictResolution === 'update_version'" small class="me-2"></b-spinner>
+            <b-spinner
+              v-if="
+                isResolvingConflict && conflictResolution === 'update_version'
+              "
+              small
+              class="me-2"
+            ></b-spinner>
             <i v-else class="pe-7s-refresh-2"></i>
             Update to New Version
           </b-button>
@@ -392,7 +495,12 @@
     </b-modal>
 
     <!-- Deployment Results Modal -->
-    <b-modal v-model="showResultsModal" title="Deployment Results" size="lg" hide-footer>
+    <b-modal
+      v-model="showResultsModal"
+      title="Deployment Results"
+      size="lg"
+      hide-footer
+    >
       <div class="deployment-results">
         <!-- Summary Stats -->
         <div class="results-summary">
@@ -426,17 +534,31 @@
         </div>
 
         <!-- Successful Deployments -->
-        <div v-if="deploymentResults.successful.length > 0" class="results-section success-section">
+        <div
+          v-if="deploymentResults.successful.length > 0"
+          class="results-section success-section"
+        >
           <h6 class="section-title">
             <i class="pe-7s-check"></i>
             Successful Deployments
           </h6>
           <div class="result-list">
-            <div v-for="(result, index) in deploymentResults.successful" :key="index" class="result-item success">
+            <div
+              v-for="(result, index) in deploymentResults.successful"
+              :key="index"
+              class="result-item success"
+            >
               <div class="result-header">
                 <i class="pe-7s-check-circle"></i>
                 <strong>{{ result.config.flowName }}</strong>
-                <span class="badge" :class="result.config.target === 'source' ? 'badge-primary' : 'badge-success'">
+                <span
+                  class="badge"
+                  :class="
+                    result.config.target === 'source'
+                      ? 'badge-primary'
+                      : 'badge-success'
+                  "
+                >
                   {{ result.config.target }}
                 </span>
               </div>
@@ -459,17 +581,31 @@
         </div>
 
         <!-- Failed Deployments -->
-        <div v-if="deploymentResults.failed.length > 0" class="results-section failed-section">
+        <div
+          v-if="deploymentResults.failed.length > 0"
+          class="results-section failed-section"
+        >
           <h6 class="section-title">
             <i class="pe-7s-close"></i>
             Failed Deployments
           </h6>
           <div class="result-list">
-            <div v-for="(result, index) in deploymentResults.failed" :key="index" class="result-item failed">
+            <div
+              v-for="(result, index) in deploymentResults.failed"
+              :key="index"
+              class="result-item failed"
+            >
               <div class="result-header">
                 <i class="pe-7s-close-circle"></i>
                 <strong>{{ result.config.flowName }}</strong>
-                <span class="badge" :class="result.config.target === 'source' ? 'badge-primary' : 'badge-success'">
+                <span
+                  class="badge"
+                  :class="
+                    result.config.target === 'source'
+                      ? 'badge-primary'
+                      : 'badge-success'
+                  "
+                >
                   {{ result.config.target }}
                 </span>
               </div>
@@ -514,435 +650,511 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { apiRequest } from '@/utils/api'
+import { ref, computed, onMounted } from "vue";
+import { apiRequest } from "@/utils/api";
 
 interface Flow {
-  id: number
-  [key: string]: any
-  source: string
-  destination: string
+  id: number;
+  [key: string]: any;
+  source: string;
+  destination: string;
 }
 
 interface HierarchyAttribute {
-  name: string
-  label: string
-  order: number
+  name: string;
+  label: string;
+  order: number;
 }
 
 interface ProcessGroupPath {
-  id: string
-  name: string
-  parent_group_id: string | null
-  depth: number
-  path: Array<{ id: string; name: string; parent_group_id: string | null }>
+  id: string;
+  name: string;
+  parent_group_id: string | null;
+  depth: number;
+  path: Array<{ id: string; name: string; parent_group_id: string | null }>;
 }
 
 interface DeploymentConfig {
-  key: string
-  flowId: number
-  flowName: string
-  target: 'source' | 'destination'
-  hierarchyValue: string
-  instanceId: number | null
-  availablePaths: Array<{ id: string; pathDisplay: string }>
-  selectedProcessGroupId: string
-  suggestedPath: string | null
-  templateId: number | null
-  templateName: string | null
-  processGroupName: string
+  key: string;
+  flowId: number;
+  flowName: string;
+  target: "source" | "destination";
+  hierarchyValue: string;
+  instanceId: number | null;
+  availablePaths: Array<{ id: string; pathDisplay: string }>;
+  selectedProcessGroupId: string;
+  suggestedPath: string | null;
+  templateId: number | null;
+  templateName: string | null;
+  processGroupName: string;
 }
 
-const steps = ['Select Flows', 'Choose Targets', 'Choose Process Groups', 'Review & Deploy']
-const currentStep = ref(0)
-const isLoading = ref(false)
-const isLoadingPaths = ref(false)
-const isDeploying = ref(false)
+const steps = [
+  "Select Flows",
+  "Choose Targets",
+  "Choose Process Groups",
+  "Review & Deploy",
+];
+const currentStep = ref(0);
+const isLoading = ref(false);
+const isLoadingPaths = ref(false);
+const isDeploying = ref(false);
 
 // Conflict resolution
-const showConflictModal = ref(false)
-const conflictInfo = ref<any>(null)
-const currentConflictDeployment = ref<any>(null)
-const isResolvingConflict = ref(false)
-const conflictResolution = ref<string>('')
+const showConflictModal = ref(false);
+const conflictInfo = ref<any>(null);
+const currentConflictDeployment = ref<any>(null);
+const isResolvingConflict = ref(false);
+const conflictResolution = ref<string>("");
 
 // Deployment results
-const showResultsModal = ref(false)
+const showResultsModal = ref(false);
 const deploymentResults = ref({
   successCount: 0,
   failCount: 0,
   total: 0,
   successful: [] as any[],
-  failed: [] as any[]
-})
+  failed: [] as any[],
+});
 
 // Flow data
-const flows = ref<Flow[]>([])
-const selectedFlows = ref<number[]>([])
-const hierarchyConfig = ref<HierarchyAttribute[]>([])
-const visibleColumns = ref<Array<{ key: string; label: string }>>([])
-const nifiInstances = ref<any[]>([])
-const registryFlows = ref<any[]>([])
+const flows = ref<Flow[]>([]);
+const selectedFlows = ref<number[]>([]);
+const hierarchyConfig = ref<HierarchyAttribute[]>([]);
+const visibleColumns = ref<Array<{ key: string; label: string }>>([]);
+const nifiInstances = ref<any[]>([]);
+const registryFlows = ref<any[]>([]);
 
 // Deployment configuration
-const deploymentTargets = ref<Record<number, 'source' | 'destination' | 'both'>>({})
-const deploymentConfigs = ref<DeploymentConfig[]>([])
-const processGroupPaths = ref<Record<string, ProcessGroupPath[]>>({})
-const deploymentSettings = ref<any>(null)
+const deploymentTargets = ref<
+  Record<number, "source" | "destination" | "both">
+>({});
+const deploymentConfigs = ref<DeploymentConfig[]>([]);
+const processGroupPaths = ref<Record<string, ProcessGroupPath[]>>({});
+const deploymentSettings = ref<any>(null);
 
 // Computed
 const allSelected = computed(() => {
-  return flows.value.length > 0 && selectedFlows.value.length === flows.value.length
-})
+  return (
+    flows.value.length > 0 && selectedFlows.value.length === flows.value.length
+  );
+});
 
 const selectedFlowObjects = computed(() => {
-  return flows.value.filter(f => selectedFlows.value.includes(f.id))
-})
+  return flows.value.filter((f) => selectedFlows.value.includes(f.id));
+});
 
 const topHierarchyName = computed(() => {
-  return hierarchyConfig.value.length > 0 ? hierarchyConfig.value[0].name : 'DC'
-})
+  return hierarchyConfig.value.length > 0
+    ? hierarchyConfig.value[0].name
+    : "DC";
+});
 
 const secondHierarchyName = computed(() => {
-  return hierarchyConfig.value.length > 1 ? hierarchyConfig.value[1].name : 'OU'
-})
+  return hierarchyConfig.value.length > 1
+    ? hierarchyConfig.value[1].name
+    : "OU";
+});
 
 const allTargetsSelected = computed(() => {
-  return selectedFlows.value.every(flowId => deploymentTargets.value[flowId])
-})
+  return selectedFlows.value.every((flowId) => deploymentTargets.value[flowId]);
+});
 
 const allProcessGroupsSelected = computed(() => {
-  return deploymentConfigs.value.every(config => config.selectedProcessGroupId)
-})
+  return deploymentConfigs.value.every(
+    (config) => config.selectedProcessGroupId,
+  );
+});
 
 const uniqueInstancesCount = computed(() => {
-  const instances = new Set(deploymentConfigs.value.map(c => c.hierarchyValue))
-  return instances.size
-})
+  const instances = new Set(
+    deploymentConfigs.value.map((c) => c.hierarchyValue),
+  );
+  return instances.size;
+});
 
 // Methods
 const toggleSelectAll = () => {
   if (allSelected.value) {
-    selectedFlows.value = []
+    selectedFlows.value = [];
   } else {
-    selectedFlows.value = flows.value.map(f => f.id)
+    selectedFlows.value = flows.value.map((f) => f.id);
   }
-}
+};
 
 const toggleFlow = (flowId: number) => {
-  const index = selectedFlows.value.indexOf(flowId)
+  const index = selectedFlows.value.indexOf(flowId);
   if (index === -1) {
-    selectedFlows.value.push(flowId)
+    selectedFlows.value.push(flowId);
   } else {
-    selectedFlows.value.splice(index, 1)
+    selectedFlows.value.splice(index, 1);
   }
-}
+};
 
 const getFlowName = (flow: Flow) => {
   // Try to get the first hierarchy attribute value as the name
   if (hierarchyConfig.value.length > 0) {
-    const firstAttr = hierarchyConfig.value[0].name.toLowerCase()
-    return flow[`src_${firstAttr}`] || flow[firstAttr] || `Flow ${flow.id}`
+    const firstAttr = hierarchyConfig.value[0].name.toLowerCase();
+    return flow[`src_${firstAttr}`] || flow[firstAttr] || `Flow ${flow.id}`;
   }
-  return `Flow ${flow.id}`
-}
+  return `Flow ${flow.id}`;
+};
 
-const getTopHierarchyValue = (flow: Flow, side: 'source' | 'destination') => {
-  if (hierarchyConfig.value.length === 0) return 'N/A'
+const getTopHierarchyValue = (flow: Flow, side: "source" | "destination") => {
+  if (hierarchyConfig.value.length === 0) return "N/A";
 
-  const topAttr = hierarchyConfig.value[0].name.toLowerCase()
-  const prefix = side === 'source' ? 'src_' : 'dest_'
-  return flow[`${prefix}${topAttr}`] || 'N/A'
-}
+  const topAttr = hierarchyConfig.value[0].name.toLowerCase();
+  const prefix = side === "source" ? "src_" : "dest_";
+  return flow[`${prefix}${topAttr}`] || "N/A";
+};
 
 const getDeploymentTarget = (flowId: number) => {
-  return deploymentTargets.value[flowId]
-}
+  return deploymentTargets.value[flowId];
+};
 
-const setDeploymentTarget = (flowId: number, target: 'source' | 'destination' | 'both') => {
-  deploymentTargets.value[flowId] = target
-}
+const setDeploymentTarget = (
+  flowId: number,
+  target: "source" | "destination" | "both",
+) => {
+  deploymentTargets.value[flowId] = target;
+};
 
 const goToNextStep = async () => {
   if (currentStep.value === 1) {
     // Moving to step 3: prepare deployment configs and load process groups
-    await prepareDeploymentConfigs()
+    await prepareDeploymentConfigs();
   }
-  currentStep.value++
-}
+  currentStep.value++;
+};
 
 const goToPreviousStep = () => {
-  currentStep.value--
-}
+  currentStep.value--;
+};
 
 const prepareDeploymentConfigs = async () => {
-  deploymentConfigs.value = []
-  isLoadingPaths.value = true
+  deploymentConfigs.value = [];
+  isLoadingPaths.value = true;
 
   try {
     // Build deployment configs based on selected flows and targets
     for (const flowId of selectedFlows.value) {
-      const flow = flows.value.find(f => f.id === flowId)
-      if (!flow) continue
+      const flow = flows.value.find((f) => f.id === flowId);
+      if (!flow) continue;
 
-      const target = deploymentTargets.value[flowId]
-      const flowName = getFlowName(flow)
+      const target = deploymentTargets.value[flowId];
+      const flowName = getFlowName(flow);
 
-      if (target === 'source' || target === 'both') {
-        const hierarchyValue = getTopHierarchyValue(flow, 'source')
-        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue)
-        const templateId = flow.src_template_id || null
-        const templateName = getTemplateName(templateId)
+      if (target === "source" || target === "both") {
+        const hierarchyValue = getTopHierarchyValue(flow, "source");
+        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue);
+        const templateId = flow.src_template_id || null;
+        const templateName = getTemplateName(templateId);
 
         const config: DeploymentConfig = {
           key: `${flowId}-source`,
           flowId,
           flowName,
-          target: 'source',
+          target: "source",
           hierarchyValue,
           instanceId,
           availablePaths: [],
-          selectedProcessGroupId: '',
-          suggestedPath: getSuggestedPath(flow, 'source'),
+          selectedProcessGroupId: "",
+          suggestedPath: getSuggestedPath(flow, "source"),
           templateId,
           templateName,
-          processGroupName: generateProcessGroupName(flow, 'source'),
-        }
+          processGroupName: generateProcessGroupName(flow, "source"),
+        };
 
         // Load paths for this instance
         if (instanceId) {
-          const rawPaths = await loadProcessGroupPaths(instanceId, hierarchyValue)
-          config.availablePaths = rawPaths
+          const rawPaths = await loadProcessGroupPaths(
+            instanceId,
+            hierarchyValue,
+          );
+          config.availablePaths = rawPaths;
 
           // Auto-select process group based on deployment settings
-          const selectedPgId = autoSelectProcessGroup(flow, 'source', instanceId, processGroupPaths.value[hierarchyValue] || [])
+          const selectedPgId = autoSelectProcessGroup(
+            flow,
+            "source",
+            instanceId,
+            processGroupPaths.value[hierarchyValue] || [],
+          );
           if (selectedPgId) {
-            config.selectedProcessGroupId = selectedPgId
+            config.selectedProcessGroupId = selectedPgId;
           }
         }
 
-        deploymentConfigs.value.push(config)
+        deploymentConfigs.value.push(config);
       }
 
-      if (target === 'destination' || target === 'both') {
-        const hierarchyValue = getTopHierarchyValue(flow, 'destination')
-        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue)
-        const templateId = flow.dest_template_id || null
-        const templateName = getTemplateName(templateId)
+      if (target === "destination" || target === "both") {
+        const hierarchyValue = getTopHierarchyValue(flow, "destination");
+        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue);
+        const templateId = flow.dest_template_id || null;
+        const templateName = getTemplateName(templateId);
 
         const config: DeploymentConfig = {
           key: `${flowId}-destination`,
           flowId,
           flowName,
-          target: 'destination',
+          target: "destination",
           hierarchyValue,
           instanceId,
           availablePaths: [],
-          selectedProcessGroupId: '',
-          suggestedPath: getSuggestedPath(flow, 'destination'),
+          selectedProcessGroupId: "",
+          suggestedPath: getSuggestedPath(flow, "destination"),
           templateId,
           templateName,
-          processGroupName: generateProcessGroupName(flow, 'destination'),
-        }
+          processGroupName: generateProcessGroupName(flow, "destination"),
+        };
 
         // Load paths for this instance
         if (instanceId) {
-          const rawPaths = await loadProcessGroupPaths(instanceId, hierarchyValue)
-          config.availablePaths = rawPaths
+          const rawPaths = await loadProcessGroupPaths(
+            instanceId,
+            hierarchyValue,
+          );
+          config.availablePaths = rawPaths;
 
           // Auto-select process group based on deployment settings
-          const selectedPgId = autoSelectProcessGroup(flow, 'destination', instanceId, processGroupPaths.value[hierarchyValue] || [])
+          const selectedPgId = autoSelectProcessGroup(
+            flow,
+            "destination",
+            instanceId,
+            processGroupPaths.value[hierarchyValue] || [],
+          );
           if (selectedPgId) {
-            config.selectedProcessGroupId = selectedPgId
+            config.selectedProcessGroupId = selectedPgId;
           }
         }
 
-        deploymentConfigs.value.push(config)
+        deploymentConfigs.value.push(config);
       }
     }
   } catch (error) {
-    console.error('Error preparing deployment configs:', error)
+    console.error("Error preparing deployment configs:", error);
   } finally {
-    isLoadingPaths.value = false
+    isLoadingPaths.value = false;
   }
-}
+};
 
-const getSuggestedPath = (flow: Flow, side: 'source' | 'destination') => {
+const getSuggestedPath = (flow: Flow, side: "source" | "destination") => {
   // Get the penultimate hierarchy value (e.g., OU)
-  if (hierarchyConfig.value.length < 2) return null
+  if (hierarchyConfig.value.length < 2) return null;
 
-  const secondAttr = hierarchyConfig.value[1].name.toLowerCase()
-  const prefix = side === 'source' ? 'src_' : 'dest_'
-  const value = flow[`${prefix}${secondAttr}`]
+  const secondAttr = hierarchyConfig.value[1].name.toLowerCase();
+  const prefix = side === "source" ? "src_" : "dest_";
+  const value = flow[`${prefix}${secondAttr}`];
 
-  return value ? `Contains "${value}"` : null
-}
+  return value ? `Contains "${value}"` : null;
+};
 
 const getTemplateName = (templateId: number | null): string | null => {
-  if (!templateId) return null
+  if (!templateId) return null;
 
-  const template = registryFlows.value.find(rf => rf.id === templateId)
-  return template ? template.flow_name : `Template ID ${templateId}`
-}
+  const template = registryFlows.value.find((rf) => rf.id === templateId);
+  return template ? template.flow_name : `Template ID ${templateId}`;
+};
 
-const getInstanceIdForHierarchyValue = async (hierarchyValue: string): Promise<number | null> => {
+const getInstanceIdForHierarchyValue = async (
+  hierarchyValue: string,
+): Promise<number | null> => {
   try {
     // Ensure we have loaded NiFi instances
     if (nifiInstances.value.length === 0) {
-      await loadNiFiInstances()
+      await loadNiFiInstances();
     }
 
     // Get the top hierarchy attribute name (e.g., "DC")
-    const topHierarchyAttr = topHierarchyName.value
+    const topHierarchyAttr = topHierarchyName.value;
 
     // Find the instance that matches the hierarchy attribute and value
     const instance = nifiInstances.value.find(
-      inst => inst.hierarchy_attribute === topHierarchyAttr && inst.hierarchy_value === hierarchyValue
-    )
+      (inst) =>
+        inst.hierarchy_attribute === topHierarchyAttr &&
+        inst.hierarchy_value === hierarchyValue,
+    );
 
     if (instance) {
-      console.log(`Found NiFi instance ${instance.id} for ${topHierarchyAttr}=${hierarchyValue}`)
-      return instance.id
+      console.log(
+        `Found NiFi instance ${instance.id} for ${topHierarchyAttr}=${hierarchyValue}`,
+      );
+      return instance.id;
     }
 
-    console.warn(`No NiFi instance found for ${topHierarchyAttr}=${hierarchyValue}`)
-    return null
+    console.warn(
+      `No NiFi instance found for ${topHierarchyAttr}=${hierarchyValue}`,
+    );
+    return null;
   } catch (error) {
-    console.error('Error getting instance ID:', error)
-    return null
+    console.error("Error getting instance ID:", error);
+    return null;
   }
-}
+};
 
-const loadProcessGroupPaths = async (instanceId: number, cacheKey: string): Promise<Array<{ id: string; pathDisplay: string }>> => {
+const loadProcessGroupPaths = async (
+  instanceId: number,
+  cacheKey: string,
+): Promise<Array<{ id: string; pathDisplay: string }>> => {
   // Check cache first
   if (processGroupPaths.value[cacheKey]) {
-    return formatPathsForDisplay(processGroupPaths.value[cacheKey])
+    return formatPathsForDisplay(processGroupPaths.value[cacheKey]);
   }
 
   try {
-    const data = await apiRequest(`/api/deploy/${instanceId}/get-all-paths`)
+    const data = await apiRequest(`/api/deploy/${instanceId}/get-all-paths`);
 
-    if (data.status === 'success' && data.process_groups) {
-      processGroupPaths.value[cacheKey] = data.process_groups
-      return formatPathsForDisplay(data.process_groups)
+    if (data.status === "success" && data.process_groups) {
+      processGroupPaths.value[cacheKey] = data.process_groups;
+      return formatPathsForDisplay(data.process_groups);
     }
 
-    return []
+    return [];
   } catch (error) {
-    console.error('Error loading process group paths:', error)
+    console.error("Error loading process group paths:", error);
     // Return mock data for development when backend is not available
-    return getMockPaths()
+    return getMockPaths();
   }
-}
+};
 
-const formatPathsForDisplay = (paths: ProcessGroupPath[]): Array<{ id: string; pathDisplay: string }> => {
-  return paths.map(pg => {
+const formatPathsForDisplay = (
+  paths: ProcessGroupPath[],
+): Array<{ id: string; pathDisplay: string }> => {
+  return paths.map((pg) => {
     // Reverse the path array so root is first and deepest is last
-    const pathNames = pg.path.slice().reverse().map(p => p.name).join(' → ')
+    const pathNames = pg.path
+      .slice()
+      .reverse()
+      .map((p) => p.name)
+      .join(" → ");
     return {
       id: pg.id,
       pathDisplay: pathNames,
-    }
-  })
-}
+    };
+  });
+};
 
 const getMockPaths = (): Array<{ id: string; pathDisplay: string }> => {
   return [
-    { id: 'root', pathDisplay: 'NiFi Flow' },
-    { id: 'pg1', pathDisplay: 'NiFi Flow → Engineering' },
-    { id: 'pg2', pathDisplay: 'NiFi Flow → Engineering → DataPipeline' },
-    { id: 'pg3', pathDisplay: 'NiFi Flow → Marketing' },
-    { id: 'pg4', pathDisplay: 'NiFi Flow → Marketing → Analytics' },
-  ]
-}
+    { id: "root", pathDisplay: "NiFi Flow" },
+    { id: "pg1", pathDisplay: "NiFi Flow → Engineering" },
+    { id: "pg2", pathDisplay: "NiFi Flow → Engineering → DataPipeline" },
+    { id: "pg3", pathDisplay: "NiFi Flow → Marketing" },
+    { id: "pg4", pathDisplay: "NiFi Flow → Marketing → Analytics" },
+  ];
+};
 
 const updateProcessGroupSelection = (deployment: DeploymentConfig) => {
   // Selection is already updated via v-model
-  console.log(`Selected process group ${deployment.selectedProcessGroupId} for ${deployment.key}`)
-}
+  console.log(
+    `Selected process group ${deployment.selectedProcessGroupId} for ${deployment.key}`,
+  );
+};
 
 const getSelectedPathDisplay = (deployment: DeploymentConfig) => {
-  const selected = deployment.availablePaths.find(p => p.id === deployment.selectedProcessGroupId)
-  return selected?.pathDisplay || 'Not selected'
-}
+  const selected = deployment.availablePaths.find(
+    (p) => p.id === deployment.selectedProcessGroupId,
+  );
+  return selected?.pathDisplay || "Not selected";
+};
 
-const generateProcessGroupName = (flow: Flow, target: 'source' | 'destination'): string => {
+const generateProcessGroupName = (
+  flow: Flow,
+  target: "source" | "destination",
+): string => {
   // Get the template from deployment settings
-  const template = deploymentSettings.value?.global?.process_group_name_template || '{last_hierarchy_value}'
+  const template =
+    deploymentSettings.value?.global?.process_group_name_template ||
+    "{last_hierarchy_value}";
 
   // Get hierarchy values for this flow
-  const prefix = target === 'source' ? 'src_' : 'dest_'
-  const hierarchyValues: string[] = []
+  const prefix = target === "source" ? "src_" : "dest_";
+  const hierarchyValues: string[] = [];
 
   for (let i = 0; i < hierarchyConfig.value.length; i++) {
-    const attrName = hierarchyConfig.value[i].name.toLowerCase()
-    const value = flow[`${prefix}${attrName}`] || ''
-    hierarchyValues.push(value)
+    const attrName = hierarchyConfig.value[i].name.toLowerCase();
+    const value = flow[`${prefix}${attrName}`] || "";
+    hierarchyValues.push(value);
   }
 
   // Replace placeholders in template
-  let result = template
+  let result = template;
 
   // Replace {first_hierarchy_value}
   if (hierarchyValues.length > 0) {
-    result = result.replace(/{first_hierarchy_value}/g, hierarchyValues[0])
+    result = result.replace(/{first_hierarchy_value}/g, hierarchyValues[0]);
   }
 
   // Replace {last_hierarchy_value}
   if (hierarchyValues.length > 0) {
-    result = result.replace(/{last_hierarchy_value}/g, hierarchyValues[hierarchyValues.length - 1])
+    result = result.replace(
+      /{last_hierarchy_value}/g,
+      hierarchyValues[hierarchyValues.length - 1],
+    );
   }
 
   // Replace {N_hierarchy_value} where N is 1, 2, 3, etc.
   for (let i = 0; i < hierarchyValues.length; i++) {
-    const placeholder = `{${i + 1}_hierarchy_value}`
-    result = result.replace(new RegExp(placeholder.replace(/[{}]/g, '\\$&'), 'g'), hierarchyValues[i])
+    const placeholder = `{${i + 1}_hierarchy_value}`;
+    result = result.replace(
+      new RegExp(placeholder.replace(/[{}]/g, "\\$&"), "g"),
+      hierarchyValues[i],
+    );
   }
 
-  return result
-}
+  return result;
+};
 
 const autoSelectProcessGroup = (
   flow: Flow,
-  target: 'source' | 'destination',
+  target: "source" | "destination",
   instanceId: number,
-  availablePaths: ProcessGroupPath[]
+  availablePaths: ProcessGroupPath[],
 ): string | null => {
   try {
     // Get the search path from deployment settings
-    if (!deploymentSettings.value || !deploymentSettings.value.paths || !deploymentSettings.value.paths[instanceId]) {
-      return null
+    if (
+      !deploymentSettings.value ||
+      !deploymentSettings.value.paths ||
+      !deploymentSettings.value.paths[instanceId]
+    ) {
+      return null;
     }
 
-    const searchPathId = target === 'source'
-      ? deploymentSettings.value.paths[instanceId].source_path
-      : deploymentSettings.value.paths[instanceId].dest_path
+    const searchPathId =
+      target === "source"
+        ? deploymentSettings.value.paths[instanceId].source_path
+        : deploymentSettings.value.paths[instanceId].dest_path;
 
     if (!searchPathId) {
-      return null
+      return null;
     }
 
     // Find the search path in available paths
-    const searchPath = availablePaths.find(p => p.id === searchPathId)
+    const searchPath = availablePaths.find((p) => p.id === searchPathId);
     if (!searchPath) {
-      return null
+      return null;
     }
 
     // Get the search path as an array of names (reversed, since path is stored root-first)
-    const searchPathNames = searchPath.path.slice().reverse().map(p => p.name)
+    const searchPathNames = searchPath.path
+      .slice()
+      .reverse()
+      .map((p) => p.name);
 
     // Get hierarchy attributes for this flow, skipping:
     // - Top hierarchy (index 0) - represents the NiFi instance
     // - Last hierarchy (index length-1) - the final process group that will be created during deployment
     // So we use attributes from index 1 to length-2
-    const hierarchyAttributes: string[] = []
-    const prefix = target === 'source' ? 'src_' : 'dest_'
+    const hierarchyAttributes: string[] = [];
+    const prefix = target === "source" ? "src_" : "dest_";
 
     for (let i = 1; i < hierarchyConfig.value.length - 1; i++) {
-      const attrName = hierarchyConfig.value[i].name.toLowerCase()
-      const value = flow[`${prefix}${attrName}`]
+      const attrName = hierarchyConfig.value[i].name.toLowerCase();
+      const value = flow[`${prefix}${attrName}`];
       if (value) {
-        hierarchyAttributes.push(value)
+        hierarchyAttributes.push(value);
       }
     }
 
@@ -950,73 +1162,80 @@ const autoSelectProcessGroup = (
     // 1. Starts with all elements from searchPathNames
     // 2. Contains all hierarchyAttributes in order
     for (const pg of availablePaths) {
-      const pgPathNames = pg.path.slice().reverse().map(p => p.name)
+      const pgPathNames = pg.path
+        .slice()
+        .reverse()
+        .map((p) => p.name);
 
       // Check if path starts with search path
-      let startsWithSearchPath = true
+      let startsWithSearchPath = true;
       for (let i = 0; i < searchPathNames.length; i++) {
         if (pgPathNames[i] !== searchPathNames[i]) {
-          startsWithSearchPath = false
-          break
+          startsWithSearchPath = false;
+          break;
         }
       }
 
       if (!startsWithSearchPath) {
-        continue
+        continue;
       }
 
       // Check if path contains all hierarchy attributes in order
-      let matchesHierarchy = true
-      let searchIndex = searchPathNames.length // Start searching after the search path prefix
+      let matchesHierarchy = true;
+      let searchIndex = searchPathNames.length; // Start searching after the search path prefix
 
       for (const attr of hierarchyAttributes) {
-        let found = false
+        let found = false;
         for (let i = searchIndex; i < pgPathNames.length; i++) {
           if (pgPathNames[i] === attr) {
-            found = true
-            searchIndex = i + 1
-            break
+            found = true;
+            searchIndex = i + 1;
+            break;
           }
         }
         if (!found) {
-          matchesHierarchy = false
-          break
+          matchesHierarchy = false;
+          break;
         }
       }
 
       if (matchesHierarchy) {
-        return pg.id
+        return pg.id;
       }
     }
 
-    return null
+    return null;
   } catch (error) {
-    console.error('Error in autoSelectProcessGroup:', error)
-    return null
+    console.error("Error in autoSelectProcessGroup:", error);
+    return null;
   }
-}
+};
 
 const deployFlows = async () => {
-  isDeploying.value = true
+  isDeploying.value = true;
 
   try {
-    console.log('Deploying flows with configs:', deploymentConfigs.value)
+    console.log("Deploying flows with configs:", deploymentConfigs.value);
 
-    const results = []
-    let successCount = 0
-    let failCount = 0
+    const results = [];
+    let successCount = 0;
+    let failCount = 0;
 
     // Deploy each configuration
     for (const config of deploymentConfigs.value) {
       try {
-        console.log(`Deploying ${config.flowName} to ${config.target} (${config.hierarchyValue})...`)
+        console.log(
+          `Deploying ${config.flowName} to ${config.target} (${config.hierarchyValue})...`,
+        );
 
         if (!config.instanceId) {
-          throw new Error(`No NiFi instance found for ${config.hierarchyValue}`)
+          throw new Error(
+            `No NiFi instance found for ${config.hierarchyValue}`,
+          );
         }
 
         if (!config.selectedProcessGroupId) {
-          throw new Error('No process group selected')
+          throw new Error("No process group selected");
         }
 
         // Prepare deployment request
@@ -1027,207 +1246,224 @@ const deployFlows = async () => {
           version: null, // Use latest version
           x_position: 0,
           y_position: 0,
-        }
+        };
 
-        console.log('Deployment request:', deploymentRequest)
+        console.log("Deployment request:", deploymentRequest);
 
         // Call deployment API
         try {
-          const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
-            method: 'POST',
-            body: JSON.stringify(deploymentRequest),
-          })
+          const result = await apiRequest(
+            `/api/deploy/${config.instanceId}/flow`,
+            {
+              method: "POST",
+              body: JSON.stringify(deploymentRequest),
+            },
+          );
 
-          console.log('Deployment result:', result)
+          console.log("Deployment result:", result);
 
-          if (result.status === 'success') {
-            successCount++
+          if (result.status === "success") {
+            successCount++;
             results.push({
               config,
               success: true,
               message: result.message,
               processGroupId: result.process_group_id,
               processGroupName: result.process_group_name,
-            })
+            });
           } else {
-            failCount++
+            failCount++;
             results.push({
               config,
               success: false,
-              message: result.message || 'Deployment failed',
-            })
+              message: result.message || "Deployment failed",
+            });
           }
         } catch (apiError: any) {
           // Check if it's a 409 Conflict (process group already exists)
           if (apiError.status === 409 && apiError.detail) {
-            console.log('Conflict detected:', apiError.detail)
+            console.log("Conflict detected:", apiError.detail);
 
             // Store conflict info and current deployment config
-            conflictInfo.value = apiError.detail
-            currentConflictDeployment.value = { config, deploymentRequest }
+            conflictInfo.value = apiError.detail;
+            currentConflictDeployment.value = { config, deploymentRequest };
 
             // Show conflict modal and wait for user decision
-            showConflictModal.value = true
-            isDeploying.value = false
+            showConflictModal.value = true;
+            isDeploying.value = false;
 
             // Stop the deployment loop - user needs to make a decision
             // Don't show summary - modal is shown instead
-            return
+            return;
           }
 
           // For other errors, add to results
-          throw apiError
+          throw apiError;
         }
       } catch (error: any) {
-        failCount++
-        console.error(`Deployment failed for ${config.flowName}:`, error)
-        console.log('DEBUG - Error object:', JSON.parse(JSON.stringify(error)))
+        failCount++;
+        console.error(`Deployment failed for ${config.flowName}:`, error);
+        console.log("DEBUG - Error object:", JSON.parse(JSON.stringify(error)));
 
         // Extract error message properly - handle all possible error structures
-        let errorMessage = 'Deployment failed'
+        let errorMessage = "Deployment failed";
 
         // Try different paths to get the error message
         const extractMessage = (obj: any): string => {
-          if (!obj) return 'Unknown error'
-          if (typeof obj === 'string') return obj
+          if (!obj) return "Unknown error";
+          if (typeof obj === "string") return obj;
 
           // Check common error message paths
-          if (obj.detail?.message) return obj.detail.message
-          if (obj.detail?.error) return obj.detail.error
-          if (obj.message) return obj.message
-          if (obj.error) return obj.error
-          if (obj.statusText) return obj.statusText
+          if (obj.detail?.message) return obj.detail.message;
+          if (obj.detail?.error) return obj.detail.error;
+          if (obj.message) return obj.message;
+          if (obj.error) return obj.error;
+          if (obj.statusText) return obj.statusText;
 
           // If detail is an object, try to stringify it nicely
-          if (obj.detail && typeof obj.detail === 'object') {
+          if (obj.detail && typeof obj.detail === "object") {
             try {
-              return JSON.stringify(obj.detail, null, 2)
+              return JSON.stringify(obj.detail, null, 2);
             } catch {
-              return 'Complex error - see console'
+              return "Complex error - see console";
             }
           }
 
           // Last resort - stringify the whole thing
           try {
-            return JSON.stringify(obj, null, 2)
+            return JSON.stringify(obj, null, 2);
           } catch {
-            return 'Error details unavailable'
+            return "Error details unavailable";
           }
-        }
+        };
 
-        errorMessage = extractMessage(error)
+        errorMessage = extractMessage(error);
 
-        console.log('DEBUG - Extracted message:', errorMessage)
+        console.log("DEBUG - Extracted message:", errorMessage);
 
         results.push({
           config,
           success: false,
           message: errorMessage,
-        })
+        });
       }
     }
 
     // Show results only if we completed the loop (no conflict modal shown)
     if (!showConflictModal.value) {
-      console.log('Deployment results:', results)
+      console.log("Deployment results:", results);
 
       // Populate results modal data
       deploymentResults.value = {
         successCount,
         failCount,
         total: successCount + failCount,
-        successful: results.filter(r => r.success),
-        failed: results.filter(r => !r.success)
-      }
+        successful: results.filter((r) => r.success),
+        failed: results.filter((r) => !r.success),
+      };
 
       // Show results modal
-      showResultsModal.value = true
+      showResultsModal.value = true;
     }
-
   } catch (error: any) {
-    console.error('Deployment error:', error)
-    alert('Deployment failed: ' + (error.message || error))
+    console.error("Deployment error:", error);
+    alert("Deployment failed: " + (error.message || error));
   } finally {
-    isDeploying.value = false
+    isDeploying.value = false;
   }
-}
+};
 
 const handleConflictResolution = async (resolution: string) => {
-  conflictResolution.value = resolution
-  isResolvingConflict.value = true
+  conflictResolution.value = resolution;
+  isResolvingConflict.value = true;
 
   try {
-    const { config, deploymentRequest } = currentConflictDeployment.value
-    const existingPgId = conflictInfo.value.existing_process_group.id
+    const { config, deploymentRequest } = currentConflictDeployment.value;
+    const existingPgId = conflictInfo.value.existing_process_group.id;
 
-    if (resolution === 'deploy_anyway') {
+    if (resolution === "deploy_anyway") {
       // Deploy anyway - just clear the process_group_name to let NiFi use default name
-      const modifiedRequest = { ...deploymentRequest, process_group_name: null }
+      const modifiedRequest = {
+        ...deploymentRequest,
+        process_group_name: null,
+      };
 
       const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(modifiedRequest),
-      })
+      });
 
-      if (result.status === 'success') {
-        alert(`✓ Successfully deployed!\nProcess Group: ${result.process_group_name}`)
-        showConflictModal.value = false
-        conflictInfo.value = null
-        currentConflictDeployment.value = null
+      if (result.status === "success") {
+        alert(
+          `✓ Successfully deployed!\nProcess Group: ${result.process_group_name}`,
+        );
+        showConflictModal.value = false;
+        conflictInfo.value = null;
+        currentConflictDeployment.value = null;
       }
-    } else if (resolution === 'delete_and_deploy') {
+    } else if (resolution === "delete_and_deploy") {
       // Delete existing process group first
-      await apiRequest(`/api/deploy/${config.instanceId}/process-group/${existingPgId}`, {
-        method: 'DELETE',
-      })
+      await apiRequest(
+        `/api/deploy/${config.instanceId}/process-group/${existingPgId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       // Then deploy new one
       const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify(deploymentRequest),
-      })
+      });
 
-      if (result.status === 'success') {
-        alert(`✓ Successfully deployed after deleting old process group!\nProcess Group: ${result.process_group_name}`)
-        showConflictModal.value = false
-        conflictInfo.value = null
-        currentConflictDeployment.value = null
+      if (result.status === "success") {
+        alert(
+          `✓ Successfully deployed after deleting old process group!\nProcess Group: ${result.process_group_name}`,
+        );
+        showConflictModal.value = false;
+        conflictInfo.value = null;
+        currentConflictDeployment.value = null;
       }
-    } else if (resolution === 'update_version') {
+    } else if (resolution === "update_version") {
       // Update existing process group to new version
       const updateRequest = {
         version: deploymentRequest.version,
-      }
+      };
 
-      const result = await apiRequest(`/api/deploy/${config.instanceId}/process-group/${existingPgId}/update-version`, {
-        method: 'POST',
-        body: JSON.stringify(updateRequest),
-      })
+      const result = await apiRequest(
+        `/api/deploy/${config.instanceId}/process-group/${existingPgId}/update-version`,
+        {
+          method: "POST",
+          body: JSON.stringify(updateRequest),
+        },
+      );
 
-      if (result.status === 'success') {
-        alert(`✓ Successfully updated process group to new version!`)
-        showConflictModal.value = false
-        conflictInfo.value = null
-        currentConflictDeployment.value = null
+      if (result.status === "success") {
+        alert(`✓ Successfully updated process group to new version!`);
+        showConflictModal.value = false;
+        conflictInfo.value = null;
+        currentConflictDeployment.value = null;
       }
     }
   } catch (error: any) {
-    console.error('Conflict resolution failed:', error)
-    alert(`✗ Failed to ${resolution.replace('_', ' ')}: ${error.message || error.detail || 'Unknown error'}`)
+    console.error("Conflict resolution failed:", error);
+    alert(
+      `✗ Failed to ${resolution.replace("_", " ")}: ${error.message || error.detail || "Unknown error"}`,
+    );
   } finally {
-    isResolvingConflict.value = false
-    conflictResolution.value = ''
+    isResolvingConflict.value = false;
+    conflictResolution.value = "";
   }
-}
+};
 
 const closeResultsAndReset = () => {
-  showResultsModal.value = false
+  showResultsModal.value = false;
 
   // Reset wizard to start
-  currentStep.value = 0
-  selectedFlows.value = []
-  deploymentTargets.value = {}
-  deploymentConfigs.value = []
+  currentStep.value = 0;
+  selectedFlows.value = [];
+  deploymentTargets.value = {};
+  deploymentConfigs.value = [];
 
   // Clear results
   deploymentResults.value = {
@@ -1235,94 +1471,98 @@ const closeResultsAndReset = () => {
     failCount: 0,
     total: 0,
     successful: [],
-    failed: []
-  }
-}
+    failed: [],
+  };
+};
 
 const loadFlows = async () => {
-  isLoading.value = true
+  isLoading.value = true;
   try {
-    const data = await apiRequest('/api/nifi-flows/')
+    const data = await apiRequest("/api/nifi-flows/");
     if (data.flows) {
-      flows.value = data.flows
+      flows.value = data.flows;
     }
   } catch (error) {
-    console.error('Error loading flows:', error)
+    console.error("Error loading flows:", error);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const loadHierarchyConfig = async () => {
   try {
-    const data = await apiRequest('/api/settings/hierarchy')
+    const data = await apiRequest("/api/settings/hierarchy");
     if (data.hierarchy) {
-      hierarchyConfig.value = data.hierarchy.sort((a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order)
+      hierarchyConfig.value = data.hierarchy.sort(
+        (a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order,
+      );
 
       // Build visible columns from hierarchy
-      visibleColumns.value = hierarchyConfig.value.map(attr => ({
+      visibleColumns.value = hierarchyConfig.value.map((attr) => ({
         key: `src_${attr.name.toLowerCase()}`,
         label: `Src ${attr.name}`,
-      }))
+      }));
     }
   } catch (error) {
-    console.error('Error loading hierarchy config:', error)
+    console.error("Error loading hierarchy config:", error);
   }
-}
+};
 
 const loadNiFiInstances = async () => {
   try {
-    const instances = await apiRequest('/api/nifi-instances/')
+    const instances = await apiRequest("/api/nifi-instances/");
     if (instances && Array.isArray(instances)) {
-      nifiInstances.value = instances
-      console.log(`Loaded ${instances.length} NiFi instances`)
+      nifiInstances.value = instances;
+      console.log(`Loaded ${instances.length} NiFi instances`);
     }
   } catch (error) {
-    console.error('Error loading NiFi instances:', error)
+    console.error("Error loading NiFi instances:", error);
   }
-}
+};
 
 const loadRegistryFlows = async () => {
   try {
-    const flows = await apiRequest('/api/registry-flows/')
+    const flows = await apiRequest("/api/registry-flows/");
     if (flows && Array.isArray(flows)) {
-      registryFlows.value = flows
-      console.log(`Loaded ${flows.length} registry flows`)
+      registryFlows.value = flows;
+      console.log(`Loaded ${flows.length} registry flows`);
     }
   } catch (error) {
-    console.error('Error loading registry flows:', error)
+    console.error("Error loading registry flows:", error);
   }
-}
+};
 
 const loadDeploymentSettings = async () => {
   try {
-    const data = await apiRequest('/api/settings/deploy')
+    const data = await apiRequest("/api/settings/deploy");
 
     // Convert string keys to numbers since JSON serialization converts numeric keys to strings
-    const paths: { [key: number]: { source_path?: string; dest_path?: string } } = {}
+    const paths: {
+      [key: number]: { source_path?: string; dest_path?: string };
+    } = {};
     if (data.paths) {
-      Object.keys(data.paths).forEach(key => {
-        const numKey = parseInt(key, 10)
-        paths[numKey] = data.paths[key]
-      })
+      Object.keys(data.paths).forEach((key) => {
+        const numKey = parseInt(key, 10);
+        paths[numKey] = data.paths[key];
+      });
     }
 
     deploymentSettings.value = {
       global: data.global,
-      paths: paths
-    }
+      paths: paths,
+    };
   } catch (error) {
-    console.error('Error loading deployment settings:', error)
+    console.error("Error loading deployment settings:", error);
   }
-}
+};
 
 onMounted(async () => {
-  await loadHierarchyConfig()
-  await loadNiFiInstances()
-  await loadRegistryFlows()
-  await loadDeploymentSettings()
-  await loadFlows()
-})
+  await loadHierarchyConfig();
+  await loadNiFiInstances();
+  await loadRegistryFlows();
+  await loadDeploymentSettings();
+  await loadFlows();
+});
 </script>
 
 <style scoped lang="scss">

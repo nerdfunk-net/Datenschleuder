@@ -1,13 +1,21 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
 
     <b-row>
       <b-col md="6">
         <b-card class="main-card mb-3">
           <b-card-header>
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
-              <i class="header-icon lnr-chart-bars icon-gradient bg-love-kiss"></i>
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
+              <i
+                class="header-icon lnr-chart-bars icon-gradient bg-love-kiss"
+              ></i>
               Basic Progress Bars
             </div>
           </b-card-header>
@@ -64,8 +72,9 @@
                 </div>
               </div>
               <small class="text-muted"
-                >Success: {{ Math.round(stackedValue * 0.6) }}%, Warning: {{ Math.round(stackedValue * 0.25) }}%,
-                Danger: {{ Math.round(stackedValue * 0.15) }}%</small
+                >Success: {{ Math.round(stackedValue * 0.6) }}%, Warning:
+                {{ Math.round(stackedValue * 0.25) }}%, Danger:
+                {{ Math.round(stackedValue * 0.15) }}%</small
               >
             </div>
 
@@ -84,14 +93,18 @@
 
         <b-card class="main-card mb-3">
           <b-card-header>
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
               <i class="header-icon lnr-layers icon-gradient bg-amy-crisp"></i>
               Color Variants
             </div>
           </b-card-header>
           <b-card-body>
             <div v-for="bar in colorBars" :key="bar.variant" class="mb-3">
-              <div class="d-flex justify-content-between align-items-center mb-1">
+              <div
+                class="d-flex justify-content-between align-items-center mb-1"
+              >
                 <span class="text-capitalize fw-medium">{{ bar.variant }}</span>
                 <span class="badge bg-light text-dark">{{ bar.value }}%</span>
               </div>
@@ -122,8 +135,12 @@
       <b-col md="6">
         <b-card class="main-card mb-3">
           <b-card-header>
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
-              <i class="header-icon lnr-layers icon-gradient bg-happy-fisher"></i>
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
+              <i
+                class="header-icon lnr-layers icon-gradient bg-happy-fisher"
+              ></i>
               Sizes & Styles
             </div>
           </b-card-header>
@@ -215,15 +232,21 @@
 
         <b-card class="main-card mb-3">
           <b-card-header>
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
               <i class="header-icon lnr-layers icon-gradient bg-plum-plate"></i>
               Striped & Animated
             </div>
           </b-card-header>
           <b-card-body>
             <div v-for="(bar, index) in stripedBars" :key="index" class="mb-3">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="text-capitalize fw-medium">{{ bar.variant }} {{ bar.striped ? '(Striped)' : '' }}</span>
+              <div
+                class="d-flex justify-content-between align-items-center mb-1"
+              >
+                <span class="text-capitalize fw-medium"
+                  >{{ bar.variant }} {{ bar.striped ? "(Striped)" : "" }}</span
+                >
                 <span class="badge bg-light text-dark">{{ bar.value }}%</span>
               </div>
               <div class="progress" style="height: 1rem">
@@ -241,13 +264,26 @@
             </div>
 
             <div class="text-center mt-3">
-              <b-button :variant="allStriped ? 'outline-warning' : 'warning'" @click="toggleStriped" class="me-2">
-                <i :class="allStriped ? 'fas fa-eye-slash' : 'fas fa-eye'" class="me-1"></i>
-                {{ allStriped ? 'Remove' : 'Add' }} Stripes
+              <b-button
+                :variant="allStriped ? 'outline-warning' : 'warning'"
+                @click="toggleStriped"
+                class="me-2"
+              >
+                <i
+                  :class="allStriped ? 'fas fa-eye-slash' : 'fas fa-eye'"
+                  class="me-1"
+                ></i>
+                {{ allStriped ? "Remove" : "Add" }} Stripes
               </b-button>
-              <b-button :variant="allAnimated ? 'outline-success' : 'success'" @click="toggleAnimated">
-                <i :class="allAnimated ? 'fas fa-pause' : 'fas fa-play'" class="me-1"></i>
-                {{ allAnimated ? 'Stop' : 'Start' }} Animation
+              <b-button
+                :variant="allAnimated ? 'outline-success' : 'success'"
+                @click="toggleAnimated"
+              >
+                <i
+                  :class="allAnimated ? 'fas fa-pause' : 'fas fa-play'"
+                  class="me-1"
+                ></i>
+                {{ allAnimated ? "Stop" : "Start" }} Animation
               </b-button>
             </div>
           </b-card-body>
@@ -259,8 +295,12 @@
       <b-col md="12">
         <b-card class="main-card mb-3">
           <b-card-header>
-            <div class="card-header-title font-size-lg text-capitalize fw-normal">
-              <i class="header-icon lnr-chart-bars icon-gradient bg-strong-bliss"></i>
+            <div
+              class="card-header-title font-size-lg text-capitalize fw-normal"
+            >
+              <i
+                class="header-icon lnr-chart-bars icon-gradient bg-strong-bliss"
+              ></i>
               Live Demo & Usage Examples
             </div>
           </b-card-header>
@@ -269,7 +309,9 @@
               <b-col md="6">
                 <div class="mb-4">
                   <h6 class="mb-3">File Upload Simulation</h6>
-                  <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div
+                    class="d-flex justify-content-between align-items-center mb-2"
+                  >
                     <span>{{ uploadFile.name }}</span>
                     <span class="text-muted">{{ uploadFile.progress }}%</span>
                   </div>
@@ -286,11 +328,30 @@
                     </div>
                   </div>
                   <div class="mt-2">
-                    <b-button variant="primary" size="sm" @click="simulateUpload" :disabled="uploadFile.uploading">
-                      <i :class="uploadFile.uploading ? 'fas fa-spinner fa-spin' : 'fas fa-upload'" class="me-1"></i>
-                      {{ uploadFile.uploading ? 'Uploading...' : 'Start Upload' }}
+                    <b-button
+                      variant="primary"
+                      size="sm"
+                      @click="simulateUpload"
+                      :disabled="uploadFile.uploading"
+                    >
+                      <i
+                        :class="
+                          uploadFile.uploading
+                            ? 'fas fa-spinner fa-spin'
+                            : 'fas fa-upload'
+                        "
+                        class="me-1"
+                      ></i>
+                      {{
+                        uploadFile.uploading ? "Uploading..." : "Start Upload"
+                      }}
                     </b-button>
-                    <b-button variant="outline-secondary" size="sm" @click="resetUpload" class="ms-2">
+                    <b-button
+                      variant="outline-secondary"
+                      size="sm"
+                      @click="resetUpload"
+                      class="ms-2"
+                    >
                       <i class="fas fa-redo me-1"></i>
                       Reset
                     </b-button>
@@ -303,9 +364,16 @@
                   <h6 class="mb-3">System Resources</h6>
 
                   <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span><i class="fas fa-microchip text-info me-1"></i>CPU Usage</span>
-                      <span class="text-muted">{{ Math.round(systemResources.cpu) }}%</span>
+                    <div
+                      class="d-flex justify-content-between align-items-center mb-1"
+                    >
+                      <span
+                        ><i class="fas fa-microchip text-info me-1"></i>CPU
+                        Usage</span
+                      >
+                      <span class="text-muted"
+                        >{{ Math.round(systemResources.cpu) }}%</span
+                      >
                     </div>
                     <div class="progress" style="height: 8px">
                       <div
@@ -320,9 +388,16 @@
                   </div>
 
                   <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span><i class="fas fa-memory text-warning me-1"></i>Memory</span>
-                      <span class="text-muted">{{ Math.round(systemResources.memory) }}%</span>
+                    <div
+                      class="d-flex justify-content-between align-items-center mb-1"
+                    >
+                      <span
+                        ><i class="fas fa-memory text-warning me-1"></i
+                        >Memory</span
+                      >
+                      <span class="text-muted"
+                        >{{ Math.round(systemResources.memory) }}%</span
+                      >
                     </div>
                     <div class="progress" style="height: 8px">
                       <div
@@ -337,9 +412,16 @@
                   </div>
 
                   <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                      <span><i class="fas fa-hdd text-danger me-1"></i>Disk Usage</span>
-                      <span class="text-muted">{{ Math.round(systemResources.disk) }}%</span>
+                    <div
+                      class="d-flex justify-content-between align-items-center mb-1"
+                    >
+                      <span
+                        ><i class="fas fa-hdd text-danger me-1"></i>Disk
+                        Usage</span
+                      >
+                      <span class="text-muted"
+                        >{{ Math.round(systemResources.disk) }}%</span
+                      >
                     </div>
                     <div class="progress" style="height: 8px">
                       <div
@@ -359,11 +441,26 @@
             <div class="alert alert-info mt-3">
               <h6 class="mb-2">💡 Progress Bar Features:</h6>
               <ul class="mb-0">
-                <li><strong>Variants:</strong> primary, secondary, success, info, warning, danger, dark</li>
-                <li><strong>Sizes:</strong> Custom height with <code>height</code> prop</li>
-                <li><strong>Animations:</strong> <code>animated</code> and <code>striped</code> props</li>
-                <li><strong>Stacked:</strong> Multiple progress bars in one container</li>
-                <li><strong>Labels:</strong> <code>show-progress</code> and <code>show-value</code> props</li>
+                <li>
+                  <strong>Variants:</strong> primary, secondary, success, info,
+                  warning, danger, dark
+                </li>
+                <li>
+                  <strong>Sizes:</strong> Custom height with
+                  <code>height</code> prop
+                </li>
+                <li>
+                  <strong>Animations:</strong> <code>animated</code> and
+                  <code>striped</code> props
+                </li>
+                <li>
+                  <strong>Stacked:</strong> Multiple progress bars in one
+                  container
+                </li>
+                <li>
+                  <strong>Labels:</strong> <code>show-progress</code> and
+                  <code>show-value</code> props
+                </li>
               </ul>
             </div>
           </b-card-body>
@@ -374,149 +471,159 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import { ref, reactive, onMounted, onUnmounted } from "vue";
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
 // Component data
-const heading = 'Progress Bar'
-const subheading = 'You can use the progress bars on their own or in combination with other widgets.'
-const icon = 'pe-7s-filter icon-gradient bg-grow-early'
+const heading = "Progress Bar";
+const subheading =
+  "You can use the progress bars on their own or in combination with other widgets.";
+const icon = "pe-7s-filter icon-gradient bg-grow-early";
 
 // Progress values
-const basicValue = ref(45)
-const stackedValue = ref(80)
-const sizeValue = ref(65)
+const basicValue = ref(45);
+const stackedValue = ref(80);
+const sizeValue = ref(65);
 
 // Color variant bars
 const colorBars = reactive([
-  { variant: 'success', value: 75 },
-  { variant: 'info', value: 60 },
-  { variant: 'warning', value: 45 },
-  { variant: 'danger', value: 30 },
-  { variant: 'primary', value: 85 },
-  { variant: 'secondary', value: 50 }
-])
+  { variant: "success", value: 75 },
+  { variant: "info", value: 60 },
+  { variant: "warning", value: 45 },
+  { variant: "danger", value: 30 },
+  { variant: "primary", value: 85 },
+  { variant: "secondary", value: 50 },
+]);
 
 // Striped/animated bars
 const stripedBars = reactive([
-  { variant: 'success', value: 25, striped: true, animated: true },
-  { variant: 'info', value: 50, striped: true, animated: true },
-  { variant: 'warning', value: 75, striped: true, animated: true },
-  { variant: 'danger', value: 100, striped: true, animated: true }
-])
+  { variant: "success", value: 25, striped: true, animated: true },
+  { variant: "info", value: 50, striped: true, animated: true },
+  { variant: "warning", value: 75, striped: true, animated: true },
+  { variant: "danger", value: 100, striped: true, animated: true },
+]);
 
 // Upload simulation
 const uploadFile = reactive({
-  name: 'document.pdf',
+  name: "document.pdf",
   progress: 0,
-  uploading: false
-})
+  uploading: false,
+});
 
 // System resources
 const systemResources = reactive({
   cpu: 45,
   memory: 68,
-  disk: 32
-})
+  disk: 32,
+});
 
 // Timer references
-let colorTimer = null
-let resourceTimer = null
-let uploadTimer = null
+let colorTimer = null;
+let resourceTimer = null;
+let uploadTimer = null;
 
 // Toggle states
-const allStriped = ref(true)
-const allAnimated = ref(true)
+const allStriped = ref(true);
+const allAnimated = ref(true);
 
 // Methods
 const randomizeBasic = () => {
-  basicValue.value = Math.floor(Math.random() * 100)
-  stackedValue.value = Math.floor(Math.random() * 100)
-}
+  basicValue.value = Math.floor(Math.random() * 100);
+  stackedValue.value = Math.floor(Math.random() * 100);
+};
 
 const resetProgress = () => {
-  basicValue.value = 45
-  stackedValue.value = 80
-}
+  basicValue.value = 45;
+  stackedValue.value = 80;
+};
 
 const randomizeSizes = () => {
-  sizeValue.value = Math.floor(Math.random() * 100)
-}
+  sizeValue.value = Math.floor(Math.random() * 100);
+};
 
 const animateColors = () => {
-  if (colorTimer) clearInterval(colorTimer)
+  if (colorTimer) clearInterval(colorTimer);
 
   colorTimer = setInterval(() => {
-    colorBars.forEach(bar => {
-      bar.value = Math.floor(Math.random() * 100)
-    })
-  }, 500)
+    colorBars.forEach((bar) => {
+      bar.value = Math.floor(Math.random() * 100);
+    });
+  }, 500);
 
   // Stop animation after 5 seconds
   setTimeout(() => {
     if (colorTimer) {
-      clearInterval(colorTimer)
-      colorTimer = null
+      clearInterval(colorTimer);
+      colorTimer = null;
     }
-  }, 5000)
-}
+  }, 5000);
+};
 
 const toggleStriped = () => {
-  allStriped.value = !allStriped.value
-  stripedBars.forEach(bar => {
-    bar.striped = allStriped.value
-  })
-}
+  allStriped.value = !allStriped.value;
+  stripedBars.forEach((bar) => {
+    bar.striped = allStriped.value;
+  });
+};
 
 const toggleAnimated = () => {
-  allAnimated.value = !allAnimated.value
-  stripedBars.forEach(bar => {
-    bar.animated = allAnimated.value
-  })
-}
+  allAnimated.value = !allAnimated.value;
+  stripedBars.forEach((bar) => {
+    bar.animated = allAnimated.value;
+  });
+};
 
 const simulateUpload = () => {
-  if (uploadFile.uploading) return
+  if (uploadFile.uploading) return;
 
-  uploadFile.uploading = true
-  uploadFile.progress = 0
+  uploadFile.uploading = true;
+  uploadFile.progress = 0;
 
   uploadTimer = setInterval(() => {
-    uploadFile.progress += Math.floor(Math.random() * 10) + 1
+    uploadFile.progress += Math.floor(Math.random() * 10) + 1;
 
     if (uploadFile.progress >= 100) {
-      uploadFile.progress = 100
-      uploadFile.uploading = false
-      clearInterval(uploadTimer)
+      uploadFile.progress = 100;
+      uploadFile.uploading = false;
+      clearInterval(uploadTimer);
     }
-  }, 200)
-}
+  }, 200);
+};
 
 const resetUpload = () => {
-  if (uploadTimer) clearInterval(uploadTimer)
-  uploadFile.progress = 0
-  uploadFile.uploading = false
-}
+  if (uploadTimer) clearInterval(uploadTimer);
+  uploadFile.progress = 0;
+  uploadFile.uploading = false;
+};
 
 const startResourceMonitoring = () => {
   resourceTimer = setInterval(() => {
     // Simulate realistic resource usage changes
-    systemResources.cpu = Math.max(10, Math.min(95, systemResources.cpu + (Math.random() - 0.5) * 20))
-    systemResources.memory = Math.max(20, Math.min(90, systemResources.memory + (Math.random() - 0.5) * 15))
-    systemResources.disk = Math.max(15, Math.min(85, systemResources.disk + (Math.random() - 0.5) * 5))
-  }, 2000)
-}
+    systemResources.cpu = Math.max(
+      10,
+      Math.min(95, systemResources.cpu + (Math.random() - 0.5) * 20),
+    );
+    systemResources.memory = Math.max(
+      20,
+      Math.min(90, systemResources.memory + (Math.random() - 0.5) * 15),
+    );
+    systemResources.disk = Math.max(
+      15,
+      Math.min(85, systemResources.disk + (Math.random() - 0.5) * 5),
+    );
+  }, 2000);
+};
 
 // Lifecycle hooks
 onMounted(() => {
-  startResourceMonitoring()
-})
+  startResourceMonitoring();
+});
 
 onUnmounted(() => {
-  if (colorTimer) clearInterval(colorTimer)
-  if (resourceTimer) clearInterval(resourceTimer)
-  if (uploadTimer) clearInterval(uploadTimer)
-})
+  if (colorTimer) clearInterval(colorTimer);
+  if (resourceTimer) clearInterval(resourceTimer);
+  if (uploadTimer) clearInterval(uploadTimer);
+});
 </script>
 
 <style scoped>
@@ -600,7 +707,7 @@ onUnmounted(() => {
   min-width: 0;
 }
 
-.progress .progress-bar[aria-valuenow]:not([aria-valuenow='0']) {
+.progress .progress-bar[aria-valuenow]:not([aria-valuenow="0"]) {
   min-width: 0.25rem; /* Minimum visibility for non-zero values */
 }
 

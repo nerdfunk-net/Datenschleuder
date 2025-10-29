@@ -1,7 +1,7 @@
 // Common Comps Animations
 
 .popover {
-  &:not([x-placement^='top']) {
+  &:not([x-placement^="top"]) {
     animation: fade-in2 0.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
   }
 }

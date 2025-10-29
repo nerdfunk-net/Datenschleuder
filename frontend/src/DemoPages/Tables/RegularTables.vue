@@ -1,24 +1,44 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
 
     <!-- Table Options Card -->
     <b-card title="Bootstrap 5 Table Options" class="main-card mb-4">
       <b-row>
         <b-col md="6">
           <div class="form-check-group">
-            <b-form-checkbox v-model="striped" class="mb-2">Striped Rows</b-form-checkbox>
-            <b-form-checkbox v-model="bordered" class="mb-2">Bordered</b-form-checkbox>
-            <b-form-checkbox v-model="hover" class="mb-2">Hover Effect</b-form-checkbox>
-            <b-form-checkbox v-model="small" class="mb-2">Small Size</b-form-checkbox>
+            <b-form-checkbox v-model="striped" class="mb-2"
+              >Striped Rows</b-form-checkbox
+            >
+            <b-form-checkbox v-model="bordered" class="mb-2"
+              >Bordered</b-form-checkbox
+            >
+            <b-form-checkbox v-model="hover" class="mb-2"
+              >Hover Effect</b-form-checkbox
+            >
+            <b-form-checkbox v-model="small" class="mb-2"
+              >Small Size</b-form-checkbox
+            >
           </div>
         </b-col>
         <b-col md="6">
           <div class="form-check-group">
-            <b-form-checkbox v-model="dark" class="mb-2">Dark Theme</b-form-checkbox>
-            <b-form-checkbox v-model="responsive" class="mb-2">Responsive</b-form-checkbox>
-            <b-form-checkbox v-model="showEmpty" class="mb-2">Show Empty State</b-form-checkbox>
-            <b-form-checkbox v-model="sortable" class="mb-2">Sortable Columns</b-form-checkbox>
+            <b-form-checkbox v-model="dark" class="mb-2"
+              >Dark Theme</b-form-checkbox
+            >
+            <b-form-checkbox v-model="responsive" class="mb-2"
+              >Responsive</b-form-checkbox
+            >
+            <b-form-checkbox v-model="showEmpty" class="mb-2"
+              >Show Empty State</b-form-checkbox
+            >
+            <b-form-checkbox v-model="sortable" class="mb-2"
+              >Sortable Columns</b-form-checkbox
+            >
           </div>
         </b-col>
       </b-row>
@@ -37,7 +57,7 @@
                   { value: 5, text: '5' },
                   { value: 10, text: '10' },
                   { value: 25, text: '25' },
-                  { value: 50, text: '50' }
+                  { value: 50, text: '50' },
                 ]"
                 size="sm"
                 style="width: auto"
@@ -82,10 +102,16 @@
         <!-- Custom slot for actions column -->
         <template #cell(actions)="data">
           <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-primary btn-sm" @click="editItem(data.item)">
+            <button
+              class="btn btn-outline-primary btn-sm"
+              @click="editItem(data.item)"
+            >
               <font-awesome-icon icon="edit" />
             </button>
-            <button class="btn btn-outline-danger btn-sm" @click="deleteItem(data.item)">
+            <button
+              class="btn btn-outline-danger btn-sm"
+              @click="deleteItem(data.item)"
+            >
               <font-awesome-icon icon="trash" />
             </button>
           </div>
@@ -93,9 +119,13 @@
       </b-table>
 
       <!-- Pagination -->
-      <div v-if="totalRows > perPage" class="d-flex justify-content-between align-items-center mt-3">
+      <div
+        v-if="totalRows > perPage"
+        class="d-flex justify-content-between align-items-center mt-3"
+      >
         <div class="text-muted">
-          Showing {{ (currentPage - 1) * perPage + 1 }} to {{ Math.min(currentPage * perPage, totalRows) }} of
+          Showing {{ (currentPage - 1) * perPage + 1 }} to
+          {{ Math.min(currentPage * perPage, totalRows) }} of
           {{ totalRows }} entries
         </div>
         <b-pagination
@@ -129,7 +159,9 @@
               <td>
                 <div class="d-flex align-items-center">
                   <div class="avatar-sm me-2">
-                    <div class="avatar-title bg-primary text-white rounded-circle">
+                    <div
+                      class="avatar-title bg-primary text-white rounded-circle"
+                    >
                       {{ employee.name.charAt(0) }}
                     </div>
                   </div>
@@ -148,18 +180,18 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
 export default {
-  name: 'RegularTables',
+  name: "RegularTables",
   components: {
-    PageTitle
+    PageTitle,
   },
   data() {
     return {
-      heading: 'Regular Tables',
-      subheading: 'Tables are the backbone of almost all web applications.',
-      icon: 'pe-7s-drawer icon-gradient bg-happy-itmeo',
+      heading: "Regular Tables",
+      subheading: "Tables are the backbone of almost all web applications.",
+      icon: "pe-7s-drawer icon-gradient bg-happy-itmeo",
 
       // Table styling options
       striped: true,
@@ -174,168 +206,208 @@ export default {
       // Pagination and filtering
       currentPage: 1,
       perPage: 10,
-      filter: '',
-      sortBy: 'name',
+      filter: "",
+      sortBy: "name",
       sortDesc: false,
 
       // Table fields
       tableFields: [
-        { key: 'id', label: 'ID', sortable: true, class: 'text-center' },
-        { key: 'name', label: 'Full Name', sortable: true },
-        { key: 'email', label: 'Email', sortable: true },
-        { key: 'department', label: 'Department', sortable: true },
-        { key: 'role', label: 'Role', sortable: true },
-        { key: 'status', label: 'Status', sortable: true, class: 'text-center' },
-        { key: 'joinDate', label: 'Join Date', sortable: true, class: 'text-center' },
-        { key: 'actions', label: 'Actions', class: 'text-center' }
+        { key: "id", label: "ID", sortable: true, class: "text-center" },
+        { key: "name", label: "Full Name", sortable: true },
+        { key: "email", label: "Email", sortable: true },
+        { key: "department", label: "Department", sortable: true },
+        { key: "role", label: "Role", sortable: true },
+        {
+          key: "status",
+          label: "Status",
+          sortable: true,
+          class: "text-center",
+        },
+        {
+          key: "joinDate",
+          label: "Join Date",
+          sortable: true,
+          class: "text-center",
+        },
+        { key: "actions", label: "Actions", class: "text-center" },
       ],
 
       // Enhanced sample data
       items: [
         {
           id: 1,
-          name: 'John Doe',
-          email: 'john.doe@company.com',
-          department: 'Engineering',
-          role: 'Senior Developer',
-          status: 'Active',
-          joinDate: '2022-01-15'
+          name: "John Doe",
+          email: "john.doe@company.com",
+          department: "Engineering",
+          role: "Senior Developer",
+          status: "Active",
+          joinDate: "2022-01-15",
         },
         {
           id: 2,
-          name: 'Jane Smith',
-          email: 'jane.smith@company.com',
-          department: 'Design',
-          role: 'UI/UX Designer',
-          status: 'Active',
-          joinDate: '2022-03-20'
+          name: "Jane Smith",
+          email: "jane.smith@company.com",
+          department: "Design",
+          role: "UI/UX Designer",
+          status: "Active",
+          joinDate: "2022-03-20",
         },
         {
           id: 3,
-          name: 'Mike Johnson',
-          email: 'mike.johnson@company.com',
-          department: 'Marketing',
-          role: 'Marketing Manager',
-          status: 'Inactive',
-          joinDate: '2021-11-10'
+          name: "Mike Johnson",
+          email: "mike.johnson@company.com",
+          department: "Marketing",
+          role: "Marketing Manager",
+          status: "Inactive",
+          joinDate: "2021-11-10",
         },
         {
           id: 4,
-          name: 'Sarah Wilson',
-          email: 'sarah.wilson@company.com',
-          department: 'Engineering',
-          role: 'DevOps Engineer',
-          status: 'Active',
-          joinDate: '2023-02-01'
+          name: "Sarah Wilson",
+          email: "sarah.wilson@company.com",
+          department: "Engineering",
+          role: "DevOps Engineer",
+          status: "Active",
+          joinDate: "2023-02-01",
         },
         {
           id: 5,
-          name: 'David Brown',
-          email: 'david.brown@company.com',
-          department: 'Sales',
-          role: 'Sales Representative',
-          status: 'Pending',
-          joinDate: '2023-05-15'
+          name: "David Brown",
+          email: "david.brown@company.com",
+          department: "Sales",
+          role: "Sales Representative",
+          status: "Pending",
+          joinDate: "2023-05-15",
         },
         {
           id: 6,
-          name: 'Emily Davis',
-          email: 'emily.davis@company.com',
-          department: 'HR',
-          role: 'HR Specialist',
-          status: 'Active',
-          joinDate: '2022-08-12'
+          name: "Emily Davis",
+          email: "emily.davis@company.com",
+          department: "HR",
+          role: "HR Specialist",
+          status: "Active",
+          joinDate: "2022-08-12",
         },
         {
           id: 7,
-          name: 'Tom Anderson',
-          email: 'tom.anderson@company.com',
-          department: 'Engineering',
-          role: 'Frontend Developer',
-          status: 'Active',
-          joinDate: '2023-01-20'
+          name: "Tom Anderson",
+          email: "tom.anderson@company.com",
+          department: "Engineering",
+          role: "Frontend Developer",
+          status: "Active",
+          joinDate: "2023-01-20",
         },
         {
           id: 8,
-          name: 'Lisa Miller',
-          email: 'lisa.miller@company.com',
-          department: 'Design',
-          role: 'Product Designer',
-          status: 'Inactive',
-          joinDate: '2021-09-05'
-        }
+          name: "Lisa Miller",
+          email: "lisa.miller@company.com",
+          department: "Design",
+          role: "Product Designer",
+          status: "Inactive",
+          joinDate: "2021-09-05",
+        },
       ],
 
       // Simple employee data for basic table
       employees: [
-        { id: 1, name: 'Alice Johnson', position: 'Software Engineer', department: 'Engineering', salary: 95000 },
-        { id: 2, name: 'Bob Smith', position: 'Product Manager', department: 'Product', salary: 110000 },
-        { id: 3, name: 'Carol Williams', position: 'Designer', department: 'Design', salary: 75000 },
-        { id: 4, name: 'David Chen', position: 'Data Analyst', department: 'Analytics', salary: 85000 },
-        { id: 5, name: 'Eva Rodriguez', position: 'Marketing Specialist', department: 'Marketing', salary: 65000 }
-      ]
-    }
+        {
+          id: 1,
+          name: "Alice Johnson",
+          position: "Software Engineer",
+          department: "Engineering",
+          salary: 95000,
+        },
+        {
+          id: 2,
+          name: "Bob Smith",
+          position: "Product Manager",
+          department: "Product",
+          salary: 110000,
+        },
+        {
+          id: 3,
+          name: "Carol Williams",
+          position: "Designer",
+          department: "Design",
+          salary: 75000,
+        },
+        {
+          id: 4,
+          name: "David Chen",
+          position: "Data Analyst",
+          department: "Analytics",
+          salary: 85000,
+        },
+        {
+          id: 5,
+          name: "Eva Rodriguez",
+          position: "Marketing Specialist",
+          department: "Marketing",
+          salary: 65000,
+        },
+      ],
+    };
   },
   computed: {
     filteredItems() {
       if (!this.filter || !Array.isArray(this.items)) {
-        return this.items || []
+        return this.items || [];
       }
-      const filterLower = this.filter.toLowerCase()
-      return this.items.filter(item => {
-        if (!item || typeof item !== 'object') return false
-        return Object.values(item).some(value => {
-          if (value === null || value === undefined) return false
-          return String(value).toLowerCase().includes(filterLower)
-        })
-      })
+      const filterLower = this.filter.toLowerCase();
+      return this.items.filter((item) => {
+        if (!item || typeof item !== "object") return false;
+        return Object.values(item).some((value) => {
+          if (value === null || value === undefined) return false;
+          return String(value).toLowerCase().includes(filterLower);
+        });
+      });
     },
     paginatedItems() {
-      const filtered = this.filteredItems
-      if (!Array.isArray(filtered)) return []
+      const filtered = this.filteredItems;
+      if (!Array.isArray(filtered)) return [];
 
-      const start = (this.currentPage - 1) * this.perPage
-      const end = start + this.perPage
-      return filtered.slice(start, end)
+      const start = (this.currentPage - 1) * this.perPage;
+      const end = start + this.perPage;
+      return filtered.slice(start, end);
     },
     totalRows() {
-      return Array.isArray(this.filteredItems) ? this.filteredItems.length : 0
-    }
+      return Array.isArray(this.filteredItems) ? this.filteredItems.length : 0;
+    },
   },
   mounted() {
     // Ensure data is properly initialized
     if (!Array.isArray(this.items)) {
-      this.items = []
+      this.items = [];
     }
   },
   methods: {
     getStatusClass(status) {
       const statusClasses = {
-        Active: 'bg-success',
-        Inactive: 'bg-danger',
-        Pending: 'bg-warning text-dark'
-      }
-      return statusClasses[status] || 'bg-secondary'
+        Active: "bg-success",
+        Inactive: "bg-danger",
+        Pending: "bg-warning text-dark",
+      };
+      return statusClasses[status] || "bg-secondary";
     },
     editItem(item) {
       // Handle edit action
-      alert(`Edit item: ${item.name}`)
+      alert(`Edit item: ${item.name}`);
     },
     deleteItem(item) {
       // Handle delete action
       if (confirm(`Are you sure you want to delete ${item.name}?`)) {
-        const index = this.items.findIndex(i => i.id === item.id)
+        const index = this.items.findIndex((i) => i.id === item.id);
         if (index > -1) {
-          this.items.splice(index, 1)
+          this.items.splice(index, 1);
           // Reset to first page if current page is now empty
           if (this.paginatedItems.length === 0 && this.currentPage > 1) {
-            this.currentPage = 1
+            this.currentPage = 1;
           }
         }
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>

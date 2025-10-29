@@ -205,7 +205,7 @@
 
   .app-header.text-lighter {
     .logo-src {
-      background: url('@/assets/images/logo.png');
+      background: url("@/assets/images/logo.png");
     }
 
     .app-header__menu {
@@ -275,7 +275,8 @@
 
   .app-page-title {
     padding: ($grid-gutter-width / 2);
-    margin: (-($grid-gutter-width / 2)) (-($grid-gutter-width / 2)) ($grid-gutter-width / 2);
+    margin: (-($grid-gutter-width / 2)) (-($grid-gutter-width / 2))
+      ($grid-gutter-width / 2);
 
     & + .body-tabs-layout {
       margin-top: (-($grid-gutter-width / 2)) !important;

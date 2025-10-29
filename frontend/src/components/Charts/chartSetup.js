@@ -1,13 +1,13 @@
-import { Chart, registerables } from 'chart.js'
+import { Chart, registerables } from "chart.js";
 
 // Register Chart.js components only once
-let isRegistered = false
+let isRegistered = false;
 
 export function registerChartJS() {
   if (!isRegistered) {
-    Chart.register(...registerables)
-    isRegistered = true
+    Chart.register(...registerables);
+    isRegistered = true;
   }
 }
 
-export { Chart }
+export { Chart };

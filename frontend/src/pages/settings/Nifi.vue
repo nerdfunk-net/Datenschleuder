@@ -2,7 +2,9 @@
   <div class="settings-page">
     <div v-if="instances.length > 0 || loading" class="page-header mb-4">
       <h2>NiFi Instances</h2>
-      <p class="text-muted">Manage multiple NiFi instances, one for each top hierarchy value</p>
+      <p class="text-muted">
+        Manage multiple NiFi instances, one for each top hierarchy value
+      </p>
       <b-button variant="primary" @click="showAddModal">
         + Add NiFi Instance
       </b-button>
@@ -16,7 +18,7 @@
 
     <!-- Empty State -->
     <div v-else-if="instances.length === 0" class="empty-state">
-      <i class="pe-7s-server" style="font-size: 4rem; color: #6c757d;"></i>
+      <i class="pe-7s-server" style="font-size: 4rem; color: #6c757d"></i>
       <h4 class="mt-3">No NiFi Instances</h4>
       <p class="text-muted">Add your first NiFi instance to get started</p>
       <b-button variant="primary" @click="showAddModal">
@@ -26,7 +28,11 @@
 
     <!-- Instance Cards -->
     <div v-else class="instances-grid">
-      <div v-for="instance in instances" :key="instance.id" class="instance-card">
+      <div
+        v-for="instance in instances"
+        :key="instance.id"
+        class="instance-card"
+      >
         <div class="card-header-custom">
           <div class="instance-badge">
             {{ instance.hierarchy_attribute }}={{ instance.hierarchy_value }}
@@ -68,19 +74,23 @@
             </div>
             <div class="info-row">
               <span class="label">Username:</span>
-              <span class="value">{{ instance.username || 'Not set' }}</span>
+              <span class="value">{{ instance.username || "Not set" }}</span>
             </div>
             <div class="info-row">
               <span class="label">SSL:</span>
               <span class="value">
-                <span v-if="instance.use_ssl" class="badge bg-success">Enabled</span>
+                <span v-if="instance.use_ssl" class="badge bg-success"
+                  >Enabled</span
+                >
                 <span v-else class="badge bg-secondary">Disabled</span>
               </span>
             </div>
             <div class="info-row">
               <span class="label">Verify SSL:</span>
               <span class="value">
-                <span v-if="instance.verify_ssl" class="badge bg-success">Yes</span>
+                <span v-if="instance.verify_ssl" class="badge bg-success"
+                  >Yes</span
+                >
                 <span v-else class="badge bg-warning">No</span>
               </span>
             </div>
@@ -125,7 +135,9 @@
               placeholder="https://nifi.example.com:8443/nifi-api"
               required
             />
-            <small class="form-text text-muted">Full NiFi API endpoint URL (must end with /nifi-api)</small>
+            <small class="form-text text-muted"
+              >Full NiFi API endpoint URL (must end with /nifi-api)</small
+            >
           </div>
 
           <div class="col-md-6">
@@ -168,7 +180,7 @@
           <i class="pe-7s-check"></i> Test Connection
         </b-button>
         <b-button variant="primary" @click="handleSave">
-          {{ isEditMode ? 'Update' : 'Create' }} Instance
+          {{ isEditMode ? "Update" : "Create" }} Instance
         </b-button>
       </template>
     </b-modal>
@@ -176,124 +188,128 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { apiRequest } from '@/utils/api'
+import { ref, onMounted, computed } from "vue";
+import { apiRequest } from "@/utils/api";
 
 interface NiFiInstance {
-  id: number
-  hierarchy_attribute: string
-  hierarchy_value: string
-  nifi_url: string
-  username: string | null
-  use_ssl: boolean
-  verify_ssl: boolean
+  id: number;
+  hierarchy_attribute: string;
+  hierarchy_value: string;
+  nifi_url: string;
+  username: string | null;
+  use_ssl: boolean;
+  verify_ssl: boolean;
 }
 
 interface HierarchyAttribute {
-  name: string
-  label: string
-  values?: string[]
+  name: string;
+  label: string;
+  values?: string[];
 }
 
-const loading = ref(true)
-const instances = ref<NiFiInstance[]>([])
-const showModal = ref(false)
-const isEditMode = ref(false)
-const editingId = ref<number | null>(null)
+const loading = ref(true);
+const instances = ref<NiFiInstance[]>([]);
+const showModal = ref(false);
+const isEditMode = ref(false);
+const editingId = ref<number | null>(null);
 
 const form = ref({
-  hierarchy_attribute: '',
-  hierarchy_value: '',
-  nifi_url: '',
-  username: '',
-  password: '',
+  hierarchy_attribute: "",
+  hierarchy_value: "",
+  nifi_url: "",
+  username: "",
+  password: "",
   useSSL: true,
-  verifySSL: true
-})
+  verifySSL: true,
+});
 
 // Load hierarchy configuration
-const hierarchyConfig = ref<HierarchyAttribute[]>([])
+const hierarchyConfig = ref<HierarchyAttribute[]>([]);
 
 const hierarchyOptions = computed(() => {
-  if (hierarchyConfig.value.length === 0) return []
+  if (hierarchyConfig.value.length === 0) return [];
   // Only show the first (top) hierarchy attribute
-  const topAttr = hierarchyConfig.value[0]
-  return [{ value: topAttr.name, text: `${topAttr.name} (${topAttr.label})` }]
-})
+  const topAttr = hierarchyConfig.value[0];
+  return [{ value: topAttr.name, text: `${topAttr.name} (${topAttr.label})` }];
+});
 
 const hierarchyValueOptions = computed(() => {
   if (!form.value.hierarchy_attribute || hierarchyConfig.value.length === 0) {
-    return [{ value: '', text: 'Select hierarchy attribute first' }]
+    return [{ value: "", text: "Select hierarchy attribute first" }];
   }
 
-  const attr = hierarchyConfig.value.find(a => a.name === form.value.hierarchy_attribute)
+  const attr = hierarchyConfig.value.find(
+    (a) => a.name === form.value.hierarchy_attribute,
+  );
   if (!attr || !attr.values || attr.values.length === 0) {
-    return [{ value: '', text: 'No values defined for this attribute' }]
+    return [{ value: "", text: "No values defined for this attribute" }];
   }
 
-  return attr.values.map(v => ({ value: v, text: v }))
-})
+  return attr.values.map((v) => ({ value: v, text: v }));
+});
 
 const loadHierarchy = async () => {
   try {
-    const data = await apiRequest('/api/settings/hierarchy')
-    hierarchyConfig.value = data.hierarchy || []
+    const data = await apiRequest("/api/settings/hierarchy");
+    hierarchyConfig.value = data.hierarchy || [];
 
     // Load values for top hierarchy
     if (hierarchyConfig.value.length > 0) {
-      const topAttr = hierarchyConfig.value[0]
-      const valuesData = await apiRequest(`/api/settings/hierarchy/values/${encodeURIComponent(topAttr.name)}`)
-      topAttr.values = valuesData.values || []
+      const topAttr = hierarchyConfig.value[0];
+      const valuesData = await apiRequest(
+        `/api/settings/hierarchy/values/${encodeURIComponent(topAttr.name)}`,
+      );
+      topAttr.values = valuesData.values || [];
     }
   } catch (error) {
-    console.error('Error loading hierarchy:', error)
+    console.error("Error loading hierarchy:", error);
   }
-}
+};
 
 const loadInstances = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const data = await apiRequest('/api/nifi-instances/')
-    instances.value = data
+    const data = await apiRequest("/api/nifi-instances/");
+    instances.value = data;
   } catch (error) {
-    console.error('Error loading instances:', error)
-    alert('Failed to load NiFi instances')
+    console.error("Error loading instances:", error);
+    alert("Failed to load NiFi instances");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const showAddModal = async () => {
-  await loadHierarchy()
+  await loadHierarchy();
 
   // Set default hierarchy attribute to first one
   if (hierarchyConfig.value.length > 0) {
-    form.value.hierarchy_attribute = hierarchyConfig.value[0].name
+    form.value.hierarchy_attribute = hierarchyConfig.value[0].name;
   }
 
-  isEditMode.value = false
-  showModal.value = true
-}
+  isEditMode.value = false;
+  showModal.value = true;
+};
 
 const editInstance = async (instance: NiFiInstance) => {
-  await loadHierarchy()
+  await loadHierarchy();
 
-  editingId.value = instance.id
+  editingId.value = instance.id;
   form.value = {
     hierarchy_attribute: instance.hierarchy_attribute,
     hierarchy_value: instance.hierarchy_value,
     nifi_url: instance.nifi_url,
-    username: instance.username || '',
-    password: '',
+    username: instance.username || "",
+    password: "",
     useSSL: instance.use_ssl,
-    verifySSL: instance.verify_ssl
-  }
-  isEditMode.value = true
-  showModal.value = true
-}
+    verifySSL: instance.verify_ssl,
+  };
+  isEditMode.value = true;
+  showModal.value = true;
+};
 
 const handleSave = async (bvModalEvent: any) => {
-  bvModalEvent.preventDefault()
+  bvModalEvent.preventDefault();
 
   try {
     const payload = {
@@ -303,110 +319,117 @@ const handleSave = async (bvModalEvent: any) => {
       username: form.value.username,
       password: form.value.password,
       use_ssl: form.value.useSSL,
-      verify_ssl: form.value.verifySSL
-    }
+      verify_ssl: form.value.verifySSL,
+    };
 
     if (isEditMode.value && editingId.value) {
       await apiRequest(`/api/nifi-instances/${editingId.value}`, {
-        method: 'PUT',
-        body: JSON.stringify(payload)
-      })
-      alert('NiFi instance updated successfully!')
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+      alert("NiFi instance updated successfully!");
     } else {
-      await apiRequest('/api/nifi-instances/', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      })
-      alert('NiFi instance created successfully!')
+      await apiRequest("/api/nifi-instances/", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      alert("NiFi instance created successfully!");
     }
 
-    showModal.value = false
-    await loadInstances()
+    showModal.value = false;
+    await loadInstances();
   } catch (error: any) {
-    alert(error.message || 'Failed to save NiFi instance')
+    alert(error.message || "Failed to save NiFi instance");
   }
-}
+};
 
 const testConnection = async (instanceId: number) => {
   try {
-    const result = await apiRequest(`/api/nifi-instances/${instanceId}/test-connection`, {
-      method: 'POST'
-    })
+    const result = await apiRequest(
+      `/api/nifi-instances/${instanceId}/test-connection`,
+      {
+        method: "POST",
+      },
+    );
 
-    if (result.status === 'success') {
-      alert(`✓ Success\n\n${result.message}\n\nVersion: ${result.details.version}`)
+    if (result.status === "success") {
+      alert(
+        `✓ Success\n\n${result.message}\n\nVersion: ${result.details.version}`,
+      );
     } else {
-      alert(`✗ Failed\n\n${result.message}`)
+      alert(`✗ Failed\n\n${result.message}`);
     }
   } catch (error: any) {
-    alert(`✗ Failed\n\n${error.message}`)
+    alert(`✗ Failed\n\n${error.message}`);
   }
-}
+};
 
 const testConnectionFromModal = async () => {
   try {
     const payload = {
-      hierarchy_attribute: form.value.hierarchy_attribute || 'test',
-      hierarchy_value: form.value.hierarchy_value || 'test',
+      hierarchy_attribute: form.value.hierarchy_attribute || "test",
+      hierarchy_value: form.value.hierarchy_value || "test",
       nifi_url: form.value.nifi_url,
-      username: form.value.username || '',
-      password: form.value.password || '',
+      username: form.value.username || "",
+      password: form.value.password || "",
       use_ssl: form.value.useSSL,
-      verify_ssl: form.value.verifySSL
-    }
+      verify_ssl: form.value.verifySSL,
+    };
 
-    const result = await apiRequest('/api/nifi-instances/test', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    })
+    const result = await apiRequest("/api/nifi-instances/test", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
 
-    if (result.status === 'success') {
-      alert(`✓ Success\n\n${result.message}\n\nVersion: ${result.details.version}`)
+    if (result.status === "success") {
+      alert(
+        `✓ Success\n\n${result.message}\n\nVersion: ${result.details.version}`,
+      );
     } else {
-      alert(`✗ Failed\n\n${result.message}`)
+      alert(`✗ Failed\n\n${result.message}`);
     }
   } catch (error: any) {
-    const errorMsg = error.message || JSON.stringify(error)
-    alert(`✗ Failed\n\n${errorMsg}`)
+    const errorMsg = error.message || JSON.stringify(error);
+    alert(`✗ Failed\n\n${errorMsg}`);
   }
-}
+};
 
 const deleteInstance = async (instanceId: number) => {
-  if (!confirm('Are you sure you want to delete this NiFi instance?')) {
-    return
+  if (!confirm("Are you sure you want to delete this NiFi instance?")) {
+    return;
   }
 
   try {
     await apiRequest(`/api/nifi-instances/${instanceId}`, {
-      method: 'DELETE'
-    })
-    alert('NiFi instance deleted successfully!')
-    await loadInstances()
+      method: "DELETE",
+    });
+    alert("NiFi instance deleted successfully!");
+    await loadInstances();
   } catch (error: any) {
-    alert(error.message || 'Failed to delete NiFi instance')
+    alert(error.message || "Failed to delete NiFi instance");
   }
-}
+};
 
 const resetForm = () => {
   form.value = {
-    hierarchy_attribute: '',
-    hierarchy_value: '',
-    nifi_url: '',
-    username: '',
-    password: '',
+    hierarchy_attribute: "",
+    hierarchy_value: "",
+    nifi_url: "",
+    username: "",
+    password: "",
     useSSL: true,
-    verifySSL: true
-  }
-  editingId.value = null
-}
+    verifySSL: true,
+  };
+  editingId.value = null;
+};
 
 onMounted(() => {
-  loadInstances()
-})
+  loadInstances();
+});
 </script>
 
 <style scoped lang="scss">
-@import './settings-common.scss';
+@import "./settings-common.scss";
 
 .page-header {
   display: flex;
@@ -531,5 +554,4 @@ onMounted(() => {
     word-break: break-all;
   }
 }
-
 </style>

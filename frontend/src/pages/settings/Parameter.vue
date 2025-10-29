@@ -2,7 +2,11 @@
   <div class="settings-page">
     <div class="page-header mb-4">
       <h2>Parameter Contexts</h2>
-      <b-button variant="primary" @click="showCreateModal" class="new-context-btn">
+      <b-button
+        variant="primary"
+        @click="showCreateModal"
+        class="new-context-btn"
+      >
         <i class="pe-7s-plus"></i> New Parameter Context
       </b-button>
     </div>
@@ -17,7 +21,11 @@
     <div v-else>
       <div v-for="instance in instances" :key="instance.id" class="mb-5">
         <h4 class="mb-3">
-          <span class="badge bg-primary">{{ instance.hierarchy_attribute }}={{ instance.hierarchy_value }}</span>
+          <span class="badge bg-primary"
+            >{{ instance.hierarchy_attribute }}={{
+              instance.hierarchy_value
+            }}</span
+          >
           <span class="text-muted ms-2">{{ instance.nifi_url }}</span>
         </h4>
 
@@ -41,11 +49,13 @@
           </template>
 
           <template #cell(description)="data">
-            <span class="text-muted">{{ data.value || 'No description' }}</span>
+            <span class="text-muted">{{ data.value || "No description" }}</span>
           </template>
 
           <template #cell(parameter_count)="data">
-            <span class="param-count">{{ data.item.parameters?.length || 0 }} parameters</span>
+            <span class="param-count"
+              >{{ data.item.parameters?.length || 0 }} parameters</span
+            >
           </template>
 
           <template #cell(actions)="data">
@@ -80,20 +90,28 @@
 
         <!-- Empty state for instance -->
         <div v-else class="alert alert-info">
-          <i class="pe-7s-info"></i> No parameter contexts found for this instance.
+          <i class="pe-7s-info"></i> No parameter contexts found for this
+          instance.
         </div>
       </div>
 
       <!-- Empty state -->
       <div v-if="instances.length === 0" class="alert alert-warning">
-        <i class="pe-7s-attention"></i> No NiFi instances configured. Please configure a NiFi instance first.
+        <i class="pe-7s-attention"></i> No NiFi instances configured. Please
+        configure a NiFi instance first.
       </div>
     </div>
 
     <!-- Create/Edit Modal -->
     <b-modal
       v-model="showModal"
-      :title="modalMode === 'create' ? 'Create Parameter Context' : modalMode === 'edit' ? 'Edit Parameter Context' : 'View Parameter Context'"
+      :title="
+        modalMode === 'create'
+          ? 'Create Parameter Context'
+          : modalMode === 'edit'
+            ? 'Edit Parameter Context'
+            : 'View Parameter Context'
+      "
       size="xl"
       @hidden="resetForm"
       ok-title="Save"
@@ -102,7 +120,6 @@
       :ok-disabled="saving"
       modal-class="parameter-modal"
     >
-
       <form @submit.prevent="handleSave">
         <!-- NiFi Instance Selection (only for create) -->
         <div v-if="modalMode === 'create'" class="mb-3">
@@ -117,7 +134,9 @@
 
         <!-- Name -->
         <div class="mb-3">
-          <label class="form-label">Name <span class="text-danger">*</span></label>
+          <label class="form-label"
+            >Name <span class="text-danger">*</span></label
+          >
           <b-form-input
             v-model="form.name"
             required
@@ -218,247 +237,277 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import api from '@/utils/api'
+import { ref, onMounted, computed } from "vue";
+import api from "@/utils/api";
 
 // Simple notification helper
-const showError = (message: string) => alert('Error: ' + message)
-const showSuccess = (message: string) => alert('Success: ' + message)
+const showError = (message: string) => alert("Error: " + message);
+const showSuccess = (message: string) => alert("Success: " + message);
 
 // State
-const loading = ref(false)
-const instances = ref<any[]>([])
-const parameterContextsByInstance = ref<Record<number, any[]>>({})
-const instanceLoading = ref<Record<number, boolean>>({})
-const showModal = ref(false)
-const modalMode = ref<'create' | 'edit' | 'view'>('create')
-const saving = ref(false)
+const loading = ref(false);
+const instances = ref<any[]>([]);
+const parameterContextsByInstance = ref<Record<number, any[]>>({});
+const instanceLoading = ref<Record<number, boolean>>({});
+const showModal = ref(false);
+const modalMode = ref<"create" | "edit" | "view">("create");
+const saving = ref(false);
 
 // Form
 const form = ref({
   instance_id: null as number | null,
   context_id: null as string | null,
-  name: '',
-  description: '',
+  name: "",
+  description: "",
   parameters: [] as any[],
-})
+});
 
 // Table fields
 const tableFields = [
-  { key: 'name', label: 'Name', sortable: true },
-  { key: 'description', label: 'Description', sortable: true },
-  { key: 'parameter_count', label: 'Parameters', sortable: true },
-  { key: 'actions', label: 'Actions', class: 'text-end' },
-]
+  { key: "name", label: "Name", sortable: true },
+  { key: "description", label: "Description", sortable: true },
+  { key: "parameter_count", label: "Parameters", sortable: true },
+  { key: "actions", label: "Actions", class: "text-end" },
+];
 
 const parameterFields = [
-  { key: 'name', label: 'Name' },
-  { key: 'value', label: 'Value' },
-  { key: 'description', label: 'Description' },
-  { key: 'sensitive', label: 'Sensitive' },
-  { key: 'actions', label: '', class: 'text-end' },
-]
+  { key: "name", label: "Name" },
+  { key: "value", label: "Value" },
+  { key: "description", label: "Description" },
+  { key: "sensitive", label: "Sensitive" },
+  { key: "actions", label: "", class: "text-end" },
+];
 
 // Computed
 const instanceOptions = computed(() => {
-  return instances.value.map(instance => ({
+  return instances.value.map((instance) => ({
     value: instance.id,
-    text: `${instance.hierarchy_attribute}=${instance.hierarchy_value} (${instance.nifi_url})`
-  }))
-})
+    text: `${instance.hierarchy_attribute}=${instance.hierarchy_value} (${instance.nifi_url})`,
+  }));
+});
 
 // Methods
 async function loadInstances() {
   try {
-    loading.value = true
-    const response = await api.get('/api/nifi-instances/')
-    instances.value = response
+    loading.value = true;
+    const response = await api.get("/api/nifi-instances/");
+    instances.value = response;
 
     // Load parameter contexts for each instance
     for (const instance of instances.value) {
-      await loadParameterContexts(instance.id)
+      await loadParameterContexts(instance.id);
     }
   } catch (error: any) {
-    showError(error.message || 'Failed to load NiFi instances')
+    showError(error.message || "Failed to load NiFi instances");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function loadParameterContexts(instanceId: number) {
   try {
-    instanceLoading.value[instanceId] = true
-    const response = await api.get(`/api/nifi-instances/${instanceId}/get-parameters`)
+    instanceLoading.value[instanceId] = true;
+    const response = await api.get(
+      `/api/nifi-instances/${instanceId}/get-parameters`,
+    );
 
-    console.log(`Loaded parameter contexts for instance ${instanceId}:`, response)
+    console.log(
+      `Loaded parameter contexts for instance ${instanceId}:`,
+      response,
+    );
 
-    if (response.status === 'success') {
+    if (response.status === "success") {
       // Force reactive update by creating a new object
       parameterContextsByInstance.value = {
         ...parameterContextsByInstance.value,
-        [instanceId]: response.parameter_contexts
-      }
-      console.log(`Updated parameterContextsByInstance[${instanceId}] with ${response.parameter_contexts.length} contexts`)
+        [instanceId]: response.parameter_contexts,
+      };
+      console.log(
+        `Updated parameterContextsByInstance[${instanceId}] with ${response.parameter_contexts.length} contexts`,
+      );
     } else {
       parameterContextsByInstance.value = {
         ...parameterContextsByInstance.value,
-        [instanceId]: []
-      }
+        [instanceId]: [],
+      };
       if (response.message) {
-        console.warn(`Failed to load parameters for instance ${instanceId}:`, response.message)
+        console.warn(
+          `Failed to load parameters for instance ${instanceId}:`,
+          response.message,
+        );
       }
     }
   } catch (error: any) {
-    console.error(`Error loading parameters for instance ${instanceId}:`, error)
+    console.error(
+      `Error loading parameters for instance ${instanceId}:`,
+      error,
+    );
     parameterContextsByInstance.value = {
       ...parameterContextsByInstance.value,
-      [instanceId]: []
-    }
+      [instanceId]: [],
+    };
   } finally {
-    instanceLoading.value[instanceId] = false
+    instanceLoading.value[instanceId] = false;
   }
 }
 
 function showCreateModal() {
-  modalMode.value = 'create'
-  resetForm()
-  showModal.value = true
+  modalMode.value = "create";
+  resetForm();
+  showModal.value = true;
 }
 
 function viewParameterContext(instanceId: number, context: any) {
-  modalMode.value = 'view'
+  modalMode.value = "view";
   form.value = {
     instance_id: instanceId,
     context_id: context.id,
     name: context.name,
-    description: context.description || '',
+    description: context.description || "",
     parameters: context.parameters.map((p: any) => ({
       name: p.name,
-      value: p.value || '',
-      description: p.description || '',
+      value: p.value || "",
+      description: p.description || "",
       sensitive: p.sensitive || false,
       isExisting: true,
     })),
-  }
-  showModal.value = true
+  };
+  showModal.value = true;
 }
 
 function editParameterContext(instanceId: number, context: any) {
-  modalMode.value = 'edit'
+  modalMode.value = "edit";
   form.value = {
     instance_id: instanceId,
     context_id: context.id,
     name: context.name,
-    description: context.description || '',
+    description: context.description || "",
     parameters: context.parameters.map((p: any) => ({
       name: p.name,
-      value: p.value || '',
-      description: p.description || '',
+      value: p.value || "",
+      description: p.description || "",
       sensitive: p.sensitive || false,
       isExisting: true, // Mark as existing parameter
     })),
-  }
-  showModal.value = true
+  };
+  showModal.value = true;
 }
 
 async function deleteParameterContext(instanceId: number, context: any) {
-  if (!confirm(`Are you sure you want to delete parameter context "${context.name}"?`)) {
-    return
+  if (
+    !confirm(
+      `Are you sure you want to delete parameter context "${context.name}"?`,
+    )
+  ) {
+    return;
   }
 
   try {
-    await api.delete(`/api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`)
-    showSuccess('Parameter context deleted successfully')
-    await loadParameterContexts(instanceId)
+    await api.delete(
+      `/api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`,
+    );
+    showSuccess("Parameter context deleted successfully");
+    await loadParameterContexts(instanceId);
   } catch (error: any) {
-    showError(error.message || 'Failed to delete parameter context')
+    showError(error.message || "Failed to delete parameter context");
   }
 }
 
 function addParameter() {
   form.value.parameters.push({
-    name: '',
-    value: '',
-    description: '',
+    name: "",
+    value: "",
+    description: "",
     sensitive: false,
     isExisting: false, // Mark as new parameter
-  })
+  });
 }
 
 function removeParameter(index: number) {
-  form.value.parameters.splice(index, 1)
+  form.value.parameters.splice(index, 1);
 }
 
 async function handleSave(bvModalEvent?: any) {
   // Prevent modal from closing automatically
   if (bvModalEvent) {
-    bvModalEvent.preventDefault()
+    bvModalEvent.preventDefault();
   }
 
-  console.log('handleSave called', { modalMode: modalMode.value, form: form.value })
+  console.log("handleSave called", {
+    modalMode: modalMode.value,
+    form: form.value,
+  });
 
   if (!form.value.name) {
-    showError('Please enter a name for the parameter context')
-    return
+    showError("Please enter a name for the parameter context");
+    return;
   }
 
-  if (modalMode.value === 'create' && !form.value.instance_id) {
-    showError('Please select a NiFi instance')
-    return
+  if (modalMode.value === "create" && !form.value.instance_id) {
+    showError("Please select a NiFi instance");
+    return;
   }
 
-  if (modalMode.value === 'edit' && !form.value.instance_id) {
-    showError('Instance ID is missing')
-    return
+  if (modalMode.value === "edit" && !form.value.instance_id) {
+    showError("Instance ID is missing");
+    return;
   }
 
-  if (modalMode.value === 'edit' && !form.value.context_id) {
-    showError('Context ID is missing')
-    return
+  if (modalMode.value === "edit" && !form.value.context_id) {
+    showError("Context ID is missing");
+    return;
   }
 
   try {
-    saving.value = true
+    saving.value = true;
 
     const payload = {
       name: form.value.name,
       description: form.value.description || undefined,
       parameters: form.value.parameters
-        .filter(p => p.name) // Only include parameters with names
-        .map(p => ({
+        .filter((p) => p.name) // Only include parameters with names
+        .map((p) => ({
           name: p.name,
           description: p.description || undefined,
           sensitive: p.sensitive || false,
           value: p.value || undefined,
         })),
-    }
+    };
 
-    console.log('Sending request:', {
+    console.log("Sending request:", {
       mode: modalMode.value,
       instanceId: form.value.instance_id,
       contextId: form.value.context_id,
       payload,
       originalParameters: form.value.parameters,
-    })
+    });
 
-    if (modalMode.value === 'create') {
-      const result = await api.post(`/api/nifi-instances/${form.value.instance_id}/parameter-contexts`, payload)
-      console.log('Create result:', result)
-      showSuccess('Parameter context created successfully')
-      await loadParameterContexts(form.value.instance_id!)
-    } else if (modalMode.value === 'edit') {
-      const result = await api.put(`/api/nifi-instances/${form.value.instance_id}/parameter-contexts/${form.value.context_id}`, payload)
-      console.log('Update result:', result)
-      showSuccess('Parameter context updated successfully')
-      await loadParameterContexts(form.value.instance_id!)
+    if (modalMode.value === "create") {
+      const result = await api.post(
+        `/api/nifi-instances/${form.value.instance_id}/parameter-contexts`,
+        payload,
+      );
+      console.log("Create result:", result);
+      showSuccess("Parameter context created successfully");
+      await loadParameterContexts(form.value.instance_id!);
+    } else if (modalMode.value === "edit") {
+      const result = await api.put(
+        `/api/nifi-instances/${form.value.instance_id}/parameter-contexts/${form.value.context_id}`,
+        payload,
+      );
+      console.log("Update result:", result);
+      showSuccess("Parameter context updated successfully");
+      await loadParameterContexts(form.value.instance_id!);
     }
 
-    showModal.value = false
+    showModal.value = false;
   } catch (error: any) {
-    console.error('Save error:', error)
-    showError(error.message || `Failed to ${modalMode.value} parameter context`)
+    console.error("Save error:", error);
+    showError(
+      error.message || `Failed to ${modalMode.value} parameter context`,
+    );
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 
@@ -466,15 +515,15 @@ function resetForm() {
   form.value = {
     instance_id: instances.value.length > 0 ? instances.value[0].id : null,
     context_id: null,
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     parameters: [],
-  }
+  };
 }
 
 onMounted(() => {
-  loadInstances()
-})
+  loadInstances();
+});
 </script>
 
 <style scoped>
@@ -623,8 +672,7 @@ h4 .text-muted {
   transition: all 0.2s ease;
 }
 
-:deep(.action-buttons .btn:focus,
-       .action-buttons .btn:active) {
+:deep(.action-buttons .btn:focus, .action-buttons .btn:active) {
   box-shadow: none !important;
   outline: none !important;
 }
@@ -645,8 +693,10 @@ h4 .text-muted {
   color: white;
 }
 
-:deep(.action-buttons .btn-outline-primary:focus,
-       .action-buttons .btn-outline-primary:active) {
+:deep(
+  .action-buttons .btn-outline-primary:focus,
+  .action-buttons .btn-outline-primary:active
+) {
   color: #667eea !important;
   border-color: #667eea !important;
   background-color: transparent !important;
@@ -664,8 +714,10 @@ h4 .text-muted {
   color: white;
 }
 
-:deep(.action-buttons .btn-outline-info:focus,
-       .action-buttons .btn-outline-info:active) {
+:deep(
+  .action-buttons .btn-outline-info:focus,
+  .action-buttons .btn-outline-info:active
+) {
   color: #17a2b8 !important;
   border-color: #17a2b8 !important;
   background-color: transparent !important;
@@ -683,8 +735,10 @@ h4 .text-muted {
   color: white;
 }
 
-:deep(.action-buttons .btn-outline-danger:focus,
-       .action-buttons .btn-outline-danger:active) {
+:deep(
+  .action-buttons .btn-outline-danger:focus,
+  .action-buttons .btn-outline-danger:active
+) {
   color: #dc3545 !important;
   border-color: #dc3545 !important;
   background-color: transparent !important;
@@ -698,13 +752,21 @@ h4 .text-muted {
 }
 
 .alert-info {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
   color: #667eea;
   border-left: 4px solid #667eea;
 }
 
 .alert-warning {
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 193, 7, 0.1) 0%,
+    rgba(255, 152, 0, 0.1) 100%
+  );
   color: #ff9800;
   border-left: 4px solid #ff9800;
 }

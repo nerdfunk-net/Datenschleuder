@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
     <div class="content">
       <div class="row">
         <div class="col-md-6">
@@ -99,16 +103,16 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
-import doughnut from './Chartjs/DoughnutSimple.vue'
-import radar from './Chartjs/RadarSimple.vue'
-import polar from './Chartjs/PolarSimple.vue'
-import pie from './Chartjs/PieSimple.vue'
-import lineeg from './Chartjs/LineSimple.vue'
-import areaeg from './Chartjs/AreaSimple.vue'
-import bar from './Chartjs/BarSimple.vue'
-import barhoriz from './Chartjs/BarHorizontalSimple.vue'
+import doughnut from "./Chartjs/DoughnutSimple.vue";
+import radar from "./Chartjs/RadarSimple.vue";
+import polar from "./Chartjs/PolarSimple.vue";
+import pie from "./Chartjs/PieSimple.vue";
+import lineeg from "./Chartjs/LineSimple.vue";
+import areaeg from "./Chartjs/AreaSimple.vue";
+import bar from "./Chartjs/BarSimple.vue";
+import barhoriz from "./Chartjs/BarHorizontalSimple.vue";
 
 export default {
   components: {
@@ -121,14 +125,14 @@ export default {
     lineeg,
     areaeg,
     bar,
-    barhoriz
+    barhoriz,
   },
   data: () => ({
-    heading: 'ChartJS',
-    subheading: 'Huge selection of charts created with the Vue ChartJS Plugin',
-    icon: 'pe-7s-bandaid icon-gradient bg-amy-crisp'
-  })
-}
+    heading: "ChartJS",
+    subheading: "Huge selection of charts created with the Vue ChartJS Plugin",
+    icon: "pe-7s-bandaid icon-gradient bg-amy-crisp",
+  }),
+};
 </script>
 
 <style scoped>

@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
 
     <div class="content">
       <div class="main-card mb-3 card">
@@ -271,7 +275,7 @@
                 'pe-7s-anchor',
                 'pe-7s-albums',
                 'pe-7s-alarm',
-                'pe-7s-airplay'
+                'pe-7s-airplay',
               ]"
               :key="iconName"
             >
@@ -314,7 +318,12 @@
             </b-col>
             <b-col md="2">
               <div class="font-icon-wrapper text-info">
-                <font-awesome-icon icon="check-square" pulse fixedWidth size="4x" />
+                <font-awesome-icon
+                  icon="check-square"
+                  pulse
+                  fixedWidth
+                  size="4x"
+                />
                 <p>pulse fixedWidth size="4x"</p>
               </div>
             </b-col>
@@ -326,7 +335,11 @@
             </b-col>
             <b-col md="2">
               <div class="font-icon-wrapper text-dark">
-                <font-awesome-icon icon="angry" size="4x" transform="left-1 rotate-15" />
+                <font-awesome-icon
+                  icon="angry"
+                  size="4x"
+                  transform="left-1 rotate-15"
+                />
                 <p>size="4x" transform="left-1 rotate-15"</p>
               </div>
             </b-col>
@@ -338,9 +351,9 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
-import { library } from '@fortawesome/fontawesome-svg-core'
+import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faCoffee,
   faCog,
@@ -366,9 +379,9 @@ import {
   faArrowCircleRight,
   faArrowCircleUp,
   faArrowDown,
-  faArrowLeft
-} from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  faArrowLeft,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 library.add(
   faCoffee,
@@ -395,19 +408,20 @@ library.add(
   faArrowCircleRight,
   faArrowCircleUp,
   faArrowDown,
-  faArrowLeft
-)
+  faArrowLeft,
+);
 
 export default {
   components: {
     PageTitle,
 
-    'font-awesome-icon': FontAwesomeIcon
+    "font-awesome-icon": FontAwesomeIcon,
   },
   data: () => ({
-    heading: 'Icons',
-    subheading: 'Wide icons selection including from flag icons to FontAwesome and other icons libraries.',
-    icon: 'pe-7s-phone icon-gradient bg-night-fade'
-  })
-}
+    heading: "Icons",
+    subheading:
+      "Wide icons selection including from flag icons to FontAwesome and other icons libraries.",
+    icon: "pe-7s-phone icon-gradient bg-night-fade",
+  }),
+};
 </script>

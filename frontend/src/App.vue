@@ -13,7 +13,7 @@
 </script>
 
 <style lang="scss">
-@import 'assets/base.scss';
+@import "assets/base.scss";
 
 // Additional global styles
 * {
@@ -31,7 +31,9 @@ body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

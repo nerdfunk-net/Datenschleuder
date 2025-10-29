@@ -5,10 +5,16 @@
       <div class="ds-sidebar-header">
         <div class="ds-logo">
           <i class="pe-7s-server"></i>
-          <span v-if="!isSidebarCollapsed" class="ds-logo-text">Datenschleuder</span>
+          <span v-if="!isSidebarCollapsed" class="ds-logo-text"
+            >Datenschleuder</span
+          >
         </div>
         <button class="ds-toggle-btn" @click="toggleSidebar">
-          <i :class="isSidebarCollapsed ? 'pe-7s-angle-right' : 'pe-7s-angle-left'"></i>
+          <i
+            :class="
+              isSidebarCollapsed ? 'pe-7s-angle-right' : 'pe-7s-angle-left'
+            "
+          ></i>
         </button>
       </div>
 
@@ -24,11 +30,22 @@
               class="ds-nav-arrow"
             ></i>
           </div>
-          <div v-if="menuState.flows && !isSidebarCollapsed" class="ds-nav-submenu">
-            <router-link to="/flows/manage" class="ds-nav-subitem" active-class="ds-active">
+          <div
+            v-if="menuState.flows && !isSidebarCollapsed"
+            class="ds-nav-submenu"
+          >
+            <router-link
+              to="/flows/manage"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Manage</span>
             </router-link>
-            <router-link to="/flows/deploy" class="ds-nav-subitem" active-class="ds-active">
+            <router-link
+              to="/flows/deploy"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Deploy</span>
             </router-link>
           </div>
@@ -41,27 +58,56 @@
             <span v-if="!isSidebarCollapsed" class="ds-nav-text">Settings</span>
             <i
               v-if="!isSidebarCollapsed"
-              :class="menuState.settings ? 'pe-7s-angle-up' : 'pe-7s-angle-down'"
+              :class="
+                menuState.settings ? 'pe-7s-angle-up' : 'pe-7s-angle-down'
+              "
               class="ds-nav-arrow"
             ></i>
           </div>
-          <div v-if="menuState.settings && !isSidebarCollapsed" class="ds-nav-submenu">
-            <router-link to="/settings/nifi" class="ds-nav-subitem" active-class="ds-active">
+          <div
+            v-if="menuState.settings && !isSidebarCollapsed"
+            class="ds-nav-submenu"
+          >
+            <router-link
+              to="/settings/nifi"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Nifi</span>
             </router-link>
-            <router-link to="/settings/registry" class="ds-nav-subitem" active-class="ds-active">
+            <router-link
+              to="/settings/registry"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Registry</span>
             </router-link>
-            <router-link to="/settings/parameter" class="ds-nav-subitem" active-class="ds-active">
+            <router-link
+              to="/settings/parameter"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Parameter</span>
             </router-link>
-            <router-link to="/settings/hierarchy" class="ds-nav-subitem" active-class="ds-active">
+            <router-link
+              to="/settings/hierarchy"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Hierarchy</span>
             </router-link>
-            <router-link to="/settings/deploy" class="ds-nav-subitem" active-class="ds-active">
+            <router-link
+              to="/settings/deploy"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Deploy</span>
             </router-link>
-            <router-link to="/settings/profile" class="ds-nav-subitem" active-class="ds-active">
+            <router-link
+              to="/settings/profile"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
               <span>Profile</span>
             </router-link>
           </div>
@@ -101,48 +147,48 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
-const isSidebarCollapsed = ref(false)
+const isSidebarCollapsed = ref(false);
 const menuState = ref({
   flows: true,
-  settings: false
-})
+  settings: false,
+});
 
-const username = ref('Admin User')
+const username = ref("Admin User");
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
-    '/flows/manage': 'Manage Flows',
-    '/flows/deploy': 'Deploy Flows',
-    '/settings/nifi': 'NiFi Settings',
-    '/settings/registry': 'Registry Settings',
-    '/settings/parameter': 'Parameter Settings',
-    '/settings/hierarchy': 'Hierarchy Settings',
-    '/settings/deploy': 'Deployment Settings',
-    '/settings/profile': 'Profile Settings'
-  }
-  return titles[route.path] || 'Dashboard'
-})
+    "/flows/manage": "Manage Flows",
+    "/flows/deploy": "Deploy Flows",
+    "/settings/nifi": "NiFi Settings",
+    "/settings/registry": "Registry Settings",
+    "/settings/parameter": "Parameter Settings",
+    "/settings/hierarchy": "Hierarchy Settings",
+    "/settings/deploy": "Deployment Settings",
+    "/settings/profile": "Profile Settings",
+  };
+  return titles[route.path] || "Dashboard";
+});
 
 const toggleSidebar = () => {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value
-}
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
+};
 
-const toggleMenu = (menu: 'flows' | 'settings') => {
+const toggleMenu = (menu: "flows" | "settings") => {
   if (!isSidebarCollapsed.value) {
-    menuState.value[menu] = !menuState.value[menu]
+    menuState.value[menu] = !menuState.value[menu];
   }
-}
+};
 
 const logout = () => {
-  localStorage.removeItem('token')
-  router.push('/login')
-}
+  localStorage.removeItem("token");
+  router.push("/login");
+};
 </script>
 
 <style scoped lang="scss">

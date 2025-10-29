@@ -16,7 +16,9 @@
                 <div class="avatar-info">
                   <h5>Profile Picture</h5>
                   <p class="text-muted">Upload a profile picture (max 2MB)</p>
-                  <b-button variant="outline-primary" size="sm">Change Picture</b-button>
+                  <b-button variant="outline-primary" size="sm"
+                    >Change Picture</b-button
+                  >
                 </div>
               </div>
             </div>
@@ -33,13 +35,19 @@
 
             <div class="col-md-12">
               <label class="form-label">Email</label>
-              <b-form-input v-model="settings.email" type="email" placeholder="john.doe@example.com" />
+              <b-form-input
+                v-model="settings.email"
+                type="email"
+                placeholder="john.doe@example.com"
+              />
             </div>
 
             <div class="col-md-12">
               <label class="form-label">Username</label>
               <b-form-input v-model="settings.username" disabled />
-              <small class="form-text text-muted">Username cannot be changed</small>
+              <small class="form-text text-muted"
+                >Username cannot be changed</small
+              >
             </div>
 
             <div class="col-md-12">
@@ -49,17 +57,26 @@
 
             <div class="col-md-12">
               <label class="form-label">Current Password</label>
-              <b-form-input v-model="passwordForm.currentPassword" type="password" />
+              <b-form-input
+                v-model="passwordForm.currentPassword"
+                type="password"
+              />
             </div>
 
             <div class="col-md-6">
               <label class="form-label">New Password</label>
-              <b-form-input v-model="passwordForm.newPassword" type="password" />
+              <b-form-input
+                v-model="passwordForm.newPassword"
+                type="password"
+              />
             </div>
 
             <div class="col-md-6">
               <label class="form-label">Confirm New Password</label>
-              <b-form-input v-model="passwordForm.confirmPassword" type="password" />
+              <b-form-input
+                v-model="passwordForm.confirmPassword"
+                type="password"
+              />
             </div>
 
             <div class="col-md-12">
@@ -69,12 +86,18 @@
 
             <div class="col-md-6">
               <label class="form-label">Language</label>
-              <b-form-select v-model="settings.language" :options="languageOptions" />
+              <b-form-select
+                v-model="settings.language"
+                :options="languageOptions"
+              />
             </div>
 
             <div class="col-md-6">
               <label class="form-label">Timezone</label>
-              <b-form-select v-model="settings.timezone" :options="timezoneOptions" />
+              <b-form-select
+                v-model="settings.timezone"
+                :options="timezoneOptions"
+              />
             </div>
 
             <div class="col-md-12">
@@ -91,8 +114,18 @@
           </div>
 
           <div class="card-footer">
-            <b-button type="button" variant="outline-secondary" @click="handleReset">Reset</b-button>
-            <b-button type="submit" variant="primary" class="ms-2" :disabled="isSaving">
+            <b-button
+              type="button"
+              variant="outline-secondary"
+              @click="handleReset"
+              >Reset</b-button
+            >
+            <b-button
+              type="submit"
+              variant="primary"
+              class="ms-2"
+              :disabled="isSaving"
+            >
               <b-spinner v-if="isSaving" small class="me-2"></b-spinner>
               Save Settings
             </b-button>
@@ -104,101 +137,101 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 
-const isSaving = ref(false)
+const isSaving = ref(false);
 const settings = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  username: 'admin',
-  language: 'en',
-  timezone: 'UTC',
+  firstName: "",
+  lastName: "",
+  email: "",
+  username: "admin",
+  language: "en",
+  timezone: "UTC",
   emailNotifications: true,
-  autoLogout: true
-})
+  autoLogout: true,
+});
 
 const passwordForm = ref({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
 
 const languageOptions = [
-  { value: 'en', text: 'English' },
-  { value: 'de', text: 'German' },
-  { value: 'fr', text: 'French' },
-  { value: 'es', text: 'Spanish' }
-]
+  { value: "en", text: "English" },
+  { value: "de", text: "German" },
+  { value: "fr", text: "French" },
+  { value: "es", text: "Spanish" },
+];
 
 const timezoneOptions = [
-  { value: 'UTC', text: 'UTC' },
-  { value: 'America/New_York', text: 'Eastern Time' },
-  { value: 'America/Chicago', text: 'Central Time' },
-  { value: 'America/Los_Angeles', text: 'Pacific Time' },
-  { value: 'Europe/London', text: 'London' },
-  { value: 'Europe/Berlin', text: 'Berlin' }
-]
+  { value: "UTC", text: "UTC" },
+  { value: "America/New_York", text: "Eastern Time" },
+  { value: "America/Chicago", text: "Central Time" },
+  { value: "America/Los_Angeles", text: "Pacific Time" },
+  { value: "Europe/London", text: "London" },
+  { value: "Europe/Berlin", text: "Berlin" },
+];
 
 const loadSettings = async () => {
   try {
     // TODO: Implement actual API call
-    const response = await fetch('/api/proxy/settings/profile')
+    const response = await fetch("/api/proxy/settings/profile");
     if (response.ok) {
-      settings.value = await response.json()
+      settings.value = await response.json();
     }
   } catch (error) {
-    console.error('Error loading settings:', error)
+    console.error("Error loading settings:", error);
   }
-}
+};
 
 const handleSave = async () => {
   // Validate password change if attempted
   if (passwordForm.value.newPassword || passwordForm.value.confirmPassword) {
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-      alert('New passwords do not match')
-      return
+      alert("New passwords do not match");
+      return;
     }
     if (!passwordForm.value.currentPassword) {
-      alert('Please enter your current password')
-      return
+      alert("Please enter your current password");
+      return;
     }
   }
 
-  isSaving.value = true
+  isSaving.value = true;
   try {
     // TODO: Implement actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    alert('Profile settings saved successfully!')
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    alert("Profile settings saved successfully!");
     passwordForm.value = {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    };
   } catch (error) {
-    console.error('Error saving settings:', error)
-    alert('Error saving settings')
+    console.error("Error saving settings:", error);
+    alert("Error saving settings");
   } finally {
-    isSaving.value = false
+    isSaving.value = false;
   }
-}
+};
 
 const handleReset = () => {
-  loadSettings()
+  loadSettings();
   passwordForm.value = {
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  }
-}
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  };
+};
 
 onMounted(() => {
-  loadSettings()
-})
+  loadSettings();
+});
 </script>
 
 <style scoped lang="scss">
-@import './settings-common.scss';
+@import "./settings-common.scss";
 
 .profile-avatar {
   display: flex;

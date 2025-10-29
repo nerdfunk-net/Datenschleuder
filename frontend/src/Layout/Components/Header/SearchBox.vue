@@ -17,30 +17,30 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
-import { useUIStore } from '@/stores/ui'
+import { defineComponent, ref } from "vue";
+import { useUIStore } from "@/stores/ui";
 
 export default defineComponent({
-  name: 'SearchBox',
+  name: "SearchBox",
   setup() {
-    const uiStore = useUIStore()
-    const searchQuery = ref('')
+    const uiStore = useUIStore();
+    const searchQuery = ref("");
 
     const toggleSearch = () => {
-      uiStore.toggleHeaderSearch()
-    }
+      uiStore.toggleHeaderSearch();
+    };
 
-    const handleSearch = event => {
+    const handleSearch = (event) => {
       // Implement search functionality here
-      event.preventDefault()
-    }
+      event.preventDefault();
+    };
 
     return {
       searchOpen: () => uiStore.headerSearchOpen,
       searchQuery,
       toggleSearch,
-      handleSearch
-    }
-  }
-})
+      handleSearch,
+    };
+  },
+});
 </script>

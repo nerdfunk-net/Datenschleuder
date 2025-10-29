@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
 
     <div class="content">
       <!-- Grid Rows Layout -->
@@ -12,13 +16,17 @@
           </div>
         </div>
         <div class="card-body">
-          <p class="text-muted mb-4">Form fields arranged in a grid layout with responsive columns.</p>
+          <p class="text-muted mb-4">
+            Form fields arranged in a grid layout with responsive columns.
+          </p>
 
           <form @submit.prevent="submitGridForm">
             <b-row>
               <b-col md="6">
                 <div class="position-relative mb-3">
-                  <label for="gridEmail" class="form-label">Email Address</label>
+                  <label for="gridEmail" class="form-label"
+                    >Email Address</label
+                  >
                   <b-form-input
                     id="gridEmail"
                     v-model="gridForm.email"
@@ -27,7 +35,9 @@
                     :state="getValidationState('email')"
                     required
                   ></b-form-input>
-                  <b-form-invalid-feedback> Please enter a valid email address. </b-form-invalid-feedback>
+                  <b-form-invalid-feedback>
+                    Please enter a valid email address.
+                  </b-form-invalid-feedback>
                 </div>
               </b-col>
               <b-col md="6">
@@ -41,7 +51,9 @@
                     :state="getValidationState('password')"
                     required
                   ></b-form-input>
-                  <b-form-invalid-feedback> Password must be at least 6 characters. </b-form-invalid-feedback>
+                  <b-form-invalid-feedback>
+                    Password must be at least 6 characters.
+                  </b-form-invalid-feedback>
                 </div>
               </b-col>
             </b-row>
@@ -69,7 +81,11 @@
               <b-col md="6">
                 <div class="position-relative mb-3">
                   <label for="gridCity" class="form-label">City</label>
-                  <b-form-input id="gridCity" v-model="gridForm.city" required></b-form-input>
+                  <b-form-input
+                    id="gridCity"
+                    v-model="gridForm.city"
+                    required
+                  ></b-form-input>
                 </div>
               </b-col>
               <b-col md="4">
@@ -86,13 +102,22 @@
               <b-col md="2">
                 <div class="position-relative mb-3">
                   <label for="gridZip" class="form-label">Zip</label>
-                  <b-form-input id="gridZip" v-model="gridForm.zip" placeholder="12345" required></b-form-input>
+                  <b-form-input
+                    id="gridZip"
+                    v-model="gridForm.zip"
+                    placeholder="12345"
+                    required
+                  ></b-form-input>
                 </div>
               </b-col>
             </b-row>
 
             <div class="position-relative mb-3">
-              <b-form-checkbox id="gridCheck" v-model="gridForm.acceptTerms" required>
+              <b-form-checkbox
+                id="gridCheck"
+                v-model="gridForm.acceptTerms"
+                required
+              >
                 I agree to the terms and conditions
               </b-form-checkbox>
             </div>
@@ -102,7 +127,12 @@
                 <i class="fas fa-user-plus me-2"></i>
                 Create Account
               </b-button>
-              <b-button type="button" variant="outline-secondary" @click="resetGridForm" class="mb-2">
+              <b-button
+                type="button"
+                variant="outline-secondary"
+                @click="resetGridForm"
+                class="mb-2"
+              >
                 <i class="fas fa-undo me-2"></i>
                 Reset
               </b-button>
@@ -120,7 +150,9 @@
           </div>
         </div>
         <div class="card-body">
-          <p class="text-muted mb-4">Form fields arranged horizontally in a single row.</p>
+          <p class="text-muted mb-4">
+            Form fields arranged horizontally in a single row.
+          </p>
 
           <form @submit.prevent="submitInlineForm" class="mb-4">
             <div class="row align-items-end">
@@ -159,13 +191,27 @@
             <h6 class="mb-3">Inline Checkboxes</h6>
             <div class="row">
               <div class="col-12">
-                <b-form-checkbox v-model="inlineForm.newsletter" inline class="me-3">
+                <b-form-checkbox
+                  v-model="inlineForm.newsletter"
+                  inline
+                  class="me-3"
+                >
                   Subscribe to newsletter
                 </b-form-checkbox>
-                <b-form-checkbox v-model="inlineForm.notifications" inline class="me-3">
+                <b-form-checkbox
+                  v-model="inlineForm.notifications"
+                  inline
+                  class="me-3"
+                >
                   Enable notifications
                 </b-form-checkbox>
-                <b-form-checkbox v-model="inlineForm.marketing" inline class="me-3"> Marketing emails </b-form-checkbox>
+                <b-form-checkbox
+                  v-model="inlineForm.marketing"
+                  inline
+                  class="me-3"
+                >
+                  Marketing emails
+                </b-form-checkbox>
               </div>
             </div>
           </div>
@@ -175,7 +221,12 @@
           <form @submit.prevent="submitQuickForm">
             <div class="row align-items-center">
               <div class="col-md-4">
-                <b-form-input v-model="quickForm.email" type="email" placeholder="Email" required></b-form-input>
+                <b-form-input
+                  v-model="quickForm.email"
+                  type="email"
+                  placeholder="Email"
+                  required
+                ></b-form-input>
               </div>
               <div class="col-md-4">
                 <b-form-input
@@ -200,16 +251,22 @@
       <div class="main-card mb-3 card">
         <div class="card-header">
           <div class="card-header-title font-size-lg text-capitalize fw-normal">
-            <i class="header-icon pe-7s-albums icon-gradient bg-happy-fisher"></i>
+            <i
+              class="header-icon pe-7s-albums icon-gradient bg-happy-fisher"
+            ></i>
             Horizontal Layout
           </div>
         </div>
         <div class="card-body">
-          <p class="text-muted mb-4">Form fields with labels positioned to the left of inputs.</p>
+          <p class="text-muted mb-4">
+            Form fields with labels positioned to the left of inputs.
+          </p>
 
           <form @submit.prevent="submitHorizontalForm">
             <b-row class="mb-3">
-              <label for="horizontalEmail" class="col-sm-3 col-form-label">Email Address</label>
+              <label for="horizontalEmail" class="col-sm-3 col-form-label"
+                >Email Address</label
+              >
               <b-col sm="9">
                 <b-form-input
                   id="horizontalEmail"
@@ -219,12 +276,16 @@
                   :state="getHorizontalValidationState('email')"
                   required
                 ></b-form-input>
-                <b-form-invalid-feedback> Please enter a valid email address. </b-form-invalid-feedback>
+                <b-form-invalid-feedback>
+                  Please enter a valid email address.
+                </b-form-invalid-feedback>
               </b-col>
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalPassword" class="col-sm-3 col-form-label">Password</label>
+              <label for="horizontalPassword" class="col-sm-3 col-form-label"
+                >Password</label
+              >
               <b-col sm="9">
                 <b-form-input
                   id="horizontalPassword"
@@ -234,12 +295,16 @@
                   :state="getHorizontalValidationState('password')"
                   required
                 ></b-form-input>
-                <b-form-invalid-feedback> Password must be at least 6 characters. </b-form-invalid-feedback>
+                <b-form-invalid-feedback>
+                  Password must be at least 6 characters.
+                </b-form-invalid-feedback>
               </b-col>
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalSelect" class="col-sm-3 col-form-label">Department</label>
+              <label for="horizontalSelect" class="col-sm-3 col-form-label"
+                >Department</label
+              >
               <b-col sm="9">
                 <b-form-select
                   id="horizontalSelect"
@@ -251,7 +316,9 @@
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalSelectMulti" class="col-sm-3 col-form-label">Skills</label>
+              <label for="horizontalSelectMulti" class="col-sm-3 col-form-label"
+                >Skills</label
+              >
               <b-col sm="9">
                 <b-form-select
                   id="horizontalSelectMulti"
@@ -260,12 +327,16 @@
                   multiple
                   :select-size="4"
                 ></b-form-select>
-                <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple options</small>
+                <small class="form-text text-muted"
+                  >Hold Ctrl/Cmd to select multiple options</small
+                >
               </b-col>
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalTextarea" class="col-sm-3 col-form-label">Bio</label>
+              <label for="horizontalTextarea" class="col-sm-3 col-form-label"
+                >Bio</label
+              >
               <b-col sm="9">
                 <b-form-textarea
                   id="horizontalTextarea"
@@ -277,7 +348,9 @@
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalFile" class="col-sm-3 col-form-label">Resume</label>
+              <label for="horizontalFile" class="col-sm-3 col-form-label"
+                >Resume</label
+              >
               <b-col sm="9">
                 <b-form-file
                   id="horizontalFile"
@@ -285,13 +358,17 @@
                   accept=".pdf,.doc,.docx"
                   placeholder="Choose file or drop here..."
                 ></b-form-file>
-                <small class="form-text text-muted">Upload your resume (PDF, DOC, or DOCX format)</small>
+                <small class="form-text text-muted"
+                  >Upload your resume (PDF, DOC, or DOCX format)</small
+                >
               </b-col>
             </b-row>
 
             <fieldset class="mb-3">
               <b-row>
-                <legend class="col-form-label col-sm-3 pt-0">Experience Level</legend>
+                <legend class="col-form-label col-sm-3 pt-0">
+                  Experience Level
+                </legend>
                 <b-col sm="9">
                   <b-form-radio-group
                     v-model="horizontalForm.experience"
@@ -317,7 +394,12 @@
                     <i class="fas fa-paper-plane me-2"></i>
                     Submit Application
                   </b-button>
-                  <b-button type="button" variant="outline-secondary" @click="resetHorizontalForm" class="mb-2">
+                  <b-button
+                    type="button"
+                    variant="outline-secondary"
+                    @click="resetHorizontalForm"
+                    class="mb-2"
+                  >
                     <i class="fas fa-undo me-2"></i>
                     Reset
                   </b-button>
@@ -376,9 +458,16 @@
                 <div class="mb-3">
                   <label for="searchInput" class="form-label">Search</label>
                   <b-input-group>
-                    <b-form-input id="searchInput" v-model="advancedForm.search" placeholder="Search..."></b-form-input>
+                    <b-form-input
+                      id="searchInput"
+                      v-model="advancedForm.search"
+                      placeholder="Search..."
+                    ></b-form-input>
                     <template #append>
-                      <b-button variant="outline-secondary" class="search-button">
+                      <b-button
+                        variant="outline-secondary"
+                        class="search-button"
+                      >
                         <font-awesome-icon icon="search" />
                       </b-button>
                     </template>
@@ -391,7 +480,9 @@
               <div class="mb-4">
                 <h6 class="mb-3">Form Controls</h6>
                 <div class="mb-3">
-                  <label for="rangeInput" class="form-label">Range: {{ advancedForm.range }}</label>
+                  <label for="rangeInput" class="form-label"
+                    >Range: {{ advancedForm.range }}</label
+                  >
                   <b-form-input
                     id="rangeInput"
                     v-model="advancedForm.range"
@@ -403,12 +494,20 @@
 
                 <div class="mb-3">
                   <label for="colorInput" class="form-label">Color</label>
-                  <b-form-input id="colorInput" v-model="advancedForm.color" type="color"></b-form-input>
+                  <b-form-input
+                    id="colorInput"
+                    v-model="advancedForm.color"
+                    type="color"
+                  ></b-form-input>
                 </div>
 
                 <div class="mb-3">
                   <label for="dateInput" class="form-label">Date</label>
-                  <b-form-input id="dateInput" v-model="advancedForm.date" type="date"></b-form-input>
+                  <b-form-input
+                    id="dateInput"
+                    v-model="advancedForm.date"
+                    type="date"
+                  ></b-form-input>
                 </div>
               </div>
             </b-col>
@@ -417,11 +516,26 @@
           <div class="alert alert-info">
             <h6 class="mb-2">💡 Form Layout Tips:</h6>
             <ul class="mb-0">
-              <li><strong>Grid Layout:</strong> Use rows and columns for complex forms</li>
-              <li><strong>Inline Layout:</strong> Best for simple forms with few fields</li>
-              <li><strong>Horizontal Layout:</strong> Professional look for detailed forms</li>
-              <li><strong>Validation:</strong> Always provide clear feedback to users</li>
-              <li><strong>Mobile First:</strong> Design forms to work on all screen sizes</li>
+              <li>
+                <strong>Grid Layout:</strong> Use rows and columns for complex
+                forms
+              </li>
+              <li>
+                <strong>Inline Layout:</strong> Best for simple forms with few
+                fields
+              </li>
+              <li>
+                <strong>Horizontal Layout:</strong> Professional look for
+                detailed forms
+              </li>
+              <li>
+                <strong>Validation:</strong> Always provide clear feedback to
+                users
+              </li>
+              <li>
+                <strong>Mobile First:</strong> Design forms to work on all
+                screen sizes
+              </li>
             </ul>
           </div>
         </div>
@@ -431,112 +545,113 @@
 </template>
 
 <script>
-import PageTitle from '../../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../../Layout/Components/PageTitle.vue";
 
 export default {
-  name: 'FormLayouts',
+  name: "FormLayouts",
   components: {
-    PageTitle
+    PageTitle,
   },
   data() {
     return {
-      heading: 'Form Layouts',
-      subheading: 'Build whatever layout you need with our comprehensive form components.',
-      icon: 'pe-7s-graph text-success',
+      heading: "Form Layouts",
+      subheading:
+        "Build whatever layout you need with our comprehensive form components.",
+      icon: "pe-7s-graph text-success",
 
       // Grid Form Data
       gridForm: {
-        email: '',
-        password: '',
-        address: '',
-        address2: '',
-        city: '',
-        state: '',
-        zip: '',
-        acceptTerms: false
+        email: "",
+        password: "",
+        address: "",
+        address2: "",
+        city: "",
+        state: "",
+        zip: "",
+        acceptTerms: false,
       },
 
       // Inline Form Data
       inlineForm: {
-        email: '',
-        password: '',
+        email: "",
+        password: "",
         newsletter: false,
         notifications: true,
-        marketing: false
+        marketing: false,
       },
 
       // Quick Form Data
       quickForm: {
-        email: '',
-        password: ''
+        email: "",
+        password: "",
       },
 
       // Horizontal Form Data
       horizontalForm: {
-        email: '',
-        password: '',
-        department: '',
+        email: "",
+        password: "",
+        department: "",
         skills: [],
-        bio: '',
+        bio: "",
         file: null,
-        experience: '',
-        available: false
+        experience: "",
+        available: false,
       },
 
       // Advanced Form Data
       advancedForm: {
-        website: '',
-        price: '',
-        search: '',
+        website: "",
+        price: "",
+        search: "",
         range: 50,
-        color: '#007bff',
-        date: ''
+        color: "#007bff",
+        date: "",
       },
 
       // Form Options
       stateOptions: [
-        { value: '', text: 'Choose state...' },
-        { value: 'ca', text: 'California' },
-        { value: 'ny', text: 'New York' },
-        { value: 'tx', text: 'Texas' },
-        { value: 'fl', text: 'Florida' },
-        { value: 'wa', text: 'Washington' }
+        { value: "", text: "Choose state..." },
+        { value: "ca", text: "California" },
+        { value: "ny", text: "New York" },
+        { value: "tx", text: "Texas" },
+        { value: "fl", text: "Florida" },
+        { value: "wa", text: "Washington" },
       ],
 
       departmentOptions: [
-        { value: '', text: 'Select department...' },
-        { value: 'engineering', text: 'Engineering' },
-        { value: 'design', text: 'Design' },
-        { value: 'marketing', text: 'Marketing' },
-        { value: 'sales', text: 'Sales' },
-        { value: 'support', text: 'Support' }
+        { value: "", text: "Select department..." },
+        { value: "engineering", text: "Engineering" },
+        { value: "design", text: "Design" },
+        { value: "marketing", text: "Marketing" },
+        { value: "sales", text: "Sales" },
+        { value: "support", text: "Support" },
       ],
 
       skillOptions: [
-        { value: 'vue', text: 'Vue.js' },
-        { value: 'react', text: 'React' },
-        { value: 'angular', text: 'Angular' },
-        { value: 'node', text: 'Node.js' },
-        { value: 'python', text: 'Python' },
-        { value: 'java', text: 'Java' },
-        { value: 'php', text: 'PHP' },
-        { value: 'design', text: 'UI/UX Design' }
+        { value: "vue", text: "Vue.js" },
+        { value: "react", text: "React" },
+        { value: "angular", text: "Angular" },
+        { value: "node", text: "Node.js" },
+        { value: "python", text: "Python" },
+        { value: "java", text: "Java" },
+        { value: "php", text: "PHP" },
+        { value: "design", text: "UI/UX Design" },
       ],
 
       experienceOptions: [
-        { text: 'Entry Level (0-2 years)', value: 'entry' },
-        { text: 'Mid Level (3-5 years)', value: 'mid' },
-        { text: 'Senior Level (6+ years)', value: 'senior' },
-        { text: 'Lead/Manager (8+ years)', value: 'lead' }
-      ]
-    }
+        { text: "Entry Level (0-2 years)", value: "entry" },
+        { text: "Mid Level (3-5 years)", value: "mid" },
+        { text: "Senior Level (6+ years)", value: "senior" },
+        { text: "Lead/Manager (8+ years)", value: "lead" },
+      ],
+    };
   },
 
   methods: {
     // Grid Form Methods
     submitGridForm() {
       if (this.validateGridForm()) {
-        alert('Grid form submitted successfully!')
+        alert("Grid form submitted successfully!");
         // Handle form submission
         // Form data available in this.gridForm
       }
@@ -551,43 +666,51 @@ export default {
         this.gridForm.state &&
         this.gridForm.zip &&
         this.gridForm.acceptTerms
-      )
+      );
     },
 
     getValidationState(field) {
-      if (field === 'email') {
-        return this.gridForm.email ? (this.isValidEmail(this.gridForm.email) ? true : false) : null
+      if (field === "email") {
+        return this.gridForm.email
+          ? this.isValidEmail(this.gridForm.email)
+            ? true
+            : false
+          : null;
       }
-      if (field === 'password') {
-        return this.gridForm.password ? (this.gridForm.password.length >= 6 ? true : false) : null
+      if (field === "password") {
+        return this.gridForm.password
+          ? this.gridForm.password.length >= 6
+            ? true
+            : false
+          : null;
       }
-      return null
+      return null;
     },
 
     resetGridForm() {
       this.gridForm = {
-        email: '',
-        password: '',
-        address: '',
-        address2: '',
-        city: '',
-        state: '',
-        zip: '',
-        acceptTerms: false
-      }
+        email: "",
+        password: "",
+        address: "",
+        address2: "",
+        city: "",
+        state: "",
+        zip: "",
+        acceptTerms: false,
+      };
     },
 
     // Inline Form Methods
     submitInlineForm() {
       if (this.inlineForm.email && this.inlineForm.password) {
-        alert('Inline form submitted successfully!')
+        alert("Inline form submitted successfully!");
         // Form data available in this.inlineForm
       }
     },
 
     submitQuickForm() {
       if (this.quickForm.email && this.quickForm.password) {
-        alert('Quick form submitted successfully!')
+        alert("Quick form submitted successfully!");
         // Form data available in this.quickForm
       }
     },
@@ -595,7 +718,7 @@ export default {
     // Horizontal Form Methods
     submitHorizontalForm() {
       if (this.validateHorizontalForm()) {
-        alert('Horizontal form submitted successfully!')
+        alert("Horizontal form submitted successfully!");
         // Form data available in this.horizontalForm
       }
     },
@@ -606,48 +729,56 @@ export default {
         this.horizontalForm.password.length >= 6 &&
         this.horizontalForm.department &&
         this.horizontalForm.experience
-      )
+      );
     },
 
     getHorizontalValidationState(field) {
-      if (field === 'email') {
-        return this.horizontalForm.email ? (this.isValidEmail(this.horizontalForm.email) ? true : false) : null
+      if (field === "email") {
+        return this.horizontalForm.email
+          ? this.isValidEmail(this.horizontalForm.email)
+            ? true
+            : false
+          : null;
       }
-      if (field === 'password') {
-        return this.horizontalForm.password ? (this.horizontalForm.password.length >= 6 ? true : false) : null
+      if (field === "password") {
+        return this.horizontalForm.password
+          ? this.horizontalForm.password.length >= 6
+            ? true
+            : false
+          : null;
       }
-      return null
+      return null;
     },
 
     resetHorizontalForm() {
       this.horizontalForm = {
-        email: '',
-        password: '',
-        department: '',
+        email: "",
+        password: "",
+        department: "",
         skills: [],
-        bio: '',
+        bio: "",
         file: null,
-        experience: '',
-        available: false
-      }
+        experience: "",
+        available: false,
+      };
     },
 
     // Utility Methods
     isValidEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      return re.test(email)
-    }
-  }
-}
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    },
+  },
+};
 </script>
 
 <style>
 /* Global CSS to fix BootstrapVueNext BFormFile component styling - Bootstrap 5 compliant */
 
 /* Target all file input pseudo-elements with comprehensive browser support */
-input[type='file']::file-selector-button,
-input[type='file']::-webkit-file-upload-button,
-input[type='file']::-moz-file-upload-button {
+input[type="file"]::file-selector-button,
+input[type="file"]::-webkit-file-upload-button,
+input[type="file"]::-moz-file-upload-button {
   padding: 0.375rem 0.75rem !important;
   margin: -0.375rem -0.75rem !important;
   margin-inline-end: 0.75rem !important;
@@ -668,13 +799,13 @@ input[type='file']::-moz-file-upload-button {
 }
 
 /* Hover effects for file input buttons */
-input[type='file']:hover::file-selector-button,
-input[type='file']:hover::-webkit-file-upload-button {
+input[type="file"]:hover::file-selector-button,
+input[type="file"]:hover::-webkit-file-upload-button {
   background-color: #ddd6fe !important;
 }
 
 /* Ensure the file input itself has proper Bootstrap 5 styling */
-input[type='file'] {
+input[type="file"] {
   border: 1px solid #ced4da !important;
   border-radius: 0.375rem !important;
   padding: 0.375rem 0.75rem !important;
@@ -890,17 +1021,17 @@ input[type='file'] {
 }
 
 /* Bootstrap 5 File Input Styling - BootstrapVueNext compatible */
-.form-control[type='file']:not(:disabled):not([readonly]) {
+.form-control[type="file"]:not(:disabled):not([readonly]) {
   cursor: pointer;
 }
 
-.form-control[type='file'] {
+.form-control[type="file"] {
   overflow: hidden;
 }
 
 /* Modern browsers (Chrome 89+, Firefox 82+) - NEW STANDARD - High Specificity */
-.form-control[type='file']::file-selector-button,
-input.form-control[type='file']::file-selector-button {
+.form-control[type="file"]::file-selector-button,
+input.form-control[type="file"]::file-selector-button {
   padding: 0.375rem 0.75rem !important;
   margin: -0.375rem -0.75rem !important;
   margin-inline-end: 0.75rem !important;
@@ -915,13 +1046,17 @@ input.form-control[type='file']::file-selector-button {
   font-family: inherit !important;
 }
 
-.form-control[type='file']:hover::file-selector-button,
-input.form-control[type='file']:hover::file-selector-button {
+.form-control[type="file"]:hover::file-selector-button,
+input.form-control[type="file"]:hover::file-selector-button {
   background-color: #ddd6fe !important;
 }
 
-.form-control[type='file']:not(:disabled):not([readonly])::-webkit-file-upload-button,
-input.form-control[type='file']:not(:disabled):not([readonly])::-webkit-file-upload-button {
+.form-control[type="file"]:not(:disabled):not(
+    [readonly]
+  )::-webkit-file-upload-button,
+input.form-control[type="file"]:not(:disabled):not(
+    [readonly]
+  )::-webkit-file-upload-button {
   padding: 0.375rem 0.75rem !important;
   margin: -0.375rem -0.75rem !important;
   margin-inline-end: 0.75rem !important;
@@ -940,13 +1075,17 @@ input.form-control[type='file']:not(:disabled):not([readonly])::-webkit-file-upl
   font-family: inherit !important;
 }
 
-.form-control[type='file']:hover:not(:disabled):not([readonly])::-webkit-file-upload-button,
-input.form-control[type='file']:hover:not(:disabled):not([readonly])::-webkit-file-upload-button {
+.form-control[type="file"]:hover:not(:disabled):not(
+    [readonly]
+  )::-webkit-file-upload-button,
+input.form-control[type="file"]:hover:not(:disabled):not(
+    [readonly]
+  )::-webkit-file-upload-button {
   background-color: #ddd6fe !important;
 }
 
-.form-control[type='file']::-webkit-file-upload-button,
-input.form-control[type='file']::-webkit-file-upload-button {
+.form-control[type="file"]::-webkit-file-upload-button,
+input.form-control[type="file"]::-webkit-file-upload-button {
   padding: 0.375rem 0.75rem !important;
   margin: -0.375rem -0.75rem !important;
   margin-inline-end: 0.75rem !important;
@@ -965,34 +1104,34 @@ input.form-control[type='file']::-webkit-file-upload-button {
   font-family: inherit !important;
 }
 
-.form-control-sm[type='file']::-webkit-file-upload-button {
+.form-control-sm[type="file"]::-webkit-file-upload-button {
   padding: 0.25rem 0.5rem;
   margin: -0.25rem -0.5rem;
   margin-inline-end: 0.5rem;
 }
 
-.form-control-lg[type='file']::-webkit-file-upload-button {
+.form-control-lg[type="file"]::-webkit-file-upload-button {
   padding: 0.5rem 1rem;
   margin: -0.5rem -1rem;
   margin-inline-end: 1rem;
 }
 
 /* Modern browser size variants for file selector button */
-.form-control-sm[type='file']::file-selector-button {
+.form-control-sm[type="file"]::file-selector-button {
   padding: 0.25rem 0.5rem;
   margin: -0.25rem -0.5rem;
   margin-inline-end: 0.5rem;
 }
 
-.form-control-lg[type='file']::file-selector-button {
+.form-control-lg[type="file"]::file-selector-button {
   padding: 0.5rem 1rem;
   margin: -0.5rem -1rem;
   margin-inline-end: 1rem;
 }
 
 /* Firefox file upload button styling - High Specificity */
-.form-control[type='file']::-moz-file-upload-button,
-input.form-control[type='file']::-moz-file-upload-button {
+.form-control[type="file"]::-moz-file-upload-button,
+input.form-control[type="file"]::-moz-file-upload-button {
   padding: 0.375rem 0.75rem !important;
   margin: -0.375rem -0.75rem !important;
   margin-inline-end: 0.75rem !important;
@@ -1058,12 +1197,12 @@ input.form-control[type='file']::-moz-file-upload-button {
 }
 
 /* Range input styling */
-input[type='range'] {
+input[type="range"] {
   width: 100%;
 }
 
 /* Color input styling */
-input[type='color'] {
+input[type="color"] {
   width: 100%;
   height: 38px;
   border: 1px solid #ced4da;

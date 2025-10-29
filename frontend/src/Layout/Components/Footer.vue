@@ -4,42 +4,102 @@
       <div class="container-fluid">
         <div class="row align-items-center">
           <div class="col-md-6">
-            <div class="footer-text">Copyright © 2025 ArchitectUI Vue Free. All rights reserved.</div>
+            <div class="footer-text">
+              Copyright © 2025 ArchitectUI Vue Free. All rights reserved.
+            </div>
           </div>
           <div class="col-md-6">
             <div class="footer-nav">
               <div class="nav nav-footer justify-content-end">
                 <!-- Quick Links Dropdown -->
                 <div class="dropdown me-3">
-                  <button class="btn btn-link dropdown-toggle" type="button" @click="toggleDropdown('quickLinks')">
+                  <button
+                    class="btn btn-link dropdown-toggle"
+                    type="button"
+                    @click="toggleDropdown('quickLinks')"
+                  >
                     Quick Links
                   </button>
-                  <div class="dropdown-menu dropdown-menu-end" :class="{ show: activeDropdown === 'quickLinks' }">
-                    <button class="dropdown-item" @click="handleFooterAction('about')">About</button>
-                    <button class="dropdown-item" @click="handleFooterAction('contact')">Contact</button>
+                  <div
+                    class="dropdown-menu dropdown-menu-end"
+                    :class="{ show: activeDropdown === 'quickLinks' }"
+                  >
+                    <button
+                      class="dropdown-item"
+                      @click="handleFooterAction('about')"
+                    >
+                      About
+                    </button>
+                    <button
+                      class="dropdown-item"
+                      @click="handleFooterAction('contact')"
+                    >
+                      Contact
+                    </button>
                     <div class="dropdown-divider"></div>
-                    <button class="dropdown-item" @click="handleFooterAction('privacy')">Privacy Policy</button>
-                    <button class="dropdown-item" @click="handleFooterAction('terms')">Terms of Service</button>
+                    <button
+                      class="dropdown-item"
+                      @click="handleFooterAction('privacy')"
+                    >
+                      Privacy Policy
+                    </button>
+                    <button
+                      class="dropdown-item"
+                      @click="handleFooterAction('terms')"
+                    >
+                      Terms of Service
+                    </button>
                   </div>
                 </div>
 
                 <!-- Social Media Dropdown -->
                 <div class="dropdown">
-                  <button class="btn btn-link dropdown-toggle" type="button" @click="toggleDropdown('socialMedia')">
+                  <button
+                    class="btn btn-link dropdown-toggle"
+                    type="button"
+                    @click="toggleDropdown('socialMedia')"
+                  >
                     Social Media
                   </button>
-                  <div class="dropdown-menu dropdown-menu-end" :class="{ show: activeDropdown === 'socialMedia' }">
-                    <button class="dropdown-item" @click="handleSocialAction('twitter')">
-                      <font-awesome-icon :icon="['fab', 'twitter']" class="me-2 social-icon twitter-icon" />Twitter
+                  <div
+                    class="dropdown-menu dropdown-menu-end"
+                    :class="{ show: activeDropdown === 'socialMedia' }"
+                  >
+                    <button
+                      class="dropdown-item"
+                      @click="handleSocialAction('twitter')"
+                    >
+                      <font-awesome-icon
+                        :icon="['fab', 'twitter']"
+                        class="me-2 social-icon twitter-icon"
+                      />Twitter
                     </button>
-                    <button class="dropdown-item" @click="handleSocialAction('facebook')">
-                      <font-awesome-icon :icon="['fab', 'facebook']" class="me-2 social-icon facebook-icon" />Facebook
+                    <button
+                      class="dropdown-item"
+                      @click="handleSocialAction('facebook')"
+                    >
+                      <font-awesome-icon
+                        :icon="['fab', 'facebook']"
+                        class="me-2 social-icon facebook-icon"
+                      />Facebook
                     </button>
-                    <button class="dropdown-item" @click="handleSocialAction('linkedin')">
-                      <font-awesome-icon :icon="['fab', 'linkedin']" class="me-2 social-icon linkedin-icon" />LinkedIn
+                    <button
+                      class="dropdown-item"
+                      @click="handleSocialAction('linkedin')"
+                    >
+                      <font-awesome-icon
+                        :icon="['fab', 'linkedin']"
+                        class="me-2 social-icon linkedin-icon"
+                      />LinkedIn
                     </button>
-                    <button class="dropdown-item" @click="handleSocialAction('github')">
-                      <font-awesome-icon :icon="['fab', 'github']" class="me-2 social-icon github-icon" />GitHub
+                    <button
+                      class="dropdown-item"
+                      @click="handleSocialAction('github')"
+                    >
+                      <font-awesome-icon
+                        :icon="['fab', 'github']"
+                        class="me-2 social-icon github-icon"
+                      />GitHub
                     </button>
                   </div>
                 </div>
@@ -53,90 +113,96 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, onUnmounted } from 'vue'
+import { defineComponent, ref, onMounted, onUnmounted } from "vue";
 
 export default defineComponent({
-  name: 'Footer',
+  name: "Footer",
   setup() {
-    const activeDropdown = ref(null)
+    const activeDropdown = ref(null);
 
-    const toggleDropdown = dropdownName => {
-      console.log('Toggling dropdown:', dropdownName)
+    const toggleDropdown = (dropdownName) => {
+      console.log("Toggling dropdown:", dropdownName);
       if (activeDropdown.value === dropdownName) {
-        activeDropdown.value = null
+        activeDropdown.value = null;
       } else {
-        activeDropdown.value = dropdownName
+        activeDropdown.value = dropdownName;
       }
-    }
+    };
 
     const closeDropdowns = () => {
-      activeDropdown.value = null
-    }
+      activeDropdown.value = null;
+    };
 
-    const handleClickOutside = event => {
-      if (!event.target.closest('.dropdown')) {
-        closeDropdowns()
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".dropdown")) {
+        closeDropdowns();
       }
-    }
+    };
 
     onMounted(() => {
-      document.addEventListener('click', handleClickOutside)
-    })
+      document.addEventListener("click", handleClickOutside);
+    });
 
     onUnmounted(() => {
-      document.removeEventListener('click', handleClickOutside)
-    })
+      document.removeEventListener("click", handleClickOutside);
+    });
 
-    const handleFooterAction = action => {
-      console.log(`Footer action clicked: ${action}`)
-      closeDropdowns()
+    const handleFooterAction = (action) => {
+      console.log(`Footer action clicked: ${action}`);
+      closeDropdowns();
 
       const messages = {
-        about: 'About ArchitectUI - A modern Vue 3 admin dashboard template with Bootstrap 5 integration.',
-        contact: 'Contact Us - This would typically open a contact form or redirect to a contact page.',
-        privacy: 'Privacy Policy - This section would contain detailed privacy policy information.',
-        terms: 'Terms of Service - This section would contain the terms and conditions of use.'
-      }
+        about:
+          "About ArchitectUI - A modern Vue 3 admin dashboard template with Bootstrap 5 integration.",
+        contact:
+          "Contact Us - This would typically open a contact form or redirect to a contact page.",
+        privacy:
+          "Privacy Policy - This section would contain detailed privacy policy information.",
+        terms:
+          "Terms of Service - This section would contain the terms and conditions of use.",
+      };
 
-      const message = messages[action]
+      const message = messages[action];
       if (message) {
         // In a real application, you would navigate to the actual page
         // For demo purposes, showing an informative message
-        alert(`📄 ${message}\n\nIn a production app, this would navigate to the actual ${action} page.`)
+        alert(
+          `📄 ${message}\n\nIn a production app, this would navigate to the actual ${action} page.`,
+        );
       } else {
-        console.warn('Unknown footer action:', action)
+        console.warn("Unknown footer action:", action);
       }
-    }
+    };
 
-    const handleSocialAction = platform => {
-      console.log(`Social media clicked: ${platform}`)
-      closeDropdowns()
+    const handleSocialAction = (platform) => {
+      console.log(`Social media clicked: ${platform}`);
+      closeDropdowns();
 
       const socialLinks = {
-        twitter: 'https://twitter.com',
-        facebook: 'https://facebook.com',
-        linkedin: 'https://linkedin.com',
-        github: 'https://github.com'
-      }
+        twitter: "https://twitter.com",
+        facebook: "https://facebook.com",
+        linkedin: "https://linkedin.com",
+        github: "https://github.com",
+      };
 
-      const url = socialLinks[platform]
+      const url = socialLinks[platform];
       if (url) {
-        console.log(`Opening ${platform} social media link:`, url)
+        console.log(`Opening ${platform} social media link:`, url);
         // Open in new tab
-        window.open(url, '_blank', 'noopener,noreferrer')
+        window.open(url, "_blank", "noopener,noreferrer");
       } else {
-        console.log('Unknown social platform:', platform)
+        console.log("Unknown social platform:", platform);
       }
-    }
+    };
 
     return {
       activeDropdown,
       toggleDropdown,
       handleFooterAction,
-      handleSocialAction
-    }
-  }
-})
+      handleSocialAction,
+    };
+  },
+});
 </script>
 
 <style scoped>

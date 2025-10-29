@@ -33,50 +33,50 @@
 </template>
 
 <script>
-import { computed } from 'vue'
-import { useDashboardStore } from '@/stores/dashboard'
+import { computed } from "vue";
+import { useDashboardStore } from "@/stores/dashboard";
 
 export default {
-  name: 'DashboardWidget',
+  name: "DashboardWidget",
   props: {
     statKey: {
       type: String,
-      required: true
+      required: true,
     },
     iconClass: {
       type: String,
-      default: 'pe-7s-graph1'
+      default: "pe-7s-graph1",
     },
     iconBgClass: {
       type: String,
-      default: 'bg-primary'
+      default: "bg-primary",
     },
     valueClass: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
   setup(props) {
-    const dashboardStore = useDashboardStore()
+    const dashboardStore = useDashboardStore();
 
     // Get the specific stat from the store
     const stat = computed(() => {
-      const statData = dashboardStore.stats[props.statKey]
-      if (!statData) return { label: 'N/A', value: '0', change: 0 }
+      const statData = dashboardStore.stats[props.statKey];
+      if (!statData) return { label: "N/A", value: "0", change: 0 };
 
       return {
         ...statData,
-        trendIcon: statData.change > 0 ? 'angle-up' : 'angle-down',
-        trendColor: statData.change > 0 ? 'text-success' : 'text-danger',
-        formattedChange: `${Math.abs(statData.change)}%`
-      }
-    })
+        trendIcon: statData.change > 0 ? "angle-up" : "angle-down",
+        trendColor: statData.change > 0 ? "text-success" : "text-danger",
+        formattedChange: `${Math.abs(statData.change)}%`,
+      };
+    });
 
     return {
-      stat
-    }
-  }
-}
+      stat,
+    };
+  },
+};
 </script>
 
 <style scoped>

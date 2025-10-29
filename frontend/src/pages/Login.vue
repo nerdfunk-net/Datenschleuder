@@ -1,7 +1,9 @@
 <template>
   <div class="min-vh-100 d-flex">
     <!-- Left Panel - Brand -->
-    <div class="d-none d-lg-flex col-lg-6 bg-dark position-relative overflow-hidden">
+    <div
+      class="d-none d-lg-flex col-lg-6 bg-dark position-relative overflow-hidden"
+    >
       <div
         class="position-absolute w-100 h-100"
         style="background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%)"
@@ -23,11 +25,15 @@
     </div>
 
     <!-- Right Panel - Login Form -->
-    <div class="col-12 col-lg-6 bg-white d-flex align-items-center justify-content-center p-4">
+    <div
+      class="col-12 col-lg-6 bg-white d-flex align-items-center justify-content-center p-4"
+    >
       <div class="w-100" style="max-width: 420px">
         <!-- Mobile Logo -->
         <div class="d-lg-none text-center mb-5">
-          <div class="d-inline-flex align-items-center justify-content-center bg-primary rounded-3 p-3 mb-3">
+          <div
+            class="d-inline-flex align-items-center justify-content-center bg-primary rounded-3 p-3 mb-3"
+          >
             <i class="pe-7s-server text-white" style="font-size: 2rem"></i>
           </div>
           <h4 class="text-primary fw-bold mb-0">Datenschleuder</h4>
@@ -36,21 +42,34 @@
         <!-- Login Header -->
         <div class="text-center mb-5">
           <h2 class="fw-bold text-dark mb-2">Sign in to your account</h2>
-          <p class="text-secondary mb-0">Please enter your credentials to continue.</p>
-          <div class="alert alert-info mt-3 text-start" style="font-size: 0.875rem;">
-            <strong>Dev Mode:</strong> Use <code>admin</code> / <code>admin</code> to login
+          <p class="text-secondary mb-0">
+            Please enter your credentials to continue.
+          </p>
+          <div
+            class="alert alert-info mt-3 text-start"
+            style="font-size: 0.875rem"
+          >
+            <strong>Dev Mode:</strong> Use <code>admin</code> /
+            <code>admin</code> to login
           </div>
         </div>
 
         <!-- Error Message -->
-        <b-alert v-if="errorMessage" variant="danger" dismissible @dismissed="errorMessage = ''">
+        <b-alert
+          v-if="errorMessage"
+          variant="danger"
+          dismissible
+          @dismissed="errorMessage = ''"
+        >
           {{ errorMessage }}
         </b-alert>
 
         <!-- Login Form -->
         <form @submit.prevent="handleLogin">
           <div class="mb-4">
-            <label for="username" class="form-label text-dark fw-medium mb-2">Username</label>
+            <label for="username" class="form-label text-dark fw-medium mb-2"
+              >Username</label
+            >
             <b-form-input
               id="username"
               v-model="username"
@@ -63,7 +82,9 @@
           </div>
 
           <div class="mb-4">
-            <label for="password" class="form-label text-dark fw-medium mb-2">Password</label>
+            <label for="password" class="form-label text-dark fw-medium mb-2"
+              >Password</label
+            >
             <b-form-input
               id="password"
               v-model="password"
@@ -76,7 +97,11 @@
           </div>
 
           <div class="d-flex justify-content-between align-items-center mb-4">
-            <b-form-checkbox id="remember" v-model="rememberMe" class="text-secondary">
+            <b-form-checkbox
+              id="remember"
+              v-model="rememberMe"
+              class="text-secondary"
+            >
               Remember me
             </b-form-checkbox>
           </div>
@@ -100,7 +125,9 @@
 
         <!-- Copyright -->
         <div class="text-center mt-5">
-          <p class="text-secondary small mb-0">© 2025 Datenschleuder. All rights reserved.</p>
+          <p class="text-secondary small mb-0">
+            © 2025 Datenschleuder. All rights reserved.
+          </p>
         </div>
       </div>
     </div>
@@ -108,40 +135,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { login } from '../utils/api'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { login } from "../utils/api";
 
-const router = useRouter()
+const router = useRouter();
 
-const username = ref('')
-const password = ref('')
-const rememberMe = ref(false)
-const errorMessage = ref('')
-const isLoading = ref(false)
+const username = ref("");
+const password = ref("");
+const rememberMe = ref(false);
+const errorMessage = ref("");
+const isLoading = ref(false);
 
 const handleLogin = async () => {
-  errorMessage.value = ''
-  isLoading.value = true
+  errorMessage.value = "";
+  isLoading.value = true;
 
   try {
-    const data = await login(username.value, password.value)
+    const data = await login(username.value, password.value);
 
     // Store access token
-    localStorage.setItem('token', data.access_token)
+    localStorage.setItem("token", data.access_token);
     if (rememberMe.value) {
-      localStorage.setItem('rememberMe', 'true')
+      localStorage.setItem("rememberMe", "true");
     }
 
     // Redirect to dashboard
-    router.push('/')
+    router.push("/");
   } catch (error: any) {
-    console.error('Login error:', error)
-    errorMessage.value = error.message || 'Failed to connect to server. Please check if the backend is running.'
+    console.error("Login error:", error);
+    errorMessage.value =
+      error.message ||
+      "Failed to connect to server. Please check if the backend is running.";
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
 
 <style scoped>

@@ -1,5 +1,9 @@
 <template>
-  <div class="app-sidebar sidebar-shadow" @mouseenter="onSidebarHover(true)" @mouseleave="onSidebarHover(false)">
+  <div
+    class="app-sidebar sidebar-shadow"
+    @mouseenter="onSidebarHover(true)"
+    @mouseleave="onSidebarHover(false)"
+  >
     <div class="app-header__logo">
       <div class="logo-src" />
       <div class="sidebar-header-controls">
@@ -19,7 +23,11 @@
     <div class="app-sidebar-content">
       <div class="app-sidebar-scroll">
         <div class="v-sidebar-menu">
-          <SidebarMenuItem v-for="item in sidebarStore.menuItems" :key="item.id" :item="item" />
+          <SidebarMenuItem
+            v-for="item in sidebarStore.menuItems"
+            :key="item.id"
+            :item="item"
+          />
         </div>
       </div>
     </div>
@@ -27,52 +35,52 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useSidebarStore } from '@/stores/sidebar'
-import SidebarMenuItem from './SidebarMenuItem.vue'
+import { onMounted, onUnmounted, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useSidebarStore } from "@/stores/sidebar";
+import SidebarMenuItem from "./SidebarMenuItem.vue";
 
-const route = useRoute()
-const sidebarStore = useSidebarStore()
+const route = useRoute();
+const sidebarStore = useSidebarStore();
 
 // Window resize handler
 const handleResize = () => {
-  sidebarStore.updateWindowWidth(window.innerWidth)
-}
+  sidebarStore.updateWindowWidth(window.innerWidth);
+};
 
 // Initialize sidebar when component mounts
 onMounted(() => {
   // Initialize sidebar with current route
-  sidebarStore.initializeSidebar(route.path)
+  sidebarStore.initializeSidebar(route.path);
 
   // Add window resize listener
-  window.addEventListener('resize', handleResize)
-})
+  window.addEventListener("resize", handleResize);
+});
 
 // Clean up event listeners
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
+  window.removeEventListener("resize", handleResize);
+});
 
 // Watch for route changes to update active submenu
 watch(
   () => route.path,
-  newPath => {
-    sidebarStore.updateActiveSubmenuFromRoute(newPath)
-  }
-)
+  (newPath) => {
+    sidebarStore.updateActiveSubmenuFromRoute(newPath);
+  },
+);
 
 // Handle sidebar hover for collapsed state
-const onSidebarHover = isHovering => {
+const onSidebarHover = (isHovering) => {
   if (sidebarStore.isCollapsed) {
-    const body = document.body
+    const body = document.body;
     if (isHovering) {
-      body.classList.add('closed-sidebar-open')
+      body.classList.add("closed-sidebar-open");
     } else {
-      body.classList.remove('closed-sidebar-open')
+      body.classList.remove("closed-sidebar-open");
     }
   }
-}
+};
 </script>
 
 <style>
@@ -100,7 +108,7 @@ const onSidebarHover = isHovering => {
 <style scoped>
 /* Use the black logo image directly */
 .app-sidebar .app-header__logo .logo-src {
-  background-image: url('@/assets/images/logo-inverse.png') !important;
+  background-image: url("@/assets/images/logo-inverse.png") !important;
 }
 
 /* Ensure hamburger button styling is consistent */
@@ -165,7 +173,7 @@ const onSidebarHover = isHovering => {
 
 .hamburger-inner::before,
 .hamburger-inner::after {
-  content: '';
+  content: "";
   display: block;
 }
 

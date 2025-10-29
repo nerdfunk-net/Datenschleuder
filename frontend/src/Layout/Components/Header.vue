@@ -42,33 +42,33 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
-import { useUIStore } from '@/stores/ui'
-import SearchBox from './Header/SearchBox.vue'
-import UserArea from './Header/HeaderUserArea.vue'
+import { defineComponent } from "vue";
+import { useUIStore } from "@/stores/ui";
+import SearchBox from "./Header/SearchBox.vue";
+import UserArea from "./Header/HeaderUserArea.vue";
 
 export default defineComponent({
-  name: 'Header',
+  name: "Header",
   components: {
     SearchBox,
-    UserArea
+    UserArea,
   },
   setup() {
-    const uiStore = useUIStore()
+    const uiStore = useUIStore();
 
     const toggleMobileSidebar = () => {
-      uiStore.toggleMobileSidebar()
-    }
+      uiStore.toggleMobileSidebar();
+    };
 
     const toggleMobileMenu = () => {
-      uiStore.toggleMobileMenu()
-    }
+      uiStore.toggleMobileMenu();
+    };
 
     return {
       uiStore,
       toggleMobileSidebar,
-      toggleMobileMenu
-    }
-  }
-})
+      toggleMobileMenu,
+    };
+  },
+});
 </script>

@@ -1,22 +1,45 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
 
     <div class="content">
       <b-card class="main-card mb-3 text-center">
-        <b-button class="me-2" @click="$refs.modal1.show()">Launch demo modal</b-button>
-        <b-button class="me-2" @click="$refs.modallg.show()" variant="primary">Large modal</b-button>
-        <b-button class="me-2" @click="$refs.modalsm.show()" variant="primary">Small modal</b-button>
+        <b-button class="me-2" @click="$refs.modal1.show()"
+          >Launch demo modal</b-button
+        >
+        <b-button class="me-2" @click="$refs.modallg.show()" variant="primary"
+          >Large modal</b-button
+        >
+        <b-button class="me-2" @click="$refs.modalsm.show()" variant="primary"
+          >Small modal</b-button
+        >
       </b-card>
 
       <!-- BootstrapVueNext Modals -->
       <!-- Default Modal -->
-      <b-modal ref="modal1" id="modal1" title="BootstrapVueNext Modal" hide-footer :z-index="1055">
+      <b-modal
+        ref="modal1"
+        id="modal1"
+        title="BootstrapVueNext Modal"
+        hide-footer
+        :z-index="1055"
+      >
         <p class="my-4">Hello from BootstrapVueNext modal!</p>
         <template #modal-footer>
           <div class="w-100">
             <div class="float-end">
-              <b-button variant="secondary" size="sm" class="me-2" @click="$refs.modal1.hide()"> Close </b-button>
+              <b-button
+                variant="secondary"
+                size="sm"
+                class="me-2"
+                @click="$refs.modal1.hide()"
+              >
+                Close
+              </b-button>
               <b-button variant="primary" size="sm">Save changes</b-button>
             </div>
           </div>
@@ -24,13 +47,30 @@
       </b-modal>
 
       <!-- Large Modal -->
-      <b-modal ref="modallg" id="modallg" title="Large Modal" hide-footer size="lg" :z-index="1055">
+      <b-modal
+        ref="modallg"
+        id="modallg"
+        title="Large Modal"
+        hide-footer
+        size="lg"
+        :z-index="1055"
+      >
         <p>Hello Large Modal!</p>
-        <p>This is a large modal with more content space. You can add forms, tables, or any other content here.</p>
+        <p>
+          This is a large modal with more content space. You can add forms,
+          tables, or any other content here.
+        </p>
         <template #modal-footer>
           <div class="w-100">
             <div class="float-end">
-              <b-button variant="secondary" size="sm" class="me-2" @click="$refs.modallg.hide()"> Close </b-button>
+              <b-button
+                variant="secondary"
+                size="sm"
+                class="me-2"
+                @click="$refs.modallg.hide()"
+              >
+                Close
+              </b-button>
               <b-button variant="primary" size="sm">Save changes</b-button>
             </div>
           </div>
@@ -38,12 +78,26 @@
       </b-modal>
 
       <!-- Small Modal -->
-      <b-modal ref="modalsm" id="modalsm" title="Small Modal" hide-footer size="sm" :z-index="1055">
+      <b-modal
+        ref="modalsm"
+        id="modalsm"
+        title="Small Modal"
+        hide-footer
+        size="sm"
+        :z-index="1055"
+      >
         <p>Hello Small Modal!</p>
         <template #modal-footer>
           <div class="w-100">
             <div class="float-end">
-              <b-button variant="secondary" size="sm" class="me-2" @click="$refs.modalsm.hide()"> Close </b-button>
+              <b-button
+                variant="secondary"
+                size="sm"
+                class="me-2"
+                @click="$refs.modalsm.hide()"
+              >
+                Close
+              </b-button>
               <b-button variant="primary" size="sm">Save</b-button>
             </div>
           </div>
@@ -54,21 +108,22 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
 export default {
-  name: 'Modals',
+  name: "Modals",
   components: {
-    PageTitle
+    PageTitle,
   },
   data() {
     return {
-      heading: 'Modals',
-      subheading: 'Wide selection of modal dialogs styles and animations available.',
-      icon: 'pe-7s-phone icon-gradient bg-premium-dark'
-    }
-  }
-}
+      heading: "Modals",
+      subheading:
+        "Wide selection of modal dialogs styles and animations available.",
+      icon: "pe-7s-phone icon-gradient bg-premium-dark",
+    };
+  },
+};
 </script>
 
 <style>

@@ -3,7 +3,12 @@
     <!-- Page Header with Gradient Background -->
     <div class="page-header-wrapper mb-4">
       <div class="page-header-gradient">
-        <page-title :heading="heading" :subheading="subheading" :icon="icon" class="text-white mb-0" />
+        <page-title
+          :heading="heading"
+          :subheading="subheading"
+          :icon="icon"
+          class="text-white mb-0"
+        />
 
         <!-- Quick Stats Summary -->
         <div class="row g-3 mt-3">
@@ -14,14 +19,25 @@
                   <div class="stat-value">{{ stat.value }}</div>
                   <div class="stat-label">{{ stat.label }}</div>
                   <div class="stat-trend mt-2">
-                    <span :class="stat.trending === 'up' ? 'text-success' : 'text-danger'">
-                      <font-awesome-icon :icon="stat.trending === 'up' ? 'arrow-up' : 'arrow-down'" />
+                    <span
+                      :class="
+                        stat.trending === 'up' ? 'text-success' : 'text-danger'
+                      "
+                    >
+                      <font-awesome-icon
+                        :icon="
+                          stat.trending === 'up' ? 'arrow-up' : 'arrow-down'
+                        "
+                      />
                       {{ stat.change }}%
                     </span>
                     <span class="text-white-50 ms-1">vs last month</span>
                   </div>
                 </div>
-                <div class="stat-icon-wrapper ms-3" :style="`background: ${stat.gradient}`">
+                <div
+                  class="stat-icon-wrapper ms-3"
+                  :style="`background: ${stat.gradient}`"
+                >
                   <font-awesome-icon :icon="stat.icon" class="text-white" />
                 </div>
               </div>
@@ -38,7 +54,9 @@
         <div class="main-card mb-3 card shadow-sm border-0">
           <div class="card-header-tab card-header py-3">
             <div class="card-header-title">
-              <i class="header-icon lnr-chart-bars icon-gradient bg-happy-green me-2"></i>
+              <i
+                class="header-icon lnr-chart-bars icon-gradient bg-happy-green me-2"
+              ></i>
               Revenue Overview
             </div>
             <div class="btn-actions-pane-right">
@@ -46,7 +64,9 @@
                 <b-button
                   v-for="period in ['Day', 'Week', 'Month', 'Year']"
                   :key="period"
-                  :variant="selectedPeriod === period ? 'success' : 'outline-success'"
+                  :variant="
+                    selectedPeriod === period ? 'success' : 'outline-success'
+                  "
                   @click="selectedPeriod = period"
                 >
                   {{ period }}
@@ -55,7 +75,11 @@
             </div>
           </div>
           <div class="card-body">
-            <line-chart-component :data="revenueChartData" :options="revenueChartOptions" :height="300" />
+            <line-chart-component
+              :data="revenueChartData"
+              :options="revenueChartOptions"
+              :height="300"
+            />
 
             <!-- Revenue Stats Grid -->
             <div class="row text-center mt-4">
@@ -102,24 +126,36 @@
               </div>
 
               <div class="performance-metrics">
-                <div class="metric-item d-flex justify-content-between align-items-center py-2">
+                <div
+                  class="metric-item d-flex justify-content-between align-items-center py-2"
+                >
                   <span class="text-muted">Efficiency</span>
                   <div class="progress flex-grow-1 mx-3" style="height: 6px">
-                    <div class="progress-bar bg-success" style="width: 88%"></div>
+                    <div
+                      class="progress-bar bg-success"
+                      style="width: 88%"
+                    ></div>
                   </div>
                   <span class="fw-bold">88%</span>
                 </div>
-                <div class="metric-item d-flex justify-content-between align-items-center py-2">
+                <div
+                  class="metric-item d-flex justify-content-between align-items-center py-2"
+                >
                   <span class="text-muted">Quality</span>
                   <div class="progress flex-grow-1 mx-3" style="height: 6px">
                     <div class="progress-bar bg-info" style="width: 95%"></div>
                   </div>
                   <span class="fw-bold">95%</span>
                 </div>
-                <div class="metric-item d-flex justify-content-between align-items-center py-2">
+                <div
+                  class="metric-item d-flex justify-content-between align-items-center py-2"
+                >
                   <span class="text-muted">Satisfaction</span>
                   <div class="progress flex-grow-1 mx-3" style="height: 6px">
-                    <div class="progress-bar bg-warning" style="width: 78%"></div>
+                    <div
+                      class="progress-bar bg-warning"
+                      style="width: 78%"
+                    ></div>
                   </div>
                   <span class="fw-bold">78%</span>
                 </div>
@@ -138,7 +174,11 @@
           </div>
           <div class="card-body p-0">
             <div class="activity-feed">
-              <div class="activity-item" v-for="activity in recentActivities" :key="activity.id">
+              <div
+                class="activity-item"
+                v-for="activity in recentActivities"
+                :key="activity.id"
+              >
                 <div class="activity-icon" :class="`bg-${activity.type}`">
                   <font-awesome-icon :icon="activity.icon" class="text-white" />
                 </div>
@@ -165,7 +205,11 @@
             </div>
           </div>
           <div class="card-body">
-            <pie-chart-component :data="salesByCategoryData" :options="salesByCategoryOptions" :height="250" />
+            <pie-chart-component
+              :data="salesByCategoryData"
+              :options="salesByCategoryOptions"
+              :height="250"
+            />
             <div class="category-legend mt-3">
               <div
                 v-for="(category, index) in categories"
@@ -173,7 +217,10 @@
                 class="legend-item d-flex justify-content-between align-items-center py-2"
               >
                 <div class="d-flex align-items-center">
-                  <span class="legend-color" :style="`background: ${category.color}`"></span>
+                  <span
+                    class="legend-color"
+                    :style="`background: ${category.color}`"
+                  ></span>
                   <span class="ms-2">{{ category.name }}</span>
                 </div>
                 <span class="fw-bold">{{ category.percentage }}%</span>
@@ -215,19 +262,28 @@
                   <tr v-for="product in topProducts" :key="product.id">
                     <td class="ps-3">
                       <div class="d-flex align-items-center">
-                        <div class="product-icon me-2" :style="`background: ${product.color}`">
+                        <div
+                          class="product-icon me-2"
+                          :style="`background: ${product.color}`"
+                        >
                           {{ product.name.charAt(0) }}
                         </div>
                         <div>
                           <div class="fw-medium">{{ product.name }}</div>
-                          <small class="text-muted">{{ product.category }}</small>
+                          <small class="text-muted">{{
+                            product.category
+                          }}</small>
                         </div>
                       </div>
                     </td>
                     <td class="text-center">
-                      <span class="badge bg-light text-dark">{{ product.sales }}</span>
+                      <span class="badge bg-light text-dark">{{
+                        product.sales
+                      }}</span>
                     </td>
-                    <td class="text-end pe-3 fw-bold text-success">${{ product.revenue }}</td>
+                    <td class="text-end pe-3 fw-bold text-success">
+                      ${{ product.revenue }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -253,12 +309,16 @@
                     <h3 class="mb-1">8,234</h3>
                     <p class="text-muted mb-0">Total Customers</p>
                   </div>
-                  <div class="insight-icon bg-primary bg-opacity-10 text-primary">
+                  <div
+                    class="insight-icon bg-primary bg-opacity-10 text-primary"
+                  >
                     <font-awesome-icon icon="users" />
                   </div>
                 </div>
                 <div class="mt-2">
-                  <small class="text-success"> <font-awesome-icon icon="arrow-up" /> 12.5% from last month </small>
+                  <small class="text-success">
+                    <font-awesome-icon icon="arrow-up" /> 12.5% from last month
+                  </small>
                 </div>
               </div>
 
@@ -268,12 +328,16 @@
                     <h3 class="mb-1">1,893</h3>
                     <p class="text-muted mb-0">Active Users</p>
                   </div>
-                  <div class="insight-icon bg-success bg-opacity-10 text-success">
+                  <div
+                    class="insight-icon bg-success bg-opacity-10 text-success"
+                  >
                     <font-awesome-icon icon="user-check" />
                   </div>
                 </div>
                 <div class="mt-2">
-                  <small class="text-success"> <font-awesome-icon icon="arrow-up" /> 8.2% from last week </small>
+                  <small class="text-success">
+                    <font-awesome-icon icon="arrow-up" /> 8.2% from last week
+                  </small>
                 </div>
               </div>
 
@@ -287,7 +351,10 @@
                   <div class="progress" style="height: 8px">
                     <div
                       class="progress-bar bg-gradient"
-                      style="width: 96%; background: linear-gradient(90deg, #69aa8a, #5a9677)"
+                      style="
+                        width: 96%;
+                        background: linear-gradient(90deg, #69aa8a, #5a9677);
+                      "
                     ></div>
                   </div>
                 </div>
@@ -301,89 +368,109 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, onMounted } from 'vue'
-import PageTitle from '@/Layout/Components/PageTitle.vue'
-import { useDashboardStore } from '@/stores/dashboard'
-import LineChartComponent from '@/components/Charts/LineChartComponent.vue'
-import DoughnutChartComponent from '@/components/Charts/DoughnutChartComponent.vue'
-import PieChartComponent from '@/components/Charts/PieChartComponent.vue'
+import { defineComponent, ref, computed, onMounted } from "vue";
+import PageTitle from "@/Layout/Components/PageTitle.vue";
+import { useDashboardStore } from "@/stores/dashboard";
+import LineChartComponent from "@/components/Charts/LineChartComponent.vue";
+import DoughnutChartComponent from "@/components/Charts/DoughnutChartComponent.vue";
+import PieChartComponent from "@/components/Charts/PieChartComponent.vue";
 
 export default defineComponent({
-  name: 'AnalyticsEnhanced',
+  name: "AnalyticsEnhanced",
   components: {
     PageTitle,
     LineChartComponent,
     DoughnutChartComponent,
-    PieChartComponent
+    PieChartComponent,
   },
   setup() {
-    const dashboardStore = useDashboardStore()
-    const selectedPeriod = ref('Month')
+    const dashboardStore = useDashboardStore();
+    const selectedPeriod = ref("Month");
 
-    const heading = 'Analytics Dashboard'
-    const subheading = 'Real-time insights and performance metrics at your fingertips'
-    const icon = 'pe-7s-graph3 icon-gradient bg-happy-green'
+    const heading = "Analytics Dashboard";
+    const subheading =
+      "Real-time insights and performance metrics at your fingertips";
+    const icon = "pe-7s-graph3 icon-gradient bg-happy-green";
 
     const quickStats = ref([
       {
         id: 1,
-        label: 'Total Revenue',
-        value: '$125,435',
+        label: "Total Revenue",
+        value: "$125,435",
         change: 23.5,
-        trending: 'up',
-        icon: 'dollar-sign',
-        gradient: 'linear-gradient(135deg, #69aa8a, #5a9677)'
+        trending: "up",
+        icon: "dollar-sign",
+        gradient: "linear-gradient(135deg, #69aa8a, #5a9677)",
       },
       {
         id: 2,
-        label: 'Active Users',
-        value: '8,234',
+        label: "Active Users",
+        value: "8,234",
         change: 12.5,
-        trending: 'up',
-        icon: 'users',
-        gradient: 'linear-gradient(135deg, #17a2b8, #20c997)'
+        trending: "up",
+        icon: "users",
+        gradient: "linear-gradient(135deg, #17a2b8, #20c997)",
       },
       {
         id: 3,
-        label: 'Conversion Rate',
-        value: '3.84%',
+        label: "Conversion Rate",
+        value: "3.84%",
         change: 5.2,
-        trending: 'down',
-        icon: 'chart-line',
-        gradient: 'linear-gradient(135deg, #ffc107, #fd7e14)'
+        trending: "down",
+        icon: "chart-line",
+        gradient: "linear-gradient(135deg, #ffc107, #fd7e14)",
       },
       {
         id: 4,
-        label: 'Avg. Order Value',
-        value: '$284',
+        label: "Avg. Order Value",
+        value: "$284",
         change: 18.7,
-        trending: 'up',
-        icon: 'shopping-cart',
-        gradient: 'linear-gradient(135deg, #6f42c1, #e83e8c)'
-      }
-    ])
+        trending: "up",
+        icon: "shopping-cart",
+        gradient: "linear-gradient(135deg, #6f42c1, #e83e8c)",
+      },
+    ]);
 
     const revenueChartData = computed(() => ({
-      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      labels: [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ],
       datasets: [
         {
-          label: 'Revenue',
-          data: [30000, 35000, 32000, 40000, 38000, 45000, 42000, 48000, 46000, 52000, 50000, 55000],
-          borderColor: '#69aa8a',
-          backgroundColor: 'rgba(105, 170, 138, 0.1)',
+          label: "Revenue",
+          data: [
+            30000, 35000, 32000, 40000, 38000, 45000, 42000, 48000, 46000,
+            52000, 50000, 55000,
+          ],
+          borderColor: "#69aa8a",
+          backgroundColor: "rgba(105, 170, 138, 0.1)",
           tension: 0.4,
-          fill: true
+          fill: true,
         },
         {
-          label: 'Expenses',
-          data: [20000, 22000, 21000, 25000, 24000, 28000, 27000, 30000, 29000, 32000, 31000, 34000],
-          borderColor: '#ff7851',
-          backgroundColor: 'rgba(255, 120, 81, 0.1)',
+          label: "Expenses",
+          data: [
+            20000, 22000, 21000, 25000, 24000, 28000, 27000, 30000, 29000,
+            32000, 31000, 34000,
+          ],
+          borderColor: "#ff7851",
+          backgroundColor: "rgba(255, 120, 81, 0.1)",
           tension: 0.4,
-          fill: true
-        }
-      ]
-    }))
+          fill: true,
+        },
+      ],
+    }));
 
     const revenueChartOptions = {
       responsive: true,
@@ -391,150 +478,160 @@ export default defineComponent({
       plugins: {
         legend: {
           display: true,
-          position: 'top'
+          position: "top",
         },
         tooltip: {
-          mode: 'index',
+          mode: "index",
           intersect: false,
           callbacks: {
-            label: context => {
-              return context.dataset.label + ': $' + context.parsed.y.toLocaleString()
-            }
-          }
-        }
+            label: (context) => {
+              return (
+                context.dataset.label +
+                ": $" +
+                context.parsed.y.toLocaleString()
+              );
+            },
+          },
+        },
       },
       scales: {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: value => '$' + value.toLocaleString()
-          }
-        }
-      }
-    }
+            callback: (value) => "$" + value.toLocaleString(),
+          },
+        },
+      },
+    };
 
     const performanceScoreData = computed(() => ({
       datasets: [
         {
           data: [92, 8],
-          backgroundColor: ['#69aa8a', '#f8f9fa'],
-          borderWidth: 0
-        }
-      ]
-    }))
+          backgroundColor: ["#69aa8a", "#f8f9fa"],
+          borderWidth: 0,
+        },
+      ],
+    }));
 
     const performanceScoreOptions = {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: '80%',
+      cutout: "80%",
       plugins: {
         legend: {
-          display: false
+          display: false,
         },
         tooltip: {
-          enabled: false
-        }
-      }
-    }
+          enabled: false,
+        },
+      },
+    };
 
     const salesByCategoryData = computed(() => ({
-      labels: ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books'],
+      labels: ["Electronics", "Clothing", "Home & Garden", "Sports", "Books"],
       datasets: [
         {
           data: [35, 25, 20, 15, 5],
-          backgroundColor: ['#69aa8a', '#17a2b8', '#ffc107', '#6f42c1', '#ff7851'],
-          borderWidth: 0
-        }
-      ]
-    }))
+          backgroundColor: [
+            "#69aa8a",
+            "#17a2b8",
+            "#ffc107",
+            "#6f42c1",
+            "#ff7851",
+          ],
+          borderWidth: 0,
+        },
+      ],
+    }));
 
     const salesByCategoryOptions = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false
-        }
-      }
-    }
+          display: false,
+        },
+      },
+    };
 
     const categories = ref([
-      { name: 'Electronics', percentage: 35, color: '#69aa8a' },
-      { name: 'Clothing', percentage: 25, color: '#17a2b8' },
-      { name: 'Home & Garden', percentage: 20, color: '#ffc107' },
-      { name: 'Sports', percentage: 15, color: '#6f42c1' },
-      { name: 'Books', percentage: 5, color: '#ff7851' }
-    ])
+      { name: "Electronics", percentage: 35, color: "#69aa8a" },
+      { name: "Clothing", percentage: 25, color: "#17a2b8" },
+      { name: "Home & Garden", percentage: 20, color: "#ffc107" },
+      { name: "Sports", percentage: 15, color: "#6f42c1" },
+      { name: "Books", percentage: 5, color: "#ff7851" },
+    ]);
 
     const recentActivities = ref([
       {
         id: 1,
-        type: 'success',
-        icon: 'shopping-cart',
-        description: 'New order #1982 received',
-        time: '2 minutes ago'
+        type: "success",
+        icon: "shopping-cart",
+        description: "New order #1982 received",
+        time: "2 minutes ago",
       },
       {
         id: 2,
-        type: 'info',
-        icon: 'user-plus',
-        description: 'New customer registration',
-        time: '15 minutes ago'
+        type: "info",
+        icon: "user-plus",
+        description: "New customer registration",
+        time: "15 minutes ago",
       },
       {
         id: 3,
-        type: 'warning',
-        icon: 'exclamation-triangle',
-        description: 'Low stock alert: Product SKU #4521',
-        time: '1 hour ago'
+        type: "warning",
+        icon: "exclamation-triangle",
+        description: "Low stock alert: Product SKU #4521",
+        time: "1 hour ago",
       },
       {
         id: 4,
-        type: 'primary',
-        icon: 'chart-line',
-        description: 'Daily report generated',
-        time: '2 hours ago'
-      }
-    ])
+        type: "primary",
+        icon: "chart-line",
+        description: "Daily report generated",
+        time: "2 hours ago",
+      },
+    ]);
 
     const topProducts = ref([
       {
         id: 1,
-        name: 'MacBook Pro',
-        category: 'Electronics',
+        name: "MacBook Pro",
+        category: "Electronics",
         sales: 145,
-        revenue: '289,550',
-        color: '#69aa8a'
+        revenue: "289,550",
+        color: "#69aa8a",
       },
       {
         id: 2,
-        name: 'iPhone 13',
-        category: 'Electronics',
+        name: "iPhone 13",
+        category: "Electronics",
         sales: 312,
-        revenue: '249,600',
-        color: '#17a2b8'
+        revenue: "249,600",
+        color: "#17a2b8",
       },
       {
         id: 3,
-        name: 'Nike Air Max',
-        category: 'Sports',
+        name: "Nike Air Max",
+        category: "Sports",
         sales: 198,
-        revenue: '19,800',
-        color: '#ffc107'
+        revenue: "19,800",
+        color: "#ffc107",
       },
       {
         id: 4,
-        name: 'Smart Watch',
-        category: 'Electronics',
+        name: "Smart Watch",
+        category: "Electronics",
         sales: 87,
-        revenue: '17,400',
-        color: '#6f42c1'
-      }
-    ])
+        revenue: "17,400",
+        color: "#6f42c1",
+      },
+    ]);
 
     onMounted(() => {
-      dashboardStore.refreshDashboard()
-    })
+      dashboardStore.refreshDashboard();
+    });
 
     return {
       heading,
@@ -550,10 +647,10 @@ export default defineComponent({
       salesByCategoryOptions,
       categories,
       recentActivities,
-      topProducts
-    }
-  }
-})
+      topProducts,
+    };
+  },
+});
 </script>
 
 <style scoped>

@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
     <div class="row mt-4">
       <div class="col-lg-6 col-xl-4">
         <div class="card mb-3 widget-content">
@@ -308,7 +312,9 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
                         <div class="widget-heading">Clients</div>
-                        <div class="widget-subheading">Total Clients Profit</div>
+                        <div class="widget-subheading">
+                          Total Clients Profit
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div class="widget-numbers text-primary">$12.6k</div>
@@ -344,7 +350,9 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
                         <div class="widget-heading">Products Sold</div>
-                        <div class="widget-subheading">Total revenue streams</div>
+                        <div class="widget-subheading">
+                          Total revenue streams
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div class="widget-numbers text-warning">$3M</div>
@@ -380,7 +388,9 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
                         <div class="widget-heading">Clients</div>
-                        <div class="widget-subheading">Total Clients Profit</div>
+                        <div class="widget-subheading">
+                          Total Clients Profit
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div class="widget-numbers text-primary">$12.6k</div>
@@ -701,7 +711,9 @@
                     </div>
                   </div>
                   <div class="widget-progress-wrapper">
-                    <div class="progress progress-bar-sm progress-bar-animated-alt">
+                    <div
+                      class="progress progress-bar-sm progress-bar-animated-alt"
+                    >
                       <div
                         class="progress-bar bg-success"
                         role="progressbar"
@@ -732,7 +744,9 @@
                     </div>
                   </div>
                   <div class="widget-progress-wrapper">
-                    <div class="progress progress-bar-xs progress-bar-animated-alt">
+                    <div
+                      class="progress progress-bar-xs progress-bar-animated-alt"
+                    >
                       <div
                         class="progress-bar bg-danger"
                         role="progressbar"
@@ -778,7 +792,9 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
                         <div class="widget-heading">Clients</div>
-                        <div class="widget-subheading">Total Clients Profit</div>
+                        <div class="widget-subheading">
+                          Total Clients Profit
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div class="widget-numbers text-primary">$12.6k</div>
@@ -808,7 +824,9 @@
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
                         <div class="widget-heading">Products Sold</div>
-                        <div class="widget-subheading">Total revenue streams</div>
+                        <div class="widget-subheading">
+                          Total revenue streams
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div class="widget-numbers text-warning">$3M</div>
@@ -826,69 +844,70 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
 export default {
-  name: 'ChartBoxes3',
+  name: "ChartBoxes3",
   components: {
-    PageTitle
+    PageTitle,
   },
   data() {
     return {
-      heading: 'Chart Boxes III',
-      subheading: 'Highly configurable boxes best used for showing numbers in an user friendly way.',
-      icon: 'pe-7s-wallet icon-gradient bg-plum-plate',
+      heading: "Chart Boxes III",
+      subheading:
+        "Highly configurable boxes best used for showing numbers in an user friendly way.",
+      icon: "pe-7s-wallet icon-gradient bg-plum-plate",
       // Sample data for dynamic content
       metrics: {
         totalOrders: {
           value: 1896,
           growth: 65,
-          label: 'Total Orders',
-          subtitle: 'Last year expenses'
+          label: "Total Orders",
+          subtitle: "Last year expenses",
         },
         clients: {
-          value: '$12.6k',
+          value: "$12.6k",
           growth: 47,
-          label: 'Clients',
-          subtitle: 'Total Clients Profit'
+          label: "Clients",
+          subtitle: "Total Clients Profit",
         },
         productsSold: {
-          value: '$3M',
+          value: "$3M",
           growth: 85,
-          label: 'Products Sold',
-          subtitle: 'Total revenue streams'
+          label: "Products Sold",
+          subtitle: "Total revenue streams",
         },
         followers: {
-          value: '45.9%',
+          value: "45.9%",
           growth: 65,
-          label: 'Followers',
-          subtitle: 'People Interested'
-        }
-      }
-    }
+          label: "Followers",
+          subtitle: "People Interested",
+        },
+      },
+    };
   },
   mounted() {
     // Initialize any animations or dynamic behaviors
-    this.initializeAnimations()
+    this.initializeAnimations();
   },
   methods: {
     initializeAnimations() {
       // Add smooth animations to progress bars
       setTimeout(() => {
-        const progressBars = document.querySelectorAll('.progress-bar')
-        progressBars.forEach(bar => {
-          bar.classList.add('animate')
-        })
-      }, 500)
+        const progressBars = document.querySelectorAll(".progress-bar");
+        progressBars.forEach((bar) => {
+          bar.classList.add("animate");
+        });
+      }, 500);
     },
     formatNumber(value) {
-      if (typeof value === 'number') {
-        return value.toLocaleString()
+      if (typeof value === "number") {
+        return value.toLocaleString();
       }
-      return value
-    }
-  }
-}
+      return value;
+    },
+  },
+};
 </script>
 
 <style scoped>

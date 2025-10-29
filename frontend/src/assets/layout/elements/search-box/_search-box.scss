@@ -56,7 +56,7 @@ $search-box-size: 42px;
         &::before,
         &::after {
           position: absolute;
-          content: '';
+          content: "";
         }
 
         &::before {
@@ -97,7 +97,7 @@ $search-box-size: 42px;
     &::before,
     &::after {
       position: absolute;
-      content: '';
+      content: "";
       background: $primary;
       border-radius: 2px;
     }

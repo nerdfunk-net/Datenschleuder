@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
     <div class="content">
       <b-row>
         <b-col lg="6">
@@ -19,7 +23,7 @@
                   'alternate',
                   'light',
                   'dark',
-                  'link'
+                  'link',
                 ]"
                 :key="variant"
               >
@@ -46,7 +50,7 @@
                   'outline-alternate',
                   'outline-light',
                   'outline-dark',
-                  'outline-link'
+                  'outline-link',
                 ]"
                 :key="variant"
               >
@@ -73,11 +77,14 @@
                   'outline-alternate',
                   'outline-light',
                   'outline-dark',
-                  'outline-link'
+                  'outline-link',
                 ]"
                 :key="variant"
               >
-                <b-button class="me-2 mb-2 border-0 btn-transition" :variant="variant">
+                <b-button
+                  class="me-2 mb-2 border-0 btn-transition"
+                  :variant="variant"
+                >
                   {{ variant }}
                 </b-button>
               </template>
@@ -100,11 +107,14 @@
                   'alternate',
                   'light',
                   'dark',
-                  'link'
+                  'link',
                 ]"
                 :key="variant"
               >
-                <b-button class="me-2 mb-2 btn-hover-shine btn-transition" :variant="variant">
+                <b-button
+                  class="me-2 mb-2 btn-hover-shine btn-transition"
+                  :variant="variant"
+                >
                   {{ variant }}
                 </b-button>
               </template>
@@ -127,7 +137,7 @@
                   'alternate',
                   'light',
                   'dark',
-                  'link'
+                  'link',
                 ]"
                 :key="variant"
               >
@@ -154,7 +164,7 @@
                   'alternate',
                   'light',
                   'dark',
-                  'link'
+                  'link',
                 ]"
                 :key="variant"
               >
@@ -171,7 +181,9 @@
               <h5 class="card-title">Block Level</h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
                 <div class="d-grid gap-2 mb-2">
-                  <b-button variant="primary" :size="size"> Block {{ size }} </b-button>
+                  <b-button variant="primary" :size="size">
+                    Block {{ size }}
+                  </b-button>
                 </div>
               </template>
             </div>
@@ -182,7 +194,13 @@
             <div class="card-body">
               <h5 class="card-title">Wider</h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
-                <b-button class="btn-wide me-2 mb-2" variant="primary" :size="size"> Wider {{ size }} </b-button>
+                <b-button
+                  class="btn-wide me-2 mb-2"
+                  variant="primary"
+                  :size="size"
+                >
+                  Wider {{ size }}
+                </b-button>
               </template>
             </div>
           </div>
@@ -190,7 +208,9 @@
             <div class="card-body">
               <h5 class="card-title">Sizing</h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
-                <b-button class="me-2 mb-2" variant="primary" :size="size"> Button {{ size }} </b-button>
+                <b-button class="me-2 mb-2" variant="primary" :size="size">
+                  Button {{ size }}
+                </b-button>
               </template>
             </div>
           </div>
@@ -218,7 +238,12 @@
                   >
                   </b-form-checkbox-group>
                   <div class="divider" />
-                  <b-form-checkbox-group buttons v-model="selected" stacked :options="options"></b-form-checkbox-group>
+                  <b-form-checkbox-group
+                    buttons
+                    v-model="selected"
+                    stacked
+                    :options="options"
+                  ></b-form-checkbox-group>
                 </div>
               </template>
             </div>
@@ -267,31 +292,32 @@
 </template>
 
 <script>
-import PageTitle from '../../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../../Layout/Components/PageTitle.vue";
 
 export default {
   components: {
-    PageTitle
+    PageTitle,
   },
   data: () => ({
-    heading: 'Standard Buttons',
-    subheading: 'Wide selection of buttons that feature different styles for backgrounds, borders and hover options!',
-    icon: 'pe-7s-plane icon-gradient bg-tempting-azure',
+    heading: "Standard Buttons",
+    subheading:
+      "Wide selection of buttons that feature different styles for backgrounds, borders and hover options!",
+    icon: "pe-7s-plane icon-gradient bg-tempting-azure",
 
     selected: [], // Must be an array reference!
     options: [
-      { text: 'Orange', value: 'orange' },
-      { text: 'Apple', value: 'apple' },
-      { text: 'Pineapple', value: 'pineapple' },
-      { text: 'Grape', value: 'grape' }
+      { text: "Orange", value: "orange" },
+      { text: "Apple", value: "apple" },
+      { text: "Pineapple", value: "pineapple" },
+      { text: "Grape", value: "grape" },
     ],
-    selected2: 'radio1',
+    selected2: "radio1",
     options2: [
-      { text: 'Radio 1', value: 'radio1' },
-      { text: 'Radio 3', value: 'radio2' },
-      { text: 'Radio 3 (disabled)', value: 'radio3', disabled: true },
-      { text: 'Radio 4', value: 'radio4' }
-    ]
-  })
-}
+      { text: "Radio 1", value: "radio1" },
+      { text: "Radio 3", value: "radio2" },
+      { text: "Radio 3 (disabled)", value: "radio3", disabled: true },
+      { text: "Radio 4", value: "radio4" },
+    ],
+  }),
+};
 </script>

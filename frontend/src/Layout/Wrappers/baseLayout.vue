@@ -12,17 +12,17 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
-import Header from '../Components/Header.vue'
-import SidebarNav from '../../components/SidebarNav.vue'
-import Footer from '../Components/Footer.vue'
+import { defineComponent } from "vue";
+import Header from "../Components/Header.vue";
+import SidebarNav from "../../components/SidebarNav.vue";
+import Footer from "../Components/Footer.vue";
 
 export default defineComponent({
-  name: 'BaseLayout',
+  name: "BaseLayout",
   components: {
     Header,
     SidebarNav,
-    Footer
-  }
-})
+    Footer,
+  },
+});
 </script>

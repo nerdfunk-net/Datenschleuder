@@ -5,75 +5,75 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { Chart, registerChartJS } from './chartSetup'
+import { defineComponent, ref, onMounted, onBeforeUnmount, watch } from "vue";
+import { Chart, registerChartJS } from "./chartSetup";
 
-registerChartJS()
+registerChartJS();
 
 export default defineComponent({
-  name: 'PieChartComponent',
+  name: "PieChartComponent",
   props: {
     data: {
       type: Object,
-      required: true
+      required: true,
     },
     options: {
       type: Object,
-      default: () => ({})
+      default: () => ({}),
     },
     height: {
       type: Number,
-      default: 250
-    }
+      default: 250,
+    },
   },
   setup(props) {
-    const chartCanvas = ref(null)
-    let chartInstance = null
+    const chartCanvas = ref(null);
+    let chartInstance = null;
 
     const createChart = () => {
-      if (!chartCanvas.value) return
+      if (!chartCanvas.value) return;
 
       if (chartInstance) {
-        chartInstance.destroy()
-        chartInstance = null
+        chartInstance.destroy();
+        chartInstance = null;
       }
 
-      const ctx = chartCanvas.value.getContext('2d')
+      const ctx = chartCanvas.value.getContext("2d");
       chartInstance = new Chart(ctx, {
-        type: 'pie',
+        type: "pie",
         data: props.data,
         options: {
           ...props.options,
           responsive: true,
-          maintainAspectRatio: false
-        }
-      })
-    }
+          maintainAspectRatio: false,
+        },
+      });
+    };
 
     onMounted(() => {
-      createChart()
-    })
+      createChart();
+    });
 
     onBeforeUnmount(() => {
       if (chartInstance) {
-        chartInstance.destroy()
-        chartInstance = null
+        chartInstance.destroy();
+        chartInstance = null;
       }
-    })
+    });
 
     watch(
       () => props.data,
       () => {
-        createChart()
+        createChart();
       },
-      { deep: true }
-    )
+      { deep: true },
+    );
 
     return {
-      chartCanvas
-    }
-  }
-})
+      chartCanvas,
+    };
+  },
+});
 </script>
 
 <style scoped>

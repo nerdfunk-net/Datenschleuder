@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
     <div class="row">
       <div class="col-md-6">
         <div class="main-card mb-3 card">
@@ -9,19 +13,36 @@
             <b-form>
               <div class="mb-3">
                 <label for="exampleEmail" class="form-label">Email</label>
-                <b-form-input id="exampleEmail" type="email" placeholder="with a placeholder"></b-form-input>
+                <b-form-input
+                  id="exampleEmail"
+                  type="email"
+                  placeholder="with a placeholder"
+                ></b-form-input>
               </div>
               <div class="mb-3">
                 <label for="examplePassword" class="form-label">Password</label>
-                <b-form-input id="examplePassword" type="password" placeholder="password placeholder"></b-form-input>
+                <b-form-input
+                  id="examplePassword"
+                  type="password"
+                  placeholder="password placeholder"
+                ></b-form-input>
               </div>
               <div class="mb-3">
                 <label for="exampleSelect" class="form-label">Select</label>
-                <b-form-select id="exampleSelect" :options="['1', '2', '3', '4', '5']"></b-form-select>
+                <b-form-select
+                  id="exampleSelect"
+                  :options="['1', '2', '3', '4', '5']"
+                ></b-form-select>
               </div>
               <div class="mb-3">
-                <label for="exampleSelectMulti" class="form-label">Select Multiple</label>
-                <b-form-select id="exampleSelectMulti" multiple :options="['1', '2', '3', '4', '5']"></b-form-select>
+                <label for="exampleSelectMulti" class="form-label"
+                  >Select Multiple</label
+                >
+                <b-form-select
+                  id="exampleSelectMulti"
+                  multiple
+                  :options="['1', '2', '3', '4', '5']"
+                ></b-form-select>
               </div>
               <div class="mb-3">
                 <label for="exampleText" class="form-label">Text Area</label>
@@ -31,11 +52,13 @@
                 <label for="exampleFile" class="form-label">File</label>
                 <b-form-file id="exampleFile"></b-form-file>
                 <small class="form-text text-muted">
-                  This is some placeholder block-level help text for the above input. It's a bit lighter and easily
-                  wraps to a new line.
+                  This is some placeholder block-level help text for the above
+                  input. It's a bit lighter and easily wraps to a new line.
                 </small>
               </div>
-              <b-button variant="primary" type="submit" class="mt-1">Submit</b-button>
+              <b-button variant="primary" type="submit" class="mt-1"
+                >Submit</b-button
+              >
             </b-form>
           </div>
         </div>
@@ -45,13 +68,34 @@
           <div class="card-body">
             <h5 class="card-title">Sizing</h5>
             <b-form>
-              <b-form-input size="lg" placeholder="Large input" class="mb-2"></b-form-input>
-              <b-form-input placeholder="Default input" class="mb-2"></b-form-input>
-              <b-form-input size="sm" placeholder="Small input" class="mb-2"></b-form-input>
+              <b-form-input
+                size="lg"
+                placeholder="Large input"
+                class="mb-2"
+              ></b-form-input>
+              <b-form-input
+                placeholder="Default input"
+                class="mb-2"
+              ></b-form-input>
+              <b-form-input
+                size="sm"
+                placeholder="Small input"
+                class="mb-2"
+              ></b-form-input>
               <div class="divider"></div>
-              <b-form-select size="lg" :options="['Large Select']" class="mb-2"></b-form-select>
-              <b-form-select :options="['Default Select']" class="mb-2"></b-form-select>
-              <b-form-select size="sm" :options="['Small Select']"></b-form-select>
+              <b-form-select
+                size="lg"
+                :options="['Large Select']"
+                class="mb-2"
+              ></b-form-select>
+              <b-form-select
+                :options="['Default Select']"
+                class="mb-2"
+              ></b-form-select>
+              <b-form-select
+                size="sm"
+                :options="['Small Select']"
+              ></b-form-select>
             </b-form>
           </div>
         </div>
@@ -62,18 +106,27 @@
               <b-form-radio-group
                 v-model="formData.radio"
                 :options="[
-                  { text: 'Option one is this and that—be sure to include why it\'s great', value: 'option1' },
+                  {
+                    text: 'Option one is this and that—be sure to include why it\'s great',
+                    value: 'option1',
+                  },
                   {
                     text: 'Option two can be something else and selecting it will deselect option one',
-                    value: 'option2'
+                    value: 'option2',
                   },
-                  { text: 'Option three is disabled', value: 'option3', disabled: true }
+                  {
+                    text: 'Option three is disabled',
+                    value: 'option3',
+                    disabled: true,
+                  },
                 ]"
                 name="radio1"
                 class="mb-3"
               ></b-form-radio-group>
 
-              <b-form-checkbox v-model="formData.checkbox"> Check me out </b-form-checkbox>
+              <b-form-checkbox v-model="formData.checkbox">
+                Check me out
+              </b-form-checkbox>
             </b-form>
           </div>
         </div>
@@ -89,7 +142,11 @@
               :options="[
                 { text: 'Check this custom checkbox', value: 'option1' },
                 { text: 'Or this one', value: 'option2' },
-                { text: 'But not this disabled one', value: 'option3', disabled: true }
+                {
+                  text: 'But not this disabled one',
+                  value: 'option3',
+                  disabled: true,
+                },
               ]"
             ></b-form-checkbox-group>
           </div>
@@ -101,7 +158,7 @@
               v-model="formData.inlineCheckboxes"
               :options="[
                 { text: 'An inline custom input', value: 'inline1' },
-                { text: 'and another one', value: 'inline2' }
+                { text: 'and another one', value: 'inline2' },
               ]"
               stacked="false"
             ></b-form-checkbox-group>
@@ -117,7 +174,11 @@
               :options="[
                 { text: 'Select this custom radio', value: 'radio1' },
                 { text: 'Or this one', value: 'radio2' },
-                { text: 'But not this disabled one', value: 'radio3', disabled: true }
+                {
+                  text: 'But not this disabled one',
+                  value: 'radio3',
+                  disabled: true,
+                },
               ]"
               name="customRadio"
             ></b-form-radio-group>
@@ -129,7 +190,9 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="exampleCustomSelect" class="form-label">Form Select</label>
+                  <label for="exampleCustomSelect" class="form-label"
+                    >Form Select</label
+                  >
                   <b-form-select
                     id="exampleCustomSelect"
                     v-model="formData.customSelect"
@@ -139,12 +202,14 @@
                       { value: 'value2', text: 'Value 2' },
                       { value: 'value3', text: 'Value 3' },
                       { value: 'value4', text: 'Value 4' },
-                      { value: 'value5', text: 'Value 5' }
+                      { value: 'value5', text: 'Value 5' },
                     ]"
                   ></b-form-select>
                 </div>
                 <div class="mb-3">
-                  <label for="exampleCustomMutlipleSelect" class="form-label">Form Multiple Select</label>
+                  <label for="exampleCustomMutlipleSelect" class="form-label"
+                    >Form Multiple Select</label
+                  >
                   <b-form-select
                     id="exampleCustomMutlipleSelect"
                     v-model="formData.customMultiSelect"
@@ -155,14 +220,16 @@
                       { value: 'value2', text: 'Value 2' },
                       { value: 'value3', text: 'Value 3' },
                       { value: 'value4', text: 'Value 4' },
-                      { value: 'value5', text: 'Value 5' }
+                      { value: 'value5', text: 'Value 5' },
                     ]"
                   ></b-form-select>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="exampleCustomSelectDisabled" class="form-label">Form Select Disabled</label>
+                  <label for="exampleCustomSelectDisabled" class="form-label"
+                    >Form Select Disabled</label
+                  >
                   <b-form-select
                     id="exampleCustomSelectDisabled"
                     disabled
@@ -172,12 +239,14 @@
                       { value: 'value2', text: 'Value 2' },
                       { value: 'value3', text: 'Value 3' },
                       { value: 'value4', text: 'Value 4' },
-                      { value: 'value5', text: 'Value 5' }
+                      { value: 'value5', text: 'Value 5' },
                     ]"
                   ></b-form-select>
                 </div>
                 <div class="mb-3">
-                  <label for="exampleCustomMutlipleSelectDisabled" class="form-label"
+                  <label
+                    for="exampleCustomMutlipleSelectDisabled"
+                    class="form-label"
                     >Form Multiple Select Disabled</label
                   >
                   <b-form-select
@@ -190,7 +259,7 @@
                       { value: 'value2', text: 'Value 2' },
                       { value: 'value3', text: 'Value 3' },
                       { value: 'value4', text: 'Value 4' },
-                      { value: 'value5', text: 'Value 5' }
+                      { value: 'value5', text: 'Value 5' },
                     ]"
                   ></b-form-select>
                 </div>
@@ -223,12 +292,17 @@
               </b-input-group>
 
               <!-- With prepend slot -->
-              <label for="website-input" class="form-label">Your website URL</label>
+              <label for="website-input" class="form-label"
+                >Your website URL</label
+              >
               <b-input-group class="mb-3">
                 <template #prepend>
                   <b-input-group-text>https://</b-input-group-text>
                 </template>
-                <b-form-input id="website-input" placeholder="example.com"></b-form-input>
+                <b-form-input
+                  id="website-input"
+                  placeholder="example.com"
+                ></b-form-input>
               </b-input-group>
 
               <!-- With textarea -->
@@ -304,7 +378,9 @@
                   <b-button variant="outline-secondary">Button</b-button>
                   <b-button variant="outline-secondary">Button</b-button>
                 </template>
-                <b-form-input placeholder="Input with multiple buttons"></b-form-input>
+                <b-form-input
+                  placeholder="Input with multiple buttons"
+                ></b-form-input>
               </b-input-group>
 
               <!-- Buttons on both sides -->
@@ -312,7 +388,9 @@
                 <template #prepend>
                   <b-button variant="outline-secondary">Left</b-button>
                 </template>
-                <b-form-input placeholder="Input with buttons on both sides"></b-form-input>
+                <b-form-input
+                  placeholder="Input with buttons on both sides"
+                ></b-form-input>
                 <template #append>
                   <b-button variant="outline-secondary">Right</b-button>
                 </template>
@@ -387,17 +465,23 @@
 
               <!-- Select with prepend text -->
               <b-input-group prepend="Options" class="mb-3">
-                <b-form-select :options="['Choose...', 'One', 'Two', 'Three']"></b-form-select>
+                <b-form-select
+                  :options="['Choose...', 'One', 'Two', 'Three']"
+                ></b-form-select>
               </b-input-group>
 
               <!-- Select with append text -->
               <b-input-group append="Options" class="mb-3">
-                <b-form-select :options="['Choose...', 'One', 'Two', 'Three']"></b-form-select>
+                <b-form-select
+                  :options="['Choose...', 'One', 'Two', 'Three']"
+                ></b-form-select>
               </b-input-group>
 
               <!-- Select with button -->
               <b-input-group class="mb-3">
-                <b-form-select :options="['Choose...', 'One', 'Two', 'Three']"></b-form-select>
+                <b-form-select
+                  :options="['Choose...', 'One', 'Two', 'Three']"
+                ></b-form-select>
                 <template #append>
                   <b-button variant="outline-secondary">Button</b-button>
                 </template>
@@ -408,7 +492,9 @@
                 <template #prepend>
                   <b-button variant="outline-secondary">Button</b-button>
                 </template>
-                <b-form-select :options="['Choose...', 'One', 'Two', 'Three']"></b-form-select>
+                <b-form-select
+                  :options="['Choose...', 'One', 'Two', 'Three']"
+                ></b-form-select>
               </b-input-group>
             </div>
           </div>
@@ -419,46 +505,47 @@
 </template>
 
 <script>
-import PageTitle from '../../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../../Layout/Components/PageTitle.vue";
 
 export default {
-  name: 'FormControls',
+  name: "FormControls",
   components: {
-    PageTitle
+    PageTitle,
   },
   data() {
     return {
-      heading: 'Form Controls',
-      subheading: 'Wide selection of forms controls, using the Bootstrap 5 code base, but built with Vue.',
-      icon: 'pe-7s-display1 icon-gradient bg-premium-dark',
+      heading: "Form Controls",
+      subheading:
+        "Wide selection of forms controls, using the Bootstrap 5 code base, but built with Vue.",
+      icon: "pe-7s-display1 icon-gradient bg-premium-dark",
       // Sample form data
       formData: {
-        email: '',
-        password: '',
-        select: '',
+        email: "",
+        password: "",
+        select: "",
         selectMulti: [],
-        textarea: '',
+        textarea: "",
         file: null,
         checkbox: false,
-        radio: '',
-        customRadio: '',
-        customSelect: '',
+        radio: "",
+        customRadio: "",
+        customSelect: "",
         checkboxGroup: [],
         inlineCheckboxes: [],
-        customMultiSelect: []
-      }
-    }
+        customMultiSelect: [],
+      },
+    };
   },
   methods: {
     handleSubmit() {
       // Handle form submission
-      alert('Form submitted! Check console for data.')
+      alert("Form submitted! Check console for data.");
     },
     handleFileChange(event) {
-      this.formData.file = event.target.files[0]
-    }
-  }
-}
+      this.formData.file = event.target.files[0];
+    },
+  },
+};
 </script>
 
 <style>
@@ -632,11 +719,11 @@ export default {
 }
 
 /* BootstrapVueNext specific fixes */
-.form-check-input[type='checkbox'] {
+.form-check-input[type="checkbox"] {
   border-radius: 0.25em;
 }
 
-.form-check-input[type='radio'] {
+.form-check-input[type="radio"] {
   border-radius: 50%;
 }
 
@@ -649,13 +736,13 @@ export default {
   float: none !important;
 }
 
-.input-group-text .form-check-input[type='checkbox'],
-.form-check-input[type='checkbox'] {
+.input-group-text .form-check-input[type="checkbox"],
+.form-check-input[type="checkbox"] {
   border-radius: 0.25em;
 }
 
-.input-group-text .form-check-input[type='radio'],
-.form-check-input[type='radio'] {
+.input-group-text .form-check-input[type="radio"],
+.form-check-input[type="radio"] {
   border-radius: 50%;
 }
 
@@ -677,18 +764,18 @@ export default {
   border-color: #0d6efd;
 }
 
-.input-group-text .form-check-input:checked[type='checkbox'],
-.form-check-input:checked[type='checkbox'] {
+.input-group-text .form-check-input:checked[type="checkbox"],
+.form-check-input:checked[type="checkbox"] {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
 }
 
-.input-group-text .form-check-input:checked[type='radio'],
-.form-check-input:checked[type='radio'] {
+.input-group-text .form-check-input:checked[type="radio"],
+.form-check-input:checked[type="radio"] {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%23fff'/%3e%3c/svg%3e");
 }
 
-.input-group-text .form-check-input[type='checkbox']:indeterminate,
-.form-check-input[type='checkbox']:indeterminate {
+.input-group-text .form-check-input[type="checkbox"]:indeterminate,
+.form-check-input[type="checkbox"]:indeterminate {
   background-color: #0d6efd;
   border-color: #0d6efd;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='M6 10h8'/%3e%3c/svg%3e");
@@ -702,15 +789,17 @@ export default {
 }
 
 /* Bootstrap 5 File Input Styling */
-.form-control[type='file']:not(:disabled):not([readonly]) {
+.form-control[type="file"]:not(:disabled):not([readonly]) {
   cursor: pointer;
 }
 
-.form-control[type='file'] {
+.form-control[type="file"] {
   overflow: hidden;
 }
 
-.form-control[type='file']:not(:disabled):not([readonly])::-webkit-file-upload-button {
+.form-control[type="file"]:not(:disabled):not(
+    [readonly]
+  )::-webkit-file-upload-button {
   padding: 0.375rem 0.75rem;
   margin: -0.375rem -0.75rem;
   margin-inline-end: 0.75rem;
@@ -729,11 +818,13 @@ export default {
     box-shadow 0.15s ease-in-out;
 }
 
-.form-control[type='file']:hover:not(:disabled):not([readonly])::-webkit-file-upload-button {
+.form-control[type="file"]:hover:not(:disabled):not(
+    [readonly]
+  )::-webkit-file-upload-button {
   background-color: #ddd6fe;
 }
 
-.form-control[type='file']::-webkit-file-upload-button {
+.form-control[type="file"]::-webkit-file-upload-button {
   padding: 0.375rem 0.75rem;
   margin: -0.375rem -0.75rem;
   margin-inline-end: 0.75rem;
@@ -752,20 +843,20 @@ export default {
     box-shadow 0.15s ease-in-out;
 }
 
-.form-control-sm[type='file']::-webkit-file-upload-button {
+.form-control-sm[type="file"]::-webkit-file-upload-button {
   padding: 0.25rem 0.5rem;
   margin: -0.25rem -0.5rem;
   margin-inline-end: 0.5rem;
 }
 
-.form-control-lg[type='file']::-webkit-file-upload-button {
+.form-control-lg[type="file"]::-webkit-file-upload-button {
   padding: 0.5rem 1rem;
   margin: -0.5rem -1rem;
   margin-inline-end: 1rem;
 }
 
 /* Firefox file upload button styling */
-.form-control[type='file']::-moz-file-upload-button {
+.form-control[type="file"]::-moz-file-upload-button {
   padding: 0.375rem 0.75rem;
   margin: -0.375rem -0.75rem;
   margin-inline-end: 0.75rem;

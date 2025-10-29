@@ -1,6 +1,10 @@
 <template>
   <div>
-    <page-title :heading="heading" :subheading="subheading" :icon="icon"></page-title>
+    <page-title
+      :heading="heading"
+      :subheading="subheading"
+      :icon="icon"
+    ></page-title>
 
     <div class="content">
       <b-card title="BootstrapVueNext Carousel" class="main-card mb-3">
@@ -35,53 +39,54 @@
 </template>
 
 <script>
-import PageTitle from '../../Layout/Components/PageTitle.vue'
+import PageTitle from "../../Layout/Components/PageTitle.vue";
 
 export default {
-  name: 'Carousel',
+  name: "Carousel",
   components: {
-    PageTitle
+    PageTitle,
   },
   data() {
     return {
-      heading: 'Carousels & Slideshows',
-      subheading: 'Create easy and beautiful slideshows with these BootstrapVueNext components.',
-      icon: 'pe-7s-album icon-gradient bg-sunny-morning',
+      heading: "Carousels & Slideshows",
+      subheading:
+        "Create easy and beautiful slideshows with these BootstrapVueNext components.",
+      icon: "pe-7s-album icon-gradient bg-sunny-morning",
       currentSlide: 0,
       slides: [
         {
-          image: 'https://picsum.photos/1024/480/?image=52',
-          caption: 'First slide',
-          text: 'Nulla vitae elit libero, a pharetra augue mollis interdum.',
-          alt: 'First slide'
+          image: "https://picsum.photos/1024/480/?image=52",
+          caption: "First slide",
+          text: "Nulla vitae elit libero, a pharetra augue mollis interdum.",
+          alt: "First slide",
         },
         {
-          image: 'https://picsum.photos/1024/480/?image=54',
-          caption: 'Hello world!',
-          text: '',
-          customContent: '<h1>Hello world!</h1>',
-          alt: 'Second slide'
+          image: "https://picsum.photos/1024/480/?image=54",
+          caption: "Hello world!",
+          text: "",
+          customContent: "<h1>Hello world!</h1>",
+          alt: "Second slide",
         },
         {
-          image: 'https://picsum.photos/1024/480/?image=58',
-          caption: '',
-          text: '',
-          alt: 'Third slide'
+          image: "https://picsum.photos/1024/480/?image=58",
+          caption: "",
+          text: "",
+          alt: "Third slide",
         },
         {
-          image: 'https://picsum.photos/1024/480/?image=55',
-          caption: 'Image slot example',
-          text: 'Example using direct image slot',
-          alt: 'Fourth slide'
+          image: "https://picsum.photos/1024/480/?image=55",
+          caption: "Image slot example",
+          text: "Example using direct image slot",
+          alt: "Fourth slide",
         },
         {
-          image: 'https://picsum.photos/1024/480/?image=60',
-          caption: 'Fifth Slide',
-          text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse eros felis, tincidunt a tincidunt eget, convallis vel est. Ut pellentesque ut lacus vel interdum.',
-          alt: 'Fifth slide'
-        }
-      ]
-    }
-  }
-}
+          image: "https://picsum.photos/1024/480/?image=60",
+          caption: "Fifth Slide",
+          text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse eros felis, tincidunt a tincidunt eget, convallis vel est. Ut pellentesque ut lacus vel interdum.",
+          alt: "Fifth slide",
+        },
+      ],
+    };
+  },
+};
 </script>

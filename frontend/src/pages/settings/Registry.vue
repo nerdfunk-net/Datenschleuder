@@ -4,9 +4,14 @@
       <!-- Header -->
       <div class="card-header">
         <h2 class="card-title">Registry Flows</h2>
-        <b-button variant="light" @click="showAddFlowModal = true">
-          <i class="pe-7s-plus"></i> Add Flow
-        </b-button>
+        <div class="header-actions">
+          <b-button variant="outline-secondary" @click="showImportModal = true">
+            <i class="pe-7s-upload"></i> Import Flow
+          </b-button>
+          <b-button variant="light" @click="showAddFlowModal = true">
+            <i class="pe-7s-plus"></i> Add Flow
+          </b-button>
+        </div>
       </div>
 
       <!-- Loading State -->
@@ -40,14 +45,67 @@
                 {{ flow.flow_description || "No description" }}
               </td>
               <td class="text-end">
-                <b-button
-                  size="sm"
-                  variant="outline-danger"
-                  @click="handleDelete(flow)"
-                  title="Remove"
-                >
-                  <i class="pe-7s-trash"></i>
-                </b-button>
+                <div class="btn-group" role="group">
+                  <!-- Loading spinner while registry details are being fetched -->
+                  <template v-if="!getRegistryDetails(flow)">
+                    <b-button
+                      size="sm"
+                      variant="outline-secondary"
+                      disabled
+                      title="Loading registry details..."
+                    >
+                      <b-spinner small />
+                    </b-button>
+                  </template>
+
+                  <!-- GitHub Link Button -->
+                  <template v-else-if="isGitHubRegistry(flow)">
+                    <a
+                      :href="getGitHubUrl(flow)"
+                      target="_blank"
+                      class="btn btn-sm btn-outline-primary"
+                      title="View on GitHub"
+                    >
+                      <i class="pe-7s-link"></i> GitHub
+                    </a>
+                  </template>
+
+                  <!-- Export Dropdown (for non-GitHub registries) -->
+                  <template v-else>
+                    <b-dropdown
+                      size="sm"
+                      variant="outline-primary"
+                      :disabled="exportingFlowIds.has(`${flow.registry_id}_${flow.bucket_id}_${flow.flow_id}`)"
+                      title="Export Flow"
+                      no-caret
+                      split
+                      @click="handleExport(flow, 'json')"
+                    >
+                      <template #button-content>
+                        <b-spinner
+                          v-if="exportingFlowIds.has(`${flow.registry_id}_${flow.bucket_id}_${flow.flow_id}`)"
+                          small
+                        />
+                        <i v-else class="pe-7s-download"></i>
+                      </template>
+                      <b-dropdown-item @click="handleExport(flow, 'json')">
+                        Export as JSON
+                      </b-dropdown-item>
+                      <b-dropdown-item @click="handleExport(flow, 'yaml')">
+                        Export as YAML
+                      </b-dropdown-item>
+                    </b-dropdown>
+                  </template>
+
+                  <b-button
+                    size="sm"
+                    variant="outline-danger"
+                    @click="handleDelete(flow)"
+                    title="Remove"
+                  >
+                    <i class="pe-7s-trash"></i>
+                  </b-button>
+                </div>
               </td>
             </tr>
             <tr v-if="registryFlows.length === 0">
@@ -155,11 +213,144 @@
         </b-button>
       </template>
     </b-modal>
+
+    <!-- Import Flow Modal -->
+    <b-modal
+      v-model="showImportModal"
+      title="Import Flow"
+      size="lg"
+      modal-class="import-flow-modal"
+    >
+      <div class="import-flow-content">
+        <!-- Step 1: Select NiFi Instance -->
+        <div class="selection-step">
+          <h6 class="step-title">1. Select NiFi Instance</h6>
+          <b-form-select
+            v-model="importSelectedInstance"
+            :options="instanceOptions"
+            size="sm"
+            @change="onImportInstanceChange"
+          >
+            <template #first>
+              <b-form-select-option :value="null" disabled
+                >-- Select NiFi Instance --</b-form-select-option
+              >
+            </template>
+          </b-form-select>
+        </div>
+
+        <!-- Step 2: Select Registry -->
+        <div v-if="importSelectedInstance" class="selection-step">
+          <h6 class="step-title">2. Select Registry</h6>
+          <div v-if="loadingImportRegistries" class="text-center py-3">
+            <b-spinner small variant="primary"></b-spinner>
+            <span class="ms-2">Loading registries...</span>
+          </div>
+          <b-form-select
+            v-else
+            v-model="importSelectedRegistry"
+            :options="importRegistryOptions"
+            size="sm"
+            @change="onImportRegistryChange"
+          >
+            <template #first>
+              <b-form-select-option :value="null" disabled
+                >-- Select Registry --</b-form-select-option
+              >
+            </template>
+          </b-form-select>
+        </div>
+
+        <!-- Step 3: Select Bucket -->
+        <div v-if="importSelectedRegistry" class="selection-step">
+          <h6 class="step-title">3. Select Bucket</h6>
+          <div v-if="loadingImportBuckets" class="text-center py-3">
+            <b-spinner small variant="primary"></b-spinner>
+            <span class="ms-2">Loading buckets...</span>
+          </div>
+          <b-form-select
+            v-else
+            v-model="importSelectedBucket"
+            :options="importBucketOptions"
+            size="sm"
+          >
+            <template #first>
+              <b-form-select-option :value="null" disabled
+                >-- Select Bucket --</b-form-select-option
+              >
+            </template>
+          </b-form-select>
+        </div>
+
+        <!-- Step 4: Import Mode -->
+        <div v-if="importSelectedBucket" class="selection-step">
+          <h6 class="step-title">4. Import Mode</h6>
+          <b-form-radio-group v-model="importMode" :options="importModeOptions" />
+        </div>
+
+        <!-- Step 5: Flow Name (for new flow) -->
+        <div v-if="importSelectedBucket && importMode === 'new'" class="selection-step">
+          <h6 class="step-title">5. Flow Name</h6>
+          <b-form-input
+            v-model="importFlowName"
+            placeholder="Enter flow name for new flow"
+            size="sm"
+          />
+        </div>
+
+        <!-- Step 5/6: Existing Flow (for existing flow) -->
+        <div v-if="importSelectedBucket && importMode === 'existing'" class="selection-step">
+          <h6 class="step-title">5. Select Existing Flow</h6>
+          <div v-if="loadingImportFlows" class="text-center py-3">
+            <b-spinner small variant="primary"></b-spinner>
+            <span class="ms-2">Loading flows...</span>
+          </div>
+          <b-form-select
+            v-else
+            v-model="importSelectedFlow"
+            :options="importFlowOptions"
+            size="sm"
+          >
+            <template #first>
+              <b-form-select-option :value="null" disabled
+                >-- Select Flow --</b-form-select-option
+              >
+            </template>
+          </b-form-select>
+        </div>
+
+        <!-- Step 6/7: File Upload -->
+        <div v-if="importSelectedBucket && ((importMode === 'new' && importFlowName) || (importMode === 'existing' && importSelectedFlow))" class="selection-step">
+          <h6 class="step-title">{{ importMode === 'new' ? '6' : '6' }}. Select File</h6>
+          <b-form-file
+            v-model="importFile"
+            placeholder="Choose a JSON or YAML file..."
+            accept=".json,.yaml,.yml"
+            size="sm"
+          />
+        </div>
+      </div>
+
+      <template #footer>
+        <b-button variant="secondary" @click="closeImportModal" size="sm"
+          >Cancel</b-button
+        >
+        <b-button
+          variant="primary"
+          @click="importFlow"
+          size="sm"
+          :disabled="!canImport || isImporting"
+        >
+          <b-spinner v-if="isImporting" small class="me-1"></b-spinner>
+          {{ isImporting ? "Importing..." : "Import Flow" }}
+        </b-button>
+      </template>
+    </b-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { apiRequest } from "@/utils/api";
 
 interface RegistryFlow {
@@ -226,6 +417,31 @@ const availableFlows = ref<Flow[]>([]);
 const loadingBuckets = ref(false);
 const loadingFlows = ref(false);
 
+// Import modal state
+const showImportModal = ref(false);
+const importSelectedInstance = ref<NiFiInstance | null>(null);
+const importSelectedRegistry = ref<Registry | null>(null);
+const importSelectedBucket = ref<Bucket | null>(null);
+const importSelectedFlow = ref<Flow | null>(null);
+const importFlowName = ref("");
+const importFile = ref<File | null>(null);
+const importMode = ref<"new" | "existing">("new");
+const isImporting = ref(false);
+
+// Import data loading
+const importRegistries = ref<Registry[]>([]);
+const importBuckets = ref<Bucket[]>([]);
+const importFlows = ref<Flow[]>([]);
+const loadingImportRegistries = ref(false);
+const loadingImportBuckets = ref(false);
+const loadingImportFlows = ref(false);
+
+// Export state
+const exportingFlowIds = ref<Set<string>>(new Set());
+
+// Registry details cache (registry_id -> details)
+const registryDetailsCache = ref<Map<string, any>>(new Map());
+
 const instanceOptions = computed(() => {
   return nifiInstances.value.map((instance) => ({
     value: instance,
@@ -240,10 +456,81 @@ const bucketOptions = computed(() => {
   }));
 });
 
+// Import computed properties
+const importRegistryOptions = computed(() => {
+  return importRegistries.value.map((registry) => ({
+    value: registry,
+    text: registry.name,
+  }));
+});
+
+const importBucketOptions = computed(() => {
+  return importBuckets.value.map((bucket) => ({
+    value: bucket,
+    text: bucket.name,
+  }));
+});
+
+const importFlowOptions = computed(() => {
+  return importFlows.value.map((flow) => ({
+    value: flow,
+    text: flow.name,
+  }));
+});
+
+const importModeOptions = computed(() => [
+  { text: "Create new flow", value: "new" },
+  { text: "Add version to existing flow", value: "existing" },
+]);
+
+const canImport = computed(() => {
+  return (
+    importSelectedBucket.value &&
+    importFile.value &&
+    ((importMode.value === "new" && importFlowName.value.trim()) ||
+      (importMode.value === "existing" && importSelectedFlow.value))
+  );
+});
+
 const loadRegistryFlows = async () => {
   isLoading.value = true;
   try {
     registryFlows.value = await apiRequest("/api/registry-flows/");
+
+    // Load registry details for each unique registry
+    const uniqueRegistries = new Set<string>();
+    console.log('Building unique registries list from flows:', registryFlows.value.length);
+    for (const flow of registryFlows.value) {
+      const instanceId = getInstanceIdByUrl(flow.nifi_instance_url);
+      const key = `${instanceId}_${flow.registry_id}`;
+      console.log(`Flow ${flow.flow_name}: instanceId=${instanceId}, registryId=${flow.registry_id}, key=${key}`);
+      if (!uniqueRegistries.has(key) && !registryDetailsCache.value.has(key)) {
+        uniqueRegistries.add(key);
+      }
+    }
+    console.log('Unique registries to fetch:', Array.from(uniqueRegistries));
+
+    // Fetch details for each unique registry
+    for (const key of uniqueRegistries) {
+      const parts = key.split('_');
+      const instanceIdStr = parts[0];
+      const registryId = parts.slice(1).join('_'); // Handle registry IDs with underscores
+      const instanceId = parseInt(instanceIdStr);
+
+      if (instanceId > 0) {
+        try {
+          const details = await apiRequest(
+            `/api/nifi-instances/${instanceId}/registry/${registryId}/details`
+          );
+          console.log(`Loaded registry details for ${key}:`, details);
+          registryDetailsCache.value.set(key, details);
+        } catch (error) {
+          console.error(`Failed to load registry details for ${key}:`, error);
+        }
+      }
+    }
+
+    console.log('Registry details cache:', registryDetailsCache.value);
   } catch (error) {
     console.error("Error loading registry flows:", error);
     alert("Failed to load registry flows");
@@ -397,9 +684,268 @@ const closeModal = () => {
   availableFlows.value = [];
 };
 
+// Export flow function
+const handleExport = async (flow: RegistryFlow, format: 'json' | 'yaml' = 'json') => {
+  const flowKey = `${flow.registry_id}_${flow.bucket_id}_${flow.flow_id}`;
+  
+  if (exportingFlowIds.value.has(flowKey)) {
+    return; // Already exporting this flow
+  }
+
+  exportingFlowIds.value.add(flowKey);
+  
+  try {
+    const instanceId = getInstanceIdByUrl(flow.nifi_instance_url);
+    const url = `/api/nifi-instances/${instanceId}/registry/${flow.registry_id}/${flow.bucket_id}/export-flow?flow_id=${flow.flow_id}&mode=${format}`;
+    
+    console.log('Export URL:', url);
+    
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    console.log('Headers:', headers);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers,
+    });
+
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("rememberMe");
+      window.location.href = "/login";
+      throw new Error("Unauthorized");
+    }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: "Export failed" }));
+      throw new Error(error.detail || `Export failed with status ${response.status}`);
+    }
+
+    // Get the blob from response
+    const blob = await response.blob();
+    
+    // Create download link
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${flow.flow_name}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the blob URL
+    window.URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+    console.error("Error exporting flow:", error);
+    alert(`Failed to export flow: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    exportingFlowIds.value.delete(flowKey);
+  }
+};
+
+// Helper function to get instance ID by URL
+const getInstanceIdByUrl = (url: string): number => {
+  const instance = nifiInstances.value.find(inst => inst.nifi_url === url);
+  return instance?.id || 0;
+};
+
+// Helper function to get registry details for a flow
+const getRegistryDetails = (flow: RegistryFlow) => {
+  const instanceId = getInstanceIdByUrl(flow.nifi_instance_url);
+  const key = `${instanceId}_${flow.registry_id}`;
+  return registryDetailsCache.value.get(key);
+};
+
+// Helper function to check if registry is GitHub
+const isGitHubRegistry = (flow: RegistryFlow): boolean => {
+  const details = getRegistryDetails(flow);
+  console.log(`Checking if GitHub registry for flow ${flow.flow_name}:`, {
+    hasDetails: !!details,
+    isGithub: details?.is_github,
+    type: details?.type
+  });
+  return details?.is_github === true;
+};
+
+// Helper function to get GitHub URL for a flow
+const getGitHubUrl = (flow: RegistryFlow): string | null => {
+  const details = getRegistryDetails(flow);
+  if (!details?.github_url) return null;
+
+  // Append bucket and flow path with .json extension
+  let url = details.github_url;
+
+  // Replace /tree/ with /blob/ for file viewing
+  if (!url.includes('/tree/')) {
+    url += '/blob/main';
+  } else {
+    url = url.replace('/tree/', '/blob/');
+  }
+
+  url += `/${flow.bucket_id}/${flow.flow_id}.json`;
+
+  return url;
+};
+
+// Import modal functions
+const closeImportModal = () => {
+  showImportModal.value = false;
+  resetImportForm();
+};
+
+const resetImportForm = () => {
+  importSelectedInstance.value = null;
+  importSelectedRegistry.value = null;
+  importSelectedBucket.value = null;
+  importSelectedFlow.value = null;
+  importFlowName.value = "";
+  importFile.value = null;
+  importMode.value = "new";
+  importRegistries.value = [];
+  importBuckets.value = [];
+  importFlows.value = [];
+};
+
+const onImportInstanceChange = async () => {
+  if (!importSelectedInstance.value) return;
+
+  // Reset downstream selections
+  importSelectedRegistry.value = null;
+  importSelectedBucket.value = null;
+  importSelectedFlow.value = null;
+  importRegistries.value = [];
+  importBuckets.value = [];
+  importFlows.value = [];
+
+  // Load registries for this instance
+  loadingImportRegistries.value = true;
+  try {
+    const response = await apiRequest(
+      `/api/nifi-instances/${importSelectedInstance.value.id}/get-registries`,
+    );
+    importRegistries.value = response.registries || [];
+  } catch (error) {
+    console.error("Error loading registries:", error);
+    alert("Failed to load registries");
+  } finally {
+    loadingImportRegistries.value = false;
+  }
+};
+
+const onImportRegistryChange = async () => {
+  if (!importSelectedInstance.value || !importSelectedRegistry.value) return;
+
+  // Reset downstream selections
+  importSelectedBucket.value = null;
+  importSelectedFlow.value = null;
+  importBuckets.value = [];
+  importFlows.value = [];
+
+  // Load buckets for this registry
+  loadingImportBuckets.value = true;
+  try {
+    const response = await apiRequest(
+      `/api/nifi-instances/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/get-buckets`,
+    );
+    importBuckets.value = response.buckets || [];
+  } catch (error) {
+    console.error("Error loading buckets:", error);
+    alert("Failed to load buckets");
+  } finally {
+    loadingImportBuckets.value = false;
+  }
+};
+
+const loadImportFlows = async () => {
+  if (!importSelectedInstance.value || !importSelectedRegistry.value || !importSelectedBucket.value) return;
+
+  loadingImportFlows.value = true;
+  try {
+    const response = await apiRequest(
+      `/api/nifi-instances/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/${importSelectedBucket.value.identifier}/get-flows`,
+    );
+    importFlows.value = response.flows || [];
+  } catch (error) {
+    console.error("Error loading flows:", error);
+    alert("Failed to load flows");
+  } finally {
+    loadingImportFlows.value = false;
+  }
+};
+
+const importFlow = async () => {
+  if (!canImport.value) return;
+
+  isImporting.value = true;
+  try {
+    const formData = new FormData();
+    formData.append('file', importFile.value!);
+    
+    if (importMode.value === 'new') {
+      formData.append('flow_name', importFlowName.value);
+    } else {
+      formData.append('flow_id', importSelectedFlow.value!.identifier);
+    }
+
+    const url = `/api/nifi-instances/${importSelectedInstance.value!.id}/registry/${importSelectedRegistry.value!.id}/${importSelectedBucket.value!.identifier}/import-flow`;
+    
+    const token = localStorage.getItem('token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("rememberMe");
+      window.location.href = "/login";
+      throw new Error("Unauthorized");
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Import failed' }));
+      throw new Error(errorData.detail || `Import failed with status ${response.status}`);
+    }
+
+    const result = await response.json();
+    alert(`Flow imported successfully: ${result.flow_name}`);
+    closeImportModal();
+    
+    // Refresh the flows list
+    await loadRegistryFlows();
+  } catch (error) {
+    console.error("Error importing flow:", error);
+    alert(`Failed to import flow: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    isImporting.value = false;
+  }
+};
+
+// Watch for bucket selection in import modal to load flows for existing mode
+watch(
+  [importSelectedBucket, importMode],
+  () => {
+    if (importMode.value === "existing" && importSelectedBucket.value) {
+      loadImportFlows();
+    }
+  }
+);
+
 onMounted(async () => {
-  await loadRegistryFlows();
   await loadNiFiInstances();
+  await loadRegistryFlows();
 });
 </script>
 
@@ -423,6 +969,11 @@ onMounted(async () => {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .card-title {

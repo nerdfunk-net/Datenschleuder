@@ -195,6 +195,11 @@ interface ProcessGroupPath {
   path: Array<{ id: string; name: string; parent_group_id: string }>;
 }
 
+interface PathConfig {
+  id: string; // UUID of the process group
+  path: string; // Human-readable path like "Nifi Flow/From DC1"
+}
+
 interface DeploymentSettings {
   global: {
     process_group_name_template: string;
@@ -203,8 +208,8 @@ interface DeploymentSettings {
   };
   paths: {
     [instanceId: number]: {
-      source_path?: string;
-      dest_path?: string;
+      source_path?: PathConfig;
+      dest_path?: PathConfig;
     };
   };
 }
@@ -304,25 +309,53 @@ const getPathOptionsForInstance = (instanceId: number) => {
 };
 
 const getSourcePath = (instanceId: number) => {
-  return settings.value.paths[instanceId]?.source_path || "";
+  return settings.value.paths[instanceId]?.source_path?.id || "";
 };
 
 const getDestPath = (instanceId: number) => {
-  return settings.value.paths[instanceId]?.dest_path || "";
+  return settings.value.paths[instanceId]?.dest_path?.id || "";
 };
 
-const updateSourcePath = (instanceId: number, value: string) => {
+const updateSourcePath = (instanceId: number, pgId: string) => {
   if (!settings.value.paths[instanceId]) {
     settings.value.paths[instanceId] = {};
   }
-  settings.value.paths[instanceId].source_path = value;
+
+  if (!pgId) {
+    settings.value.paths[instanceId].source_path = undefined;
+    return;
+  }
+
+  // Find the process group to get its path
+  const pg = instancePaths[instanceId]?.find((p) => p.id === pgId);
+  if (pg) {
+    const pathString = pg.path.map((p) => p.name).reverse().join("/");
+    settings.value.paths[instanceId].source_path = {
+      id: pgId,
+      path: pathString,
+    };
+  }
 };
 
-const updateDestPath = (instanceId: number, value: string) => {
+const updateDestPath = (instanceId: number, pgId: string) => {
   if (!settings.value.paths[instanceId]) {
     settings.value.paths[instanceId] = {};
   }
-  settings.value.paths[instanceId].dest_path = value;
+
+  if (!pgId) {
+    settings.value.paths[instanceId].dest_path = undefined;
+    return;
+  }
+
+  // Find the process group to get its path
+  const pg = instancePaths[instanceId]?.find((p) => p.id === pgId);
+  if (pg) {
+    const pathString = pg.path.map((p) => p.name).reverse().join("/");
+    settings.value.paths[instanceId].dest_path = {
+      id: pgId,
+      path: pathString,
+    };
+  }
 };
 
 const loadSettings = async () => {
@@ -331,7 +364,7 @@ const loadSettings = async () => {
 
     // Convert string keys to numbers since JSON serialization converts numeric keys to strings
     const paths: {
-      [key: number]: { source_path?: string; dest_path?: string };
+      [key: number]: { source_path?: PathConfig; dest_path?: PathConfig };
     } = {};
     if (data.paths) {
       Object.keys(data.paths).forEach((key) => {

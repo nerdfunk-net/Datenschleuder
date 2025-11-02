@@ -24,6 +24,12 @@ class NiFiInstance(Base):
     password_encrypted = Column(Text, nullable=True)  # Fernet-encrypted password
     use_ssl = Column(Boolean, default=True)
     verify_ssl = Column(Boolean, default=True)
+    certificate_name = Column(
+        String, nullable=True
+    )  # Name of certificate to use (from certificates.yaml), None = username/password
+    check_hostname = Column(
+        Boolean, default=True
+    )  # Whether to verify SSL certificate hostname matches
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -39,6 +45,8 @@ class NiFiInstanceCreate(BaseModel):
     password: Optional[str] = None
     use_ssl: bool = True
     verify_ssl: bool = True
+    certificate_name: Optional[str] = None
+    check_hostname: bool = True
 
 
 class NiFiInstanceUpdate(BaseModel):
@@ -49,6 +57,8 @@ class NiFiInstanceUpdate(BaseModel):
     password: Optional[str] = None
     use_ssl: Optional[bool] = None
     verify_ssl: Optional[bool] = None
+    certificate_name: Optional[str] = None
+    check_hostname: Optional[bool] = None
 
 
 class NiFiInstanceResponse(BaseModel):
@@ -61,6 +71,8 @@ class NiFiInstanceResponse(BaseModel):
     username: Optional[str] = None
     use_ssl: bool
     verify_ssl: bool
+    certificate_name: Optional[str] = None
+    check_hostname: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
 

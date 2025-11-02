@@ -92,24 +92,6 @@ def check_database_connection() -> bool:
         return False
 
 
-def verify_table_structure() -> bool:
-    """Verify that existing tables match the current model structure"""
-    try:
-        # Import models to check
-
-        # Try to query the users table with all expected columns
-        with engine.connect() as connection:
-            connection.execute(
-                text(
-                    "SELECT id, username, hashed_password, is_active, is_superuser, created_at, updated_at FROM users LIMIT 1"
-                )
-            )
-        return True
-    except Exception:
-        # If query fails, table structure doesn't match
-        return False
-
-
 def init_db():
     """Initialize database tables"""
     print("Starting database initialization...")
@@ -138,23 +120,11 @@ def init_db():
         )
         sys.exit(1)
 
-    # Step 4: Import all models to ensure they're registered with Base
-
-    # Step 5: Create all tables
+    # Step 4: Create all tables
     try:
         print("Initializing database tables...")
         Base.metadata.create_all(bind=engine)
         print("✓ Database tables initialized successfully")
-
-        # Verify table structure matches models
-        print("Verifying table structure...")
-        if not verify_table_structure():
-            print("⚠ Table structure mismatch detected. Recreating tables...")
-            Base.metadata.drop_all(bind=engine)
-            Base.metadata.create_all(bind=engine)
-            print("✓ Tables recreated successfully")
-        else:
-            print("✓ Table structure verified")
     except Exception as e:
         print(f"✗ Failed to create database tables: {e}")
         sys.exit(1)

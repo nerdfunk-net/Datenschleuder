@@ -21,6 +21,11 @@ const routes: RouteRecordRaw[] = [
         redirect: "/flows/manage",
       },
       {
+        path: "nifi/install",
+        name: "nifi-install",
+        component: () => import("../pages/nifi/Install.vue"),
+      },
+      {
         path: "flows/manage",
         name: "flows-manage",
         component: () => import("../pages/flows/Manage.vue"),

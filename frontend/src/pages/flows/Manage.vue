@@ -6,7 +6,7 @@
         <h2 class="card-title">Flow Management</h2>
         <div class="header-actions">
           <b-button
-            variant="outline-light"
+            variant="light"
             size="sm"
             @click="showColumnToggle = !showColumnToggle"
             class="me-2"
@@ -14,7 +14,7 @@
             <i class="pe-7s-config"></i> Columns
           </b-button>
           <b-button
-            variant="outline-light"
+            variant="light"
             size="sm"
             @click="showViewManager = !showViewManager"
             class="me-2"
@@ -22,7 +22,7 @@
             <i class="pe-7s-photo-gallery"></i> Views
           </b-button>
           <b-button
-            variant="light"
+            variant="success"
             @click="handleAddFlow"
             :disabled="!tableExists"
           >

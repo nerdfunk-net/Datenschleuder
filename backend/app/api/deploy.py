@@ -89,35 +89,15 @@ async def deploy_flow(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, versioning, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import versioning, canvas
 
-        # Configure nipyapi
-        nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith("/nifi-api"):
-            nifi_base_url = nifi_base_url[:-9]
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance, normalize_url=True)
 
-        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password and authenticate
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            access_token = security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
-            if access_token:
-                print("Successfully obtained access token")
+        # Check if we got an access token (only when using username/password)
+        if instance.username and instance.password_encrypted:
+            print("Successfully configured authentication")
 
         print(
             f"Deploying flow to NiFi instance {instance_id} ({instance.hierarchy_attribute}={instance.hierarchy_value})"
@@ -540,31 +520,11 @@ async def get_process_group(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import canvas
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Search for process group by ID or name
         process_group_result = None
@@ -681,31 +641,11 @@ async def search_process_groups(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import canvas
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         process_groups = []
 
@@ -836,31 +776,11 @@ async def get_process_group_path(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import canvas
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get root process group ID for comparison
         root_pg_id = canvas.get_root_pg_id()
@@ -992,31 +912,11 @@ async def get_all_process_group_paths(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import canvas
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get root process group ID
         root_pg_id = canvas.get_root_pg_id()
@@ -1141,31 +1041,11 @@ async def get_root_process_group(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import canvas
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get root process group ID
         root_pg_id = canvas.get_root_pg_id()
@@ -1226,35 +1106,11 @@ async def get_output_ports(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import canvas
 
-        # Configure nipyapi
-        nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith("/nifi-api"):
-            nifi_base_url = nifi_base_url[:-9]
-
-        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password and authenticate
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            access_token = security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
-            if access_token:
-                print("Successfully obtained access token")
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance, normalize_url=True)
 
         # Get process group info
         pg = canvas.get_process_group(
@@ -1334,35 +1190,11 @@ async def create_connection(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import canvas
 
-        # Configure nipyapi
-        nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith("/nifi-api"):
-            nifi_base_url = nifi_base_url[:-9]
-
-        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password and authenticate
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            access_token = security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
-            if access_token:
-                print("Successfully obtained access token")
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance, normalize_url=True)
 
         # Get source and target components
         # We need to get the actual component objects to pass to create_connection

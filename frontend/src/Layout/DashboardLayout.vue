@@ -19,6 +19,31 @@
       </div>
 
       <nav class="ds-sidebar-nav">
+        <!-- NiFi Menu -->
+        <div class="ds-nav-section">
+          <div class="ds-nav-item" @click="toggleMenu('nifi')">
+            <i class="pe-7s-server"></i>
+            <span v-if="!isSidebarCollapsed" class="ds-nav-text">NiFi</span>
+            <i
+              v-if="!isSidebarCollapsed"
+              :class="menuState.nifi ? 'pe-7s-angle-up' : 'pe-7s-angle-down'"
+              class="ds-nav-arrow"
+            ></i>
+          </div>
+          <div
+            v-if="menuState.nifi && !isSidebarCollapsed"
+            class="ds-nav-submenu"
+          >
+            <router-link
+              to="/nifi/install"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
+              <span>Install</span>
+            </router-link>
+          </div>
+        </div>
+
         <!-- Flows Menu -->
         <div class="ds-nav-section">
           <div class="ds-nav-item" @click="toggleMenu('flows')">
@@ -155,6 +180,7 @@ const route = useRoute();
 
 const isSidebarCollapsed = ref(false);
 const menuState = ref({
+  nifi: false,
   flows: true,
   settings: false,
 });
@@ -163,6 +189,7 @@ const username = ref("Admin User");
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
+    "/nifi/install": "NiFi Installation",
     "/flows/manage": "Manage Flows",
     "/flows/deploy": "Deploy Flows",
     "/settings/nifi": "NiFi Settings",
@@ -179,7 +206,7 @@ const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
 };
 
-const toggleMenu = (menu: "flows" | "settings") => {
+const toggleMenu = (menu: "nifi" | "flows" | "settings") => {
   if (!isSidebarCollapsed.value) {
     menuState.value[menu] = !menuState.value[menu];
   }

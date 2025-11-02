@@ -10,3 +10,5 @@ python-multipart==0.0.17
 python-dotenv==1.0.1
 alembic==1.14.0
 nipyapi==1.0.0
+PyYAML>=6.0.2
+requests==2.32.3

@@ -1,7 +1,7 @@
 """NiFi instances management API endpoints"""
 
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -95,6 +95,8 @@ async def create_nifi_instance(
         password_encrypted=encrypted_password,
         use_ssl=data.use_ssl,
         verify_ssl=data.verify_ssl,
+        certificate_name=data.certificate_name,
+        check_hostname=data.check_hostname,
     )
 
     db.add(instance)
@@ -133,6 +135,10 @@ async def update_nifi_instance(
         instance.use_ssl = data.use_ssl
     if data.verify_ssl is not None:
         instance.verify_ssl = data.verify_ssl
+    if data.certificate_name is not None:
+        instance.certificate_name = data.certificate_name
+    if data.check_hostname is not None:
+        instance.check_hostname = data.check_hostname
 
     db.commit()
     db.refresh(instance)
@@ -170,28 +176,20 @@ async def test_nifi_connection(
 ):
     """Test connection with provided NiFi credentials (without saving)"""
     try:
-        import nipyapi
-        from nipyapi import config, security
-
-        # Configure nipyapi
-        nifi_url = data.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = data.verify_ssl
-
-        if not data.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Set credentials
-        if data.username and data.password:
-            config.nifi_config.username = data.username
-            config.nifi_config.password = data.password
-            security.service_login(
-                service="nifi", username=data.username, password=data.password
-            )
-
-        # Test connection
+        from app.services.nifi_auth import configure_nifi_test_connection
         from nipyapi.nifi import FlowApi
 
+        # Configure nipyapi with authentication
+        configure_nifi_test_connection(
+            nifi_url=data.nifi_url,
+            username=data.username,
+            password=data.password,
+            verify_ssl=data.verify_ssl,
+            certificate_name=data.certificate_name,
+            check_hostname=data.check_hostname,
+        )
+
+        # Test connection
         flow_api = FlowApi()
         controller_status = flow_api.get_controller_status()
 
@@ -206,7 +204,7 @@ async def test_nifi_connection(
             "message": "Successfully connected to NiFi",
             "details": {
                 "connected": True,
-                "nifiUrl": nifi_url,
+                "nifiUrl": data.nifi_url,
                 "version": version,
             },
         }
@@ -240,35 +238,13 @@ async def test_nifi_instance_connection(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security
-
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
-
-        # Test connection
+        from app.services.nifi_auth import configure_nifi_connection
         from nipyapi.nifi import FlowApi
 
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
+
+        # Test connection
         flow_api = FlowApi()
         controller_status = flow_api.get_controller_status()
 
@@ -283,7 +259,7 @@ async def test_nifi_instance_connection(
             "message": "Successfully connected to NiFi",
             "details": {
                 "connected": True,
-                "nifiUrl": nifi_url,
+                "nifiUrl": instance.nifi_url,
                 "version": version,
             },
         }
@@ -317,31 +293,11 @@ async def get_registry_clients(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, versioning
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import versioning
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get list of registry clients
         registry_clients_entity = versioning.list_registry_clients()
@@ -407,31 +363,12 @@ async def get_registry_buckets(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security, versioning
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import versioning
+        from nipyapi.nifi import FlowApi
 
-        # Configure nipyapi for NiFi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials for NiFi
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get the registry client to find its URL
         registry_clients_entity = versioning.list_registry_clients()
@@ -456,8 +393,6 @@ async def get_registry_buckets(
 
         # Use NiFi's FlowApi to get buckets from the registry client
         # This works for all registry types (NiFi Registry, GitHub, etc.)
-        from nipyapi.nifi import FlowApi
-
         flow_api = FlowApi()
 
         # Get buckets using the registry client ID
@@ -512,6 +447,80 @@ async def get_registry_buckets(
         }
 
 
+@router.get("/{instance_id}/registry/{registry_id}/details")
+async def get_registry_details(
+    instance_id: int,
+    registry_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Get details about a specific registry client including type and properties"""
+    instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+
+    if not instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="NiFi instance not found",
+        )
+
+    try:
+        from app.services.nifi_auth import configure_nifi_connection
+        from nipyapi import versioning
+
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
+
+        # Get the registry client
+        registry_client = versioning.get_registry_client(registry_id, identifier_type='id')
+
+        if not registry_client:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Registry client with id {registry_id} not found",
+            )
+
+        # Extract registry details
+        registry_name = registry_client.component.name if hasattr(registry_client, 'component') and hasattr(registry_client.component, 'name') else 'Unknown'
+        registry_type = registry_client.component.type if hasattr(registry_client, 'component') and hasattr(registry_client.component, 'type') else 'Unknown'
+
+        # Extract properties
+        properties = {}
+        github_url = None
+
+        if hasattr(registry_client, 'component') and hasattr(registry_client.component, 'properties'):
+            properties = registry_client.component.properties
+
+            # For GitHub registries, construct the repository URL
+            if 'github' in registry_type.lower():
+                repo_owner = properties.get('Repository Owner')
+                repo_name = properties.get('Repository Name')
+                repo_path = properties.get('Repository Path', '')
+
+                if repo_owner and repo_name:
+                    github_url = f"https://github.com/{repo_owner}/{repo_name}"
+                    if repo_path:
+                        github_url += f"/tree/main/{repo_path}"
+
+        return {
+            "status": "success",
+            "registry_id": registry_id,
+            "name": registry_name,
+            "type": registry_type,
+            "is_github": 'github' in registry_type.lower(),
+            "github_url": github_url,
+            "properties": properties,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get registry details: {error_msg}",
+        )
+
+
 @router.get("/{instance_id}/registry/{registry_id}/{bucket_id}/get-flows")
 async def get_bucket_flows(
     instance_id: int,
@@ -530,32 +539,11 @@ async def get_bucket_flows(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security
+        from app.services.nifi_auth import configure_nifi_connection
         from nipyapi.nifi import FlowApi
 
-        # Configure nipyapi for NiFi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials for NiFi
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Use NiFi's FlowApi to get flows from the bucket
         flow_api = FlowApi()
@@ -637,32 +625,11 @@ async def get_parameter_contexts(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security
+        from app.services.nifi_auth import configure_nifi_connection
         from nipyapi.nifi import FlowApi
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get parameter contexts using the FlowApi
         flow_api = FlowApi()
@@ -790,8 +757,7 @@ async def create_parameter_context(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security
+        from app.services.nifi_auth import configure_nifi_connection
         from nipyapi.nifi.apis.parameter_contexts_api import ParameterContextsApi
         from nipyapi.nifi.models import (
             ParameterContextEntity,
@@ -800,28 +766,8 @@ async def create_parameter_context(
             ParameterDTO,
         )
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Build parameters list
         parameters = []
@@ -889,8 +835,7 @@ async def update_parameter_context(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security
+        from app.services.nifi_auth import configure_nifi_connection
         from nipyapi.nifi.apis.parameter_contexts_api import ParameterContextsApi
         from nipyapi.nifi.models import (
             ParameterEntity as NiFiParameterEntity,
@@ -898,28 +843,8 @@ async def update_parameter_context(
         )
         import time
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get existing parameter context to get current revision
         param_api = ParameterContextsApi()
@@ -1136,32 +1061,11 @@ async def delete_parameter_context(
         )
 
     try:
-        import nipyapi
-        from nipyapi import config, security
+        from app.services.nifi_auth import configure_nifi_connection
         from nipyapi.nifi.apis.parameter_contexts_api import ParameterContextsApi
 
-        # Configure nipyapi
-        nifi_url = instance.nifi_url.rstrip("/")
-        config.nifi_config.host = nifi_url
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password if present
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        # Set credentials
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi with authentication
+        configure_nifi_connection(instance)
 
         # Get existing parameter context to get current revision
         param_api = ParameterContextsApi()
@@ -1183,4 +1087,245 @@ async def delete_parameter_context(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete parameter context: {error_msg}",
+        )
+
+
+@router.get("/{instance_id}/registry/{registry_id}/{bucket_id}/export-flow")
+async def export_flow(
+    instance_id: int,
+    registry_id: str,
+    bucket_id: str,
+    flow_id: str,
+    version: str = None,
+    mode: str = "json",
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Export a flow from registry using nipyapi.versioning.export_flow_version"""
+    from fastapi.responses import Response
+    import nipyapi
+    from nipyapi import config, versioning
+
+    instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+    if not instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="NiFi instance not found",
+        )
+
+    try:
+        from app.services.nifi_auth import configure_nifi_connection
+
+        # Configure nipyapi for NiFi instance
+        configure_nifi_connection(instance)
+
+        # Validate mode parameter
+        if mode not in ["json", "yaml"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mode must be 'json' or 'yaml'",
+            )
+
+        # Verify the registry client exists and get its type
+        registry_clients = versioning.list_registry_clients()
+        registry_found = False
+        registry_client = None
+        registry_type = None
+
+        if hasattr(registry_clients, 'registries') and registry_clients.registries:
+            for client in registry_clients.registries:
+                if client.id == registry_id:
+                    registry_found = True
+                    registry_client = client
+                    if hasattr(client, 'component') and hasattr(client.component, 'type'):
+                        registry_type = client.component.type
+                    break
+
+        if not registry_found:
+            available_registries = []
+            if hasattr(registry_clients, 'registries') and registry_clients.registries:
+                available_registries = [f"{c.id} ({c.component.name if hasattr(c, 'component') else 'unknown'})" for c in registry_clients.registries]
+
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Registry client with id '{registry_id}' not found. Available registries: {', '.join(available_registries) if available_registries else 'none'}",
+            )
+
+        # Check if this is a GitHub or other external registry type
+        is_external_registry = registry_type and ('github' in registry_type.lower() or 'git' in registry_type.lower())
+
+        if is_external_registry:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail=f"Export is not supported for {registry_type} registries. Please access the flow files directly from your Git repository.",
+            )
+
+        # For NiFi Registry, use nipyapi's built-in export function
+        exported_content = versioning.export_flow_version(
+            bucket_id=bucket_id,
+            flow_id=flow_id,
+            version=version,
+            mode=mode
+        )
+
+        # Get flow name for filename
+        flow_name = flow_id
+        try:
+            flow = versioning.get_flow_in_bucket(bucket_id, identifier=flow_id)
+            if hasattr(flow, 'name'):
+                flow_name = flow.name
+        except:
+            pass
+
+        # Generate filename
+        version_suffix = f"_v{version}" if version else "_latest"
+        filename = f"{flow_name}{version_suffix}.{mode}"
+
+        # Set appropriate content type
+        content_type = "application/json" if mode == "json" else "application/x-yaml"
+
+        return Response(
+            content=exported_content,
+            media_type=content_type,
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to export flow: {error_msg}",
+        )
+
+
+@router.post("/{instance_id}/registry/{registry_id}/{bucket_id}/import-flow")
+async def import_flow(
+    instance_id: int,
+    registry_id: str,
+    bucket_id: str,
+    file: UploadFile = File(...),
+    flow_name: str = Form(None),
+    flow_id: str = Form(None),
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Import a flow to registry using nipyapi.versioning.import_flow_version"""
+    import nipyapi
+    from nipyapi import config, versioning
+
+    instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+    if not instance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="NiFi instance not found",
+        )
+
+    # Validate parameters
+    if not flow_name and not flow_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either flow_name (for new flow) or flow_id (for existing flow) must be provided",
+        )
+
+    # Validate file type
+    if not file.filename.endswith(('.json', '.yaml', '.yml')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be a JSON or YAML file",
+        )
+
+    try:
+        from app.services.nifi_auth import configure_nifi_connection
+
+        # Configure nipyapi for NiFi instance
+        configure_nifi_connection(instance)
+
+        # Verify the registry client exists and get its type
+        registry_clients = versioning.list_registry_clients()
+        registry_found = False
+        registry_client = None
+        registry_type = None
+
+        if hasattr(registry_clients, 'registries') and registry_clients.registries:
+            for client in registry_clients.registries:
+                if client.id == registry_id:
+                    registry_found = True
+                    registry_client = client
+                    if hasattr(client, 'component') and hasattr(client.component, 'type'):
+                        registry_type = client.component.type
+                    break
+
+        if not registry_found:
+            available_registries = []
+            if hasattr(registry_clients, 'registries') and registry_clients.registries:
+                available_registries = [f"{c.id} ({c.component.name if hasattr(c, 'component') else 'unknown'})" for c in registry_clients.registries]
+
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Registry client with id '{registry_id}' not found. Available registries: {', '.join(available_registries) if available_registries else 'none'}",
+            )
+
+        # Check if this is a GitHub or other external registry type
+        is_external_registry = registry_type and ('github' in registry_type.lower() or 'git' in registry_type.lower())
+
+        if is_external_registry:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail=f"Import is not supported for {registry_type} registries. Please commit the flow directly to your Git repository.",
+            )
+
+        # Read the uploaded file content
+        file_content = await file.read()
+        encoded_flow = file_content.decode('utf-8')
+
+        # For NiFi Registry, use nipyapi's built-in import function
+        imported_flow = versioning.import_flow_version(
+            bucket_id=bucket_id,
+            encoded_flow=encoded_flow,
+            flow_name=flow_name,
+            flow_id=flow_id
+        )
+
+        # Extract flow information from the response
+        result_flow_name = flow_name
+        result_flow_id = flow_id
+        result_version = "unknown"
+
+        if hasattr(imported_flow, 'snapshot_metadata'):
+            metadata = imported_flow.snapshot_metadata
+            if hasattr(metadata, 'flow_identifier'):
+                result_flow_id = metadata.flow_identifier
+            if hasattr(metadata, 'version'):
+                result_version = str(metadata.version)
+
+        if hasattr(imported_flow, 'flow'):
+            if hasattr(imported_flow.flow, 'identifier'):
+                result_flow_id = imported_flow.flow.identifier
+            if hasattr(imported_flow.flow, 'name'):
+                result_flow_name = imported_flow.flow.name
+
+        return {
+            "status": "success",
+            "message": "Flow imported successfully",
+            "flow_name": result_flow_name or "Unknown",
+            "flow_id": result_flow_id or "Unknown",
+            "version": result_version,
+            "filename": file.filename,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to import flow: {error_msg}",
         )

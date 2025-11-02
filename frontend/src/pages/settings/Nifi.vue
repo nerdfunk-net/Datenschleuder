@@ -94,6 +94,15 @@
                 <span v-else class="badge bg-warning">No</span>
               </span>
             </div>
+            <div class="info-row">
+              <span class="label">Auth Method:</span>
+              <span class="value">
+                <span v-if="instance.certificate_name" class="badge bg-info"
+                  >{{ instance.certificate_name }}</span
+                >
+                <span v-else class="badge bg-secondary">Username/Password</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -140,17 +149,30 @@
             >
           </div>
 
-          <div class="col-md-6">
-            <label class="form-label">Username</label>
-            <b-form-input v-model="form.username" placeholder="admin" />
+          <div class="col-md-12">
+            <label class="form-label">Authentication Method</label>
+            <b-form-select
+              v-model="form.authMethod"
+              :options="authMethodOptions"
+              required
+            />
+            <small class="form-text text-muted">
+              Choose between username/password or certificate-based authentication
+            </small>
           </div>
 
-          <div class="col-md-6">
+          <div v-if="form.authMethod === 'username'" class="col-md-6">
+            <label class="form-label">Username</label>
+            <b-form-input v-model="form.username" placeholder="admin" required />
+          </div>
+
+          <div v-if="form.authMethod === 'username'" class="col-md-6">
             <label class="form-label">Password</label>
             <b-form-input
               v-model="form.password"
               type="password"
               placeholder="••••••••"
+              required
             />
           </div>
 
@@ -164,6 +186,15 @@
             <b-form-checkbox v-model="form.verifySSL">
               Verify SSL Certificates
             </b-form-checkbox>
+          </div>
+
+          <div class="col-md-12">
+            <b-form-checkbox v-model="form.checkHostname">
+              Verify SSL hostname
+            </b-form-checkbox>
+            <small class="form-text text-muted">
+              Verify that the SSL certificate hostname matches the server hostname (recommended for production)
+            </small>
           </div>
         </div>
       </form>
@@ -199,6 +230,8 @@ interface NiFiInstance {
   username: string | null;
   use_ssl: boolean;
   verify_ssl: boolean;
+  certificate_name: string | null;
+  check_hostname: boolean;
 }
 
 interface HierarchyAttribute {
@@ -221,7 +254,12 @@ const form = ref({
   password: "",
   useSSL: true,
   verifySSL: true,
+  authMethod: "username", // "username" or certificate name
+  checkHostname: true,
 });
+
+// Certificate list
+const certificates = ref<Array<{ name: string }>>([]);
 
 // Load hierarchy configuration
 const hierarchyConfig = ref<HierarchyAttribute[]>([]);
@@ -246,6 +284,23 @@ const hierarchyValueOptions = computed(() => {
   }
 
   return attr.values.map((v) => ({ value: v, text: v }));
+});
+
+const loadCertificates = async () => {
+  try {
+    const data = await apiRequest("/api/authentication/get-certificates");
+    certificates.value = data.certificates || [];
+  } catch (error) {
+    console.error("Error loading certificates:", error);
+  }
+};
+
+const authMethodOptions = computed(() => {
+  const options = [{ value: "username", text: "Username / Password" }];
+  for (const cert of certificates.value) {
+    options.push({ value: cert.name, text: `Certificate: ${cert.name}` });
+  }
+  return options;
 });
 
 const loadHierarchy = async () => {
@@ -281,6 +336,7 @@ const loadInstances = async () => {
 
 const showAddModal = async () => {
   await loadHierarchy();
+  await loadCertificates();
 
   // Set default hierarchy attribute to first one
   if (hierarchyConfig.value.length > 0) {
@@ -293,6 +349,7 @@ const showAddModal = async () => {
 
 const editInstance = async (instance: NiFiInstance) => {
   await loadHierarchy();
+  await loadCertificates();
 
   editingId.value = instance.id;
   form.value = {
@@ -303,6 +360,8 @@ const editInstance = async (instance: NiFiInstance) => {
     password: "",
     useSSL: instance.use_ssl,
     verifySSL: instance.verify_ssl,
+    authMethod: instance.certificate_name || "username",
+    checkHostname: instance.check_hostname,
   };
   isEditMode.value = true;
   showModal.value = true;
@@ -316,10 +375,13 @@ const handleSave = async (bvModalEvent: any) => {
       hierarchy_attribute: form.value.hierarchy_attribute,
       hierarchy_value: form.value.hierarchy_value,
       nifi_url: form.value.nifi_url,
-      username: form.value.username,
-      password: form.value.password,
+      username: form.value.authMethod === "username" ? form.value.username : "",
+      password: form.value.authMethod === "username" ? form.value.password : "",
       use_ssl: form.value.useSSL,
       verify_ssl: form.value.verifySSL,
+      certificate_name:
+        form.value.authMethod !== "username" ? form.value.authMethod : null,
+      check_hostname: form.value.checkHostname,
     };
 
     if (isEditMode.value && editingId.value) {
@@ -370,10 +432,13 @@ const testConnectionFromModal = async () => {
       hierarchy_attribute: form.value.hierarchy_attribute || "test",
       hierarchy_value: form.value.hierarchy_value || "test",
       nifi_url: form.value.nifi_url,
-      username: form.value.username || "",
-      password: form.value.password || "",
+      username: form.value.authMethod === "username" ? form.value.username || "" : "",
+      password: form.value.authMethod === "username" ? form.value.password || "" : "",
       use_ssl: form.value.useSSL,
       verify_ssl: form.value.verifySSL,
+      certificate_name:
+        form.value.authMethod !== "username" ? form.value.authMethod : null,
+      check_hostname: form.value.checkHostname,
     };
 
     const result = await apiRequest("/api/nifi-instances/test", {
@@ -419,6 +484,8 @@ const resetForm = () => {
     password: "",
     useSSL: true,
     verifySSL: true,
+    authMethod: "username",
+    checkHostname: true,
   };
   editingId.value = null;
 };

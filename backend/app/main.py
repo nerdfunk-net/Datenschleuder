@@ -6,10 +6,12 @@ from app.core.database import init_db, get_session_local
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.api.auth import router as auth_router
+from app.api.authentication import router as authentication_router
 from app.api.credentials import router as credentials_router
 from app.api.settings import router as settings_router
 from app.api.nifi import router as nifi_router
 from app.api.nifi_instances import router as nifi_instances_router
+from app.api.nifi_install import router as nifi_install_router
 from app.api.nifi_flows import router as nifi_flows_router
 from app.api.flow_views import router as flow_views_router
 from app.api.registry_flows import router as registry_flows_router
@@ -34,10 +36,12 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router)
+app.include_router(authentication_router)
 app.include_router(credentials_router)
 app.include_router(settings_router)
 app.include_router(nifi_router)
 app.include_router(nifi_instances_router)
+app.include_router(nifi_install_router)
 app.include_router(nifi_flows_router)
 app.include_router(flow_views_router)
 app.include_router(registry_flows_router)

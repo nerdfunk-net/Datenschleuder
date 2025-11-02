@@ -1,7 +1,7 @@
 """Registry flows management API endpoints"""
 
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -17,19 +17,23 @@ router = APIRouter(prefix="/api/registry-flows", tags=["registry-flows"])
 
 @router.get("/", response_model=List[RegistryFlowResponse])
 async def list_registry_flows(
+    nifi_instance: Optional[int] = Query(None, description="Filter by NiFi instance ID"),
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
-    """List all registry flows"""
-    flows = (
-        db.query(RegistryFlow)
-        .order_by(
-            RegistryFlow.nifi_instance_name,
-            RegistryFlow.bucket_name,
-            RegistryFlow.flow_name,
-        )
-        .all()
-    )
+    """List all registry flows, optionally filtered by NiFi instance"""
+    query = db.query(RegistryFlow)
+    
+    # Apply filter if nifi_instance parameter is provided
+    if nifi_instance is not None:
+        query = query.filter(RegistryFlow.nifi_instance_id == nifi_instance)
+    
+    flows = query.order_by(
+        RegistryFlow.nifi_instance_name,
+        RegistryFlow.bucket_name,
+        RegistryFlow.flow_name,
+    ).all()
+    
     return flows
 
 
@@ -66,7 +70,7 @@ async def create_registry_flows(
         existing = (
             db.query(RegistryFlow)
             .filter(
-                RegistryFlow.nifi_instance_url == flow_data.nifi_instance_url,
+                RegistryFlow.nifi_instance_id == flow_data.nifi_instance_id,
                 RegistryFlow.bucket_id == flow_data.bucket_id,
                 RegistryFlow.flow_id == flow_data.flow_id,
             )
@@ -79,6 +83,7 @@ async def create_registry_flows(
 
         # Create new registry flow
         new_flow = RegistryFlow(
+            nifi_instance_id=flow_data.nifi_instance_id,
             nifi_instance_name=flow_data.nifi_instance_name,
             nifi_instance_url=flow_data.nifi_instance_url,
             registry_id=flow_data.registry_id,

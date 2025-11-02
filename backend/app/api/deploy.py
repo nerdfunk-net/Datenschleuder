@@ -20,7 +20,128 @@ from app.services.encryption_service import encryption_service
 router = APIRouter()
 
 
-router = APIRouter()
+def find_or_create_process_group_by_path(path: str) -> str:
+    """
+    Find process group ID by path, creating missing parent process groups if needed.
+    Returns the process group ID for the given path, or root PG ID if path is empty.
+    
+    If the path doesn't exist, this function will:
+    1. Find the deepest existing parent in the path
+    2. Create all missing process groups from that point
+    3. Return the ID of the final (target) process group
+    
+    Args:
+        path: The process group path to find or create
+        
+    Returns:
+        Process group ID of the target path
+    """
+    from nipyapi import canvas
+    
+    if not path or path == "/" or path == "":
+        return canvas.get_root_pg_id()
+    
+    # Split path and remove empty parts
+    path_parts = [p.strip() for p in path.split("/") if p.strip()]
+    
+    if not path_parts:
+        return canvas.get_root_pg_id()
+    
+    # Get root process group info
+    root_pg_id = canvas.get_root_pg_id()
+    root_pg = canvas.get_process_group(root_pg_id, 'id')
+    root_pg_name = root_pg.component.name if hasattr(root_pg, 'component') and hasattr(root_pg.component, 'name') else None
+    
+    print(f"  Root PG: '{root_pg_name}' (ID: {root_pg_id})")
+    
+    # Check if first part of path matches root PG name
+    if root_pg_name and path_parts[0] == root_pg_name:
+        print(f"  ✓ First part '{path_parts[0]}' matches root PG name, skipping it")
+        path_parts = path_parts[1:]
+        
+        # If only root was specified, return root ID
+        if not path_parts:
+            print(f"  Path is just root, returning root ID")
+            return root_pg_id
+    
+    # Get all process groups
+    all_pgs = canvas.list_all_process_groups(root_pg_id)
+    
+    # Build a map of PG id -> PG info
+    pg_map = {}
+    for pg in all_pgs:
+        pg_map[pg.id] = {
+            "id": pg.id,
+            "name": pg.component.name,
+            "parent_group_id": pg.component.parent_group_id,
+        }
+    
+    # Build full paths for each PG
+    def build_path_parts(pg_id):
+        """Build path parts from root to this PG"""
+        parts = []
+        current_id = pg_id
+        while current_id in pg_map and current_id != root_pg_id:
+            pg_info = pg_map[current_id]
+            parts.insert(0, pg_info["name"])
+            current_id = pg_info["parent_group_id"]
+        return parts
+    
+    # First, check if the full path already exists
+    for pg_id, pg_info in pg_map.items():
+        pg_path_parts = build_path_parts(pg_id)
+        if pg_path_parts == path_parts:
+            print(f"  ✓ Found existing process group at path: /{'/'.join(path_parts)}")
+            return pg_id
+    
+    # Path doesn't exist - need to create missing process groups
+    print(f"  Path '{path}' not found, will create missing process groups...")
+    
+    # Find the deepest existing parent
+    current_parent_id = root_pg_id
+    existing_depth = 0
+    
+    for i in range(len(path_parts)):
+        partial_path = path_parts[:i+1]
+        found = False
+        
+        for pg_id, pg_info in pg_map.items():
+            pg_path_parts = build_path_parts(pg_id)
+            if pg_path_parts == partial_path:
+                current_parent_id = pg_id
+                existing_depth = i + 1
+                found = True
+                break
+        
+        if not found:
+            break
+    
+    if existing_depth > 0:
+        print(f"  ✓ Found existing parent at depth {existing_depth}: /{'/'.join(path_parts[:existing_depth])}")
+    else:
+        print(f"  Starting from root process group")
+    
+    # Create missing process groups
+    for i in range(existing_depth, len(path_parts)):
+        pg_name = path_parts[i]
+        print(f"  Creating process group '{pg_name}' in parent {current_parent_id}...")
+        
+        try:
+            new_pg = canvas.create_process_group(
+                parent_pg=canvas.get_process_group(current_parent_id, 'id'),
+                new_pg_name=pg_name,
+                location=(0.0, 0.0)
+            )
+            current_parent_id = new_pg.id
+            print(f"  ✓ Created process group '{pg_name}' (ID: {current_parent_id})")
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create process group '{pg_name}': {str(e)}"
+            )
+    
+    print(f"  ✓ Full path created: /{'/'.join(path_parts)}")
+    return current_parent_id
 
 
 @router.post("/{instance_id}/flow", response_model=DeploymentResponse)
@@ -35,6 +156,13 @@ async def deploy_flow(
 
     Uses nipyapi.versioning.deploy_flow_version() to handle deployment.
     """
+    print(f"=== DEPLOY FLOW REQUEST ===")
+    print(f"Instance ID: {instance_id}")
+    print(f"Template ID: {deployment.template_id}")
+    print(f"Parent PG ID: {deployment.parent_process_group_id}")
+    print(f"Parent PG Path: {deployment.parent_process_group_path}")
+    print(f"Process Group Name: {deployment.process_group_name}")
+    
     # Get the NiFi instance
     instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
     if not instance:
@@ -81,11 +209,11 @@ async def deploy_flow(
         registry_client_id = deployment.registry_client_id
         template_name = None
 
-    # Validate parent process group is provided
-    if not deployment.parent_process_group_id:
+    # Validate and resolve parent process group
+    if not deployment.parent_process_group_id and not deployment.parent_process_group_path:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="parent_process_group_id is required",
+            detail="Either parent_process_group_id or parent_process_group_path is required",
         )
 
     try:
@@ -98,6 +226,29 @@ async def deploy_flow(
         # Check if we got an access token (only when using username/password)
         if instance.username and instance.password_encrypted:
             print("Successfully configured authentication")
+
+        # Resolve parent process group ID
+        if deployment.parent_process_group_id:
+            parent_pg_id = deployment.parent_process_group_id
+            print(f"Using provided parent_process_group_id: {parent_pg_id}")
+        else:
+            print(f"Resolving path: '{deployment.parent_process_group_path}'")
+            try:
+                # Find or create the process group path
+                parent_pg_id = find_or_create_process_group_by_path(
+                    deployment.parent_process_group_path or ""
+                )
+                print(f"✓ Resolved to parent_pg_id: {parent_pg_id}")
+            except HTTPException as e:
+                print(f"✗ ERROR: Failed to resolve/create path '{deployment.parent_process_group_path}'")
+                print(f"  Error: {e.detail}")
+                print(f"  Status Code: {e.status_code}")
+                raise
+            except Exception as e:
+                print(f"✗ UNEXPECTED ERROR during path resolution: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
 
         print(
             f"Deploying flow to NiFi instance {instance_id} ({instance.hierarchy_attribute}={instance.hierarchy_value})"
@@ -257,7 +408,7 @@ async def deploy_flow(
 
         # Deploy using nipyapi.versioning.deploy_flow_version
         print("Deploying flow using nipyapi.versioning.deploy_flow_version:")
-        print(f"  Parent PG: {deployment.parent_process_group_id}")
+        print(f"  Parent PG: {parent_pg_id}")
         print(f"  Bucket ID: {bucket_identifier}")
         print(f"  Flow ID: {flow_identifier}")
         print(f"  Registry Client ID: {reg_client.id}")
@@ -265,7 +416,7 @@ async def deploy_flow(
         print(f"  Position: ({deployment.x_position}, {deployment.y_position})")
 
         deployed_pg = versioning.deploy_flow_version(
-            parent_id=deployment.parent_process_group_id,
+            parent_id=parent_pg_id,
             location=(float(deployment.x_position), float(deployment.y_position)),
             bucket_id=bucket_identifier,
             flow_id=flow_identifier,

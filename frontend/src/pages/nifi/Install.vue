@@ -36,28 +36,48 @@
             :key="index"
             class="status-item"
           >
-            <i
-              :class="
-                status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
-              "
-            ></i>
-            <span>{{ status.path }}</span>
-            <span v-if="status.exists" class="badge bg-success ms-2"
-              >Exists</span
-            >
-            <span v-else class="badge bg-danger ms-2">Missing</span>
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="status-info">
+                <i
+                  :class="
+                    status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
+                  "
+                ></i>
+                <span>{{ status.path }}</span>
+                <span v-if="status.exists" class="badge bg-success ms-2"
+                  >Exists</span
+                >
+                <span v-else class="badge bg-danger ms-2">Missing</span>
+              </div>
+              
+              <!-- Individual deployment controls for missing paths -->
+              <div v-if="!status.exists" class="deploy-controls d-flex align-items-center gap-2">
+                <b-form-select
+                  v-model="selectedSourceFlows[status.path]"
+                  :options="sourceFlowOptions"
+                  size="sm"
+                  style="min-width: 200px;"
+                  :disabled="!sourceRegistryFlows.length"
+                />
+                <b-button
+                  variant="success"
+                  size="sm"
+                  class="deploy-btn"
+                  @click="deployFlow(status.path, sourceInstance!, 'source')"
+                  :disabled="!selectedSourceFlows[status.path] || deployingPaths.has(status.path)"
+                  title="Deploy flow to this path"
+                >
+                  <b-spinner v-if="deployingPaths.has(status.path)" small></b-spinner>
+                  <i v-else class="pe-7s-plus"></i>
+                </b-button>
+              </div>
+            </div>
           </div>
 
-          <b-button
-            v-if="sourceMissingCount > 0"
-            variant="primary"
-            class="mt-3"
-            @click="createSourceGroups"
-            :disabled="creatingSource"
-          >
-            <b-spinner v-if="creatingSource" small class="me-2"></b-spinner>
-            Create Missing Process Groups ({{ sourceMissingCount }})
-          </b-button>
+          <div v-if="!sourceRegistryFlows.length && sourceMissingCount > 0" class="alert alert-info mt-3">
+            <i class="pe-7s-info me-2"></i>
+            No registry flows found for this instance. Please add some flows in the Registry section first.
+          </div>
         </div>
       </div>
     </div>
@@ -91,28 +111,48 @@
             :key="index"
             class="status-item"
           >
-            <i
-              :class="
-                status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
-              "
-            ></i>
-            <span>{{ status.path }}</span>
-            <span v-if="status.exists" class="badge bg-success ms-2"
-              >Exists</span
-            >
-            <span v-else class="badge bg-danger ms-2">Missing</span>
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="status-info">
+                <i
+                  :class="
+                    status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
+                  "
+                ></i>
+                <span>{{ status.path }}</span>
+                <span v-if="status.exists" class="badge bg-success ms-2"
+                  >Exists</span
+                >
+                <span v-else class="badge bg-danger ms-2">Missing</span>
+              </div>
+              
+              <!-- Individual deployment controls for missing paths -->
+              <div v-if="!status.exists" class="deploy-controls d-flex align-items-center gap-2">
+                <b-form-select
+                  v-model="selectedDestinationFlows[status.path]"
+                  :options="destinationFlowOptions"
+                  size="sm"
+                  style="min-width: 200px;"
+                  :disabled="!destinationRegistryFlows.length"
+                />
+                <b-button
+                  variant="success"
+                  size="sm"
+                  class="deploy-btn"
+                  @click="deployFlow(status.path, destinationInstance!, 'destination')"
+                  :disabled="!selectedDestinationFlows[status.path] || deployingPaths.has(status.path)"
+                  title="Deploy flow to this path"
+                >
+                  <b-spinner v-if="deployingPaths.has(status.path)" small></b-spinner>
+                  <i v-else class="pe-7s-plus"></i>
+                </b-button>
+              </div>
+            </div>
           </div>
 
-          <b-button
-            v-if="destinationMissingCount > 0"
-            variant="primary"
-            class="mt-3"
-            @click="createDestinationGroups"
-            :disabled="creatingDestination"
-          >
-            <b-spinner v-if="creatingDestination" small class="me-2"></b-spinner>
-            Create Missing Process Groups ({{ destinationMissingCount }})
-          </b-button>
+          <div v-if="!destinationRegistryFlows.length && destinationMissingCount > 0" class="alert alert-info mt-3">
+            <i class="pe-7s-info me-2"></i>
+            No registry flows found for this instance. Please add some flows in the Registry section first.
+          </div>
         </div>
       </div>
     </div>
@@ -120,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { apiRequest } from "@/utils/api";
 
 interface NiFiInstance {
@@ -134,13 +174,29 @@ interface PathStatus {
   exists: boolean;
 }
 
+interface RegistryFlow {
+  id: number;
+  nifi_instance_id: number;
+  flow_name: string;
+  registry_name: string;
+  bucket_name: string;
+  flow_id: string;
+  bucket_id: string;
+  registry_id: string;
+}
+
 const sourceInstance = ref<number | null>(null);
 const destinationInstance = ref<number | null>(null);
 const instances = ref<NiFiInstance[]>([]);
 const sourceStatus = ref<PathStatus[] | null>(null);
 const destinationStatus = ref<PathStatus[] | null>(null);
-const creatingSource = ref(false);
-const creatingDestination = ref(false);
+
+// Registry flows for deployment
+const sourceRegistryFlows = ref<RegistryFlow[]>([]);
+const destinationRegistryFlows = ref<RegistryFlow[]>([]);
+const selectedSourceFlows = ref<{ [path: string]: number | null }>({});
+const selectedDestinationFlows = ref<{ [path: string]: number | null }>({});
+const deployingPaths = ref<Set<string>>(new Set());
 
 const instanceOptions = computed(() => {
   return [
@@ -162,6 +218,26 @@ const destinationMissingCount = computed(() => {
   return destinationStatus.value.filter((s) => !s.exists).length;
 });
 
+const sourceFlowOptions = computed(() => {
+  return [
+    { value: null, text: "Select a flow..." },
+    ...sourceRegistryFlows.value.map((flow) => ({
+      value: flow.id,
+      text: `${flow.flow_name} (${flow.registry_name}/${flow.bucket_name})`,
+    }))
+  ];
+});
+
+const destinationFlowOptions = computed(() => {
+  return [
+    { value: null, text: "Select a flow..." },
+    ...destinationRegistryFlows.value.map((flow) => ({
+      value: flow.id,
+      text: `${flow.flow_name} (${flow.registry_name}/${flow.bucket_name})`,
+    }))
+  ];
+});
+
 const loadInstances = async () => {
   try {
     const data = await apiRequest("/api/nifi-instances/");
@@ -169,6 +245,19 @@ const loadInstances = async () => {
   } catch (error) {
     console.error("Error loading instances:", error);
     alert("Failed to load NiFi instances");
+  }
+};
+
+const loadRegistryFlows = async (instanceId: number, type: 'source' | 'destination') => {
+  try {
+    const flows = await apiRequest(`/api/registry-flows/?nifi_instance=${instanceId}`);
+    if (type === 'source') {
+      sourceRegistryFlows.value = flows;
+    } else {
+      destinationRegistryFlows.value = flows;
+    }
+  } catch (error) {
+    console.error(`Error loading ${type} registry flows:`, error);
   }
 };
 
@@ -200,49 +289,67 @@ const checkDestinationPath = async () => {
   }
 };
 
-const createSourceGroups = async () => {
-  if (!sourceInstance.value) return;
+const deployFlow = async (missingPath: string, instanceId: number, type: 'source' | 'destination') => {
+  const selectedFlowId = type === 'source' 
+    ? selectedSourceFlows.value[missingPath]
+    : selectedDestinationFlows.value[missingPath];
+  
+  if (!selectedFlowId) {
+    alert("Please select a flow to deploy");
+    return;
+  }
 
-  creatingSource.value = true;
+  const pathArray = missingPath.split('/').filter(p => p.length > 0);
+  const targetProcessGroupName = pathArray[pathArray.length - 1];
+  const parentPath = pathArray.slice(0, -1).join('/');
+
+  deployingPaths.value.add(missingPath);
+
   try {
-    await apiRequest(`/api/nifi-install/create-groups`, {
+    await apiRequest(`/api/deploy/${instanceId}/flow`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        instance_id: sourceInstance.value,
-        path_type: "source",
+        template_id: selectedFlowId,
+        parent_process_group_path: parentPath || "/",
+        process_group_name: targetProcessGroupName
       }),
     });
-    alert("Source process groups created successfully!");
-    await checkSourcePath();
-  } catch (error: any) {
-    console.error("Error creating source groups:", error);
-    alert(error.message || "Failed to create source process groups");
+
+    alert(`Successfully deployed flow to ${missingPath}`);
+    
+    // Reload the paths to reflect the changes
+    if (type === 'source') {
+      await checkSourcePath();
+    } else {
+      await checkDestinationPath();
+    }
+  } catch (error) {
+    console.error("Error deploying flow:", error);
+    alert("Failed to deploy flow");
   } finally {
-    creatingSource.value = false;
+    deployingPaths.value.delete(missingPath);
   }
 };
 
-const createDestinationGroups = async () => {
-  if (!destinationInstance.value) return;
-
-  creatingDestination.value = true;
-  try {
-    await apiRequest(`/api/nifi-install/create-groups`, {
-      method: "POST",
-      body: JSON.stringify({
-        instance_id: destinationInstance.value,
-        path_type: "destination",
-      }),
-    });
-    alert("Destination process groups created successfully!");
-    await checkDestinationPath();
-  } catch (error: any) {
-    console.error("Error creating destination groups:", error);
-    alert(error.message || "Failed to create destination process groups");
-  } finally {
-    creatingDestination.value = false;
+// Watch for instance changes to load registry flows
+watch(sourceInstance, (newInstanceId: number | null) => {
+  if (newInstanceId) {
+    loadRegistryFlows(newInstanceId, 'source');
+  } else {
+    sourceRegistryFlows.value = [];
   }
-};
+});
+
+watch(destinationInstance, (newInstanceId: number | null) => {
+  if (newInstanceId) {
+    loadRegistryFlows(newInstanceId, 'destination');
+  } else {
+    destinationRegistryFlows.value = [];
+  }
+});
 
 onMounted(() => {
   loadInstances();
@@ -279,23 +386,45 @@ onMounted(() => {
 }
 
 .status-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
+  padding: 12px 0;
   border-bottom: 1px solid #e0e0e0;
 
   &:last-child {
     border-bottom: none;
   }
 
-  i {
-    font-size: 1.2rem;
+  .status-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    i {
+      font-size: 1.2rem;
+    }
+
+    span:first-of-type {
+      font-family: monospace;
+      font-weight: 500;
+    }
   }
 
-  span:first-of-type {
-    flex: 1;
-    font-family: monospace;
+  .deploy-controls {
+    flex-shrink: 0;
+    
+    .deploy-btn {
+      min-width: 32px;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      i {
+        font-size: 1rem;
+        margin: 0;
+      }
+    }
   }
 }
 

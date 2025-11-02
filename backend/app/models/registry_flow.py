@@ -1,6 +1,7 @@
 """Registry flow model for storing selected NiFi flows"""
 
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from pydantic import BaseModel
 from datetime import datetime
@@ -15,6 +16,7 @@ class RegistryFlow(Base):
     __tablename__ = "registry_flows"
 
     id = Column(Integer, primary_key=True, index=True)
+    nifi_instance_id = Column(Integer, ForeignKey("nifi_instances.id"), nullable=False, index=True)
     nifi_instance_name = Column(
         String, nullable=False, index=True
     )  # Name of NiFi instance
@@ -31,11 +33,15 @@ class RegistryFlow(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    # Relationship to NiFi instance
+    nifi_instance = relationship("NiFiInstance", back_populates="registry_flows")
+
 
 # Pydantic schemas
 class RegistryFlowCreate(BaseModel):
     """Schema for creating a registry flow"""
 
+    nifi_instance_id: int
     nifi_instance_name: str
     nifi_instance_url: str
     registry_id: str
@@ -51,6 +57,7 @@ class RegistryFlowResponse(BaseModel):
     """Schema for registry flow response"""
 
     id: int
+    nifi_instance_id: int
     nifi_instance_name: str
     nifi_instance_url: str
     registry_id: str

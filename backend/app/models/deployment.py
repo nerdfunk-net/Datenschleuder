@@ -24,6 +24,7 @@ class DeploymentRequest(BaseModel):
 
     # Common parameters
     parent_process_group_id: Optional[str] = None  # ID of parent PG, None = root
+    parent_process_group_path: Optional[str] = None  # Path to parent PG (alternative to ID)
     process_group_name: Optional[str] = (
         None  # Name for the deployed process group (will rename after deployment)
     )

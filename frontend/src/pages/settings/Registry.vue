@@ -14,6 +14,26 @@
         </div>
       </div>
 
+      <!-- Filter Section -->
+      <div class="card-body border-bottom">
+        <div class="row align-items-center">
+          <div class="col-md-4">
+            <label class="form-label small">Filter by NiFi Instance:</label>
+            <b-form-select
+              v-model="selectedFilterInstance"
+              :options="filterInstanceOptions"
+              @change="applyInstanceFilter"
+            ></b-form-select>
+          </div>
+          <div class="col-md-8 text-end">
+            <small class="text-muted">
+              Showing {{ registryFlows.length }} flows
+              {{ selectedFilterInstance !== null ? `for selected instance` : `(all instances)` }}
+            </small>
+          </div>
+        </div>
+      </div>
+
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-5">
         <b-spinner variant="primary"></b-spinner>
@@ -61,7 +81,7 @@
                   <!-- GitHub Link Button -->
                   <template v-else-if="isGitHubRegistry(flow)">
                     <a
-                      :href="getGitHubUrl(flow)"
+                      :href="getGitHubUrl(flow) || undefined"
                       target="_blank"
                       class="btn btn-sm btn-outline-primary"
                       title="View on GitHub"
@@ -355,6 +375,7 @@ import { apiRequest } from "@/utils/api";
 
 interface RegistryFlow {
   id: number;
+  nifi_instance_id: number;
   nifi_instance_name: string;
   nifi_instance_url: string;
   registry_id: string;
@@ -399,6 +420,7 @@ interface Registry {
 
 const isLoading = ref(false);
 const registryFlows = ref<RegistryFlow[]>([]);
+const selectedFilterInstance = ref<number | null>(null);
 
 // Modal state
 const showAddFlowModal = ref(false);
@@ -449,6 +471,16 @@ const instanceOptions = computed(() => {
   }));
 });
 
+const filterInstanceOptions = computed(() => {
+  return [
+    { value: null, text: "All Instances" },
+    ...nifiInstances.value.map((instance) => ({
+      value: instance.id,
+      text: `${instance.hierarchy_value} (${instance.nifi_url})`,
+    }))
+  ];
+});
+
 const bucketOptions = computed(() => {
   return buckets.value.map((bucket) => ({
     value: bucket,
@@ -495,7 +527,13 @@ const canImport = computed(() => {
 const loadRegistryFlows = async () => {
   isLoading.value = true;
   try {
-    registryFlows.value = await apiRequest("/api/registry-flows/");
+    // Build API URL with optional nifi_instance filter
+    let apiUrl = "/api/registry-flows/";
+    if (selectedFilterInstance.value !== null) {
+      apiUrl += `?nifi_instance=${selectedFilterInstance.value}`;
+    }
+    
+    registryFlows.value = await apiRequest(apiUrl);
 
     // Load registry details for each unique registry
     const uniqueRegistries = new Set<string>();
@@ -537,6 +575,11 @@ const loadRegistryFlows = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+const applyInstanceFilter = async () => {
+  // Reload data with the new filter
+  await loadRegistryFlows();
 };
 
 const loadNiFiInstances = async () => {
@@ -629,6 +672,7 @@ const saveFlows = async () => {
   isSaving.value = true;
   try {
     const flowsToSave = selectedFlows.value.map((flow) => ({
+      nifi_instance_id: selectedInstance.value!.id,
       nifi_instance_name: selectedInstance.value!.hierarchy_value,
       nifi_instance_url: selectedInstance.value!.nifi_url,
       registry_id: selectedRegistry.value!.id,

@@ -1,6 +1,7 @@
 """NiFi instance model for managing multiple NiFi systems"""
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from pydantic import BaseModel
 from datetime import datetime
@@ -32,6 +33,9 @@ class NiFiInstance(Base):
     )  # Whether to verify SSL certificate hostname matches
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # Relationships
+    registry_flows = relationship("RegistryFlow", back_populates="nifi_instance")
 
 
 # Pydantic schemas

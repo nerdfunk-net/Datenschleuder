@@ -1,7 +1,7 @@
 """Deployment models for flow deployment operations"""
 
 from pydantic import BaseModel
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict, Any
 
 
 class DeploymentRequest(BaseModel):
@@ -149,3 +149,56 @@ class InputPortsResponse(BaseModel):
     process_group_name: Optional[str] = None
     input_ports: List[InputPortInfo]
     count: int
+
+
+class ProcessorConfiguration(BaseModel):
+    """Processor configuration details"""
+
+    id: str
+    name: str
+    type: str
+    state: str
+    properties: Dict[str, Any]
+    scheduling_period: Optional[str] = None
+    scheduling_strategy: Optional[str] = None
+    execution_node: Optional[str] = None
+    penalty_duration: Optional[str] = None
+    yield_duration: Optional[str] = None
+    bulletin_level: Optional[str] = None
+    comments: Optional[str] = None
+    auto_terminated_relationships: Optional[List[str]] = None
+    run_duration_millis: Optional[int] = None
+    concurrent_tasks: Optional[int] = None
+
+
+class ProcessorConfigurationResponse(BaseModel):
+    """Response model for processor configuration"""
+
+    status: str
+    processor: ProcessorConfiguration
+
+
+class ProcessorConfigurationUpdate(BaseModel):
+    """Model for updating processor configuration"""
+
+    name: Optional[str] = None
+    properties: Optional[Dict[str, Any]] = None
+    scheduling_period: Optional[str] = None
+    scheduling_strategy: Optional[str] = None
+    execution_node: Optional[str] = None
+    penalty_duration: Optional[str] = None
+    yield_duration: Optional[str] = None
+    bulletin_level: Optional[str] = None
+    comments: Optional[str] = None
+    auto_terminated_relationships: Optional[List[str]] = None
+    run_duration_millis: Optional[int] = None
+    concurrent_tasks: Optional[int] = None
+
+
+class ProcessorConfigurationUpdateResponse(BaseModel):
+    """Response model for processor configuration update"""
+
+    status: str
+    message: str
+    processor_id: str
+    processor_name: str

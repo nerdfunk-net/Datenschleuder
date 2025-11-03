@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+import logging
 
 from app.core.database import init_db, get_session_local
 from app.core.config import settings
@@ -17,6 +18,22 @@ from app.api.flow_views import router as flow_views_router
 from app.api.registry_flows import router as registry_flows_router
 from app.api.deploy import router as deploy_router
 from app.models.user import User
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Set root level to INFO (DEBUG creates too much noise)
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+)
+
+# Set specific loggers to appropriate levels
+logging.getLogger("app.services.nifi_deployment_service").setLevel(logging.DEBUG)
+logging.getLogger("app.api.deploy").setLevel(logging.INFO)
+logging.getLogger("uvicorn").setLevel(logging.WARNING)  # Reduce uvicorn noise
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)  # Reduce access logs
+logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy").setLevel(logging.WARNING)  # Reduce SQL noise
+logging.getLogger("nipyapi").setLevel(logging.WARNING)  # Reduce NiFi API noise
+logging.getLogger("urllib3").setLevel(logging.WARNING)  # Reduce HTTP client noise
 
 # Create FastAPI application
 app = FastAPI(

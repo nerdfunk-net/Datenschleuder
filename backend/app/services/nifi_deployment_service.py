@@ -589,7 +589,303 @@ class NiFiDeploymentService:
     ) -> None:
         """
         Connect input ports between parent and child process groups.
-
-        Deprecated: Use _auto_connect_port() with port_type='input' instead.
+        
+        Strategy:
+        1. Try standard port-to-port connection (parent output port -> child input port)
+        2. If no parent output port exists, look for RouteOnAttribute processor in parent
+        3. Connect RouteOnAttribute -> child input port using relationship named after the child PG
+        
+        Args:
+            pg_api: ProcessGroupsApi instance for port operations
+            child_pg_id: ID of the child (deployed) process group
+            parent_pg_id: ID of the parent process group
         """
-        self._auto_connect_port(pg_api, child_pg_id, parent_pg_id, "input")
+        try:
+            logger.info("=== Connecting INPUT ports ===")
+            logger.info(f"  Child PG ID: {child_pg_id}")
+            logger.info(f"  Parent PG ID: {parent_pg_id}")
+            
+            # Get child input ports
+            logger.debug("  Fetching input ports from child process group...")
+            child_response = pg_api.get_input_ports(id=child_pg_id)
+            child_ports = (
+                child_response.input_ports
+                if hasattr(child_response, "input_ports")
+                else []
+            )
+            
+            logger.info(f"  Child input ports count: {len(child_ports) if child_ports else 0}")
+            
+            if not child_ports:
+                logger.info("  No input ports found in child process group - skipping input auto-connect")
+                return
+            
+            child_port = child_ports[0]
+            child_port_name = child_port.component.name if hasattr(child_port, 'component') and hasattr(child_port.component, 'name') else 'Unknown'
+            logger.info(f"  Child input port: '{child_port_name}' (ID: {child_port.id})")
+            
+            # Try to get parent output ports first (standard connection)
+            logger.debug("  Fetching output ports from parent process group...")
+            parent_response = pg_api.get_output_ports(id=parent_pg_id)
+            parent_ports = (
+                parent_response.output_ports
+                if hasattr(parent_response, "output_ports")
+                else []
+            )
+            
+            logger.info(f"  Parent output ports count: {len(parent_ports) if parent_ports else 0}")
+            
+            # Strategy 1: Standard port-to-port connection
+            if parent_ports:
+                logger.info("  Strategy 1: Connecting parent output port -> child input port")
+                parent_port = parent_ports[0]
+                parent_port_name = parent_port.component.name if hasattr(parent_port, 'component') and hasattr(parent_port.component, 'name') else 'Unknown'
+                
+                logger.info(f"  Connecting: '{parent_port_name}' -> '{child_port_name}'...")
+                
+                created_conn = canvas.create_connection(
+                    source=parent_port,
+                    target=child_port,
+                    name=f"{parent_port_name} to {child_port_name}",
+                )
+                
+                logger.info(f"  ✓ Successfully created input connection (ID: {created_conn.id})")
+                return
+            
+            # Strategy 2: Connect RouteOnAttribute processor to child input port
+            logger.info("  No parent output port found - trying Strategy 2: RouteOnAttribute connection")
+            
+            # Get all processors in the parent process group
+            logger.debug("  Fetching processors from parent process group...")
+            processors_list = canvas.list_all_processors(pg_id=parent_pg_id)
+            
+            if not processors_list:
+                logger.warning("  No processors found in parent process group")
+                return
+            
+            logger.info(f"  Found {len(processors_list)} processor(s) in parent")
+            
+            # Find RouteOnAttribute processor
+            route_processor = None
+            for processor in processors_list:
+                processor_type = (
+                    processor.component.type
+                    if hasattr(processor, "component") and hasattr(processor.component, "type")
+                    else None
+                )
+                processor_name = (
+                    processor.component.name
+                    if hasattr(processor, "component") and hasattr(processor.component, "name")
+                    else "Unknown"
+                )
+                processor_pg_id = (
+                    processor.component.parent_group_id
+                    if hasattr(processor, "component") and hasattr(processor.component, "parent_group_id")
+                    else "Unknown"
+                )
+                
+                logger.debug(f"    Processor: '{processor_name}' (Type: {processor_type}, Parent PG: {processor_pg_id})")
+                
+                # CRITICAL: Only consider processors that are DIRECTLY in the parent PG
+                # Exclude processors from child process groups (like the newly deployed one)
+                if processor_pg_id != parent_pg_id:
+                    logger.debug(f"      -> Skipping - not in parent PG (expected: {parent_pg_id})")
+                    continue
+                
+                if processor_type == "org.apache.nifi.processors.standard.RouteOnAttribute":
+                    route_processor = processor
+                    logger.info(f"  ✓ Found RouteOnAttribute processor in PARENT: '{processor_name}' (ID: {processor.id})")
+                    break
+            
+            if not route_processor:
+                logger.warning("  No RouteOnAttribute processor found in parent - cannot auto-connect")
+                return
+            
+            # Get the child process group name to use as relationship name
+            logger.debug("  Fetching child process group details for relationship name...")
+            child_pg = pg_api.get_process_group(id=child_pg_id)
+            child_pg_name = (
+                child_pg.component.name
+                if hasattr(child_pg, "component") and hasattr(child_pg.component, "name")
+                else "Unknown"
+            )
+            
+            logger.info(f"  Child PG name: '{child_pg_name}'")
+            
+            # Get RouteOnAttribute processor configuration to check properties
+            route_processor_id = route_processor.id
+            logger.info(f"  Checking RouteOnAttribute processor configuration...")
+            logger.debug(f"    Processor ID: {route_processor_id}")
+            
+            # Get processor configuration
+            route_config = canvas.get_processor(route_processor_id, "id")
+            config_obj = route_config.component.config if hasattr(route_config, "component") else None
+            properties = {}
+            
+            if config_obj and hasattr(config_obj, "properties") and config_obj.properties:
+                properties = dict(config_obj.properties)
+                logger.info(f"  Current properties: {list(properties.keys())}")
+                logger.info(f"  ===== FULL PROPERTY DUMP =====")
+                for prop_key, prop_value in properties.items():
+                    logger.info(f"    '{prop_key}': '{prop_value}'")
+                logger.info(f"  ==============================")
+            else:
+                logger.warning("  No properties found in RouteOnAttribute processor")
+            
+            # Check if property for child PG exists
+            property_exists = child_pg_name in properties
+            logger.info(f"  Looking for property: '{child_pg_name}'")
+            logger.info(f"  Property exists: {property_exists}")
+            
+            # Check if Routing Strategy is correctly set
+            routing_strategy = properties.get("Routing Strategy", "")
+            logger.debug(f"  Current Routing Strategy: '{routing_strategy}'")
+            
+            needs_update = False
+            if not property_exists:
+                logger.info(f"  Property '{child_pg_name}' does NOT exist - will add it")
+                needs_update = True
+            else:
+                logger.info(f"  ✓ Property '{child_pg_name}' already exists with value: {properties[child_pg_name]}")
+            
+            if routing_strategy != "Route to Property name":
+                logger.warning(f"  Routing Strategy is '{routing_strategy}' but should be 'Route to Property name'")
+                needs_update = True
+            
+            if needs_update:
+                # Get current processor state
+                current_state = route_processor.component.state if hasattr(route_processor, "component") else "STOPPED"
+                logger.info(f"  Current processor state: {current_state}")
+                
+                # Stop processor if running (required for configuration changes)
+                if current_state == "RUNNING":
+                    logger.info(f"  Stopping processor before configuration update...")
+                    try:
+                        canvas.schedule_processor(route_processor, scheduled=False)
+                        logger.info(f"  ✓ Processor stopped")
+                        import time
+                        time.sleep(0.5)  # Wait for processor to stop
+                    except Exception as stop_error:
+                        logger.warning(f"  Could not stop processor: {stop_error}")
+                
+                # Add/update properties
+                if not property_exists:
+                    properties[child_pg_name] = f"#{{{child_pg_name}}}"
+                    logger.info(f"  Added property: '{child_pg_name}' = '{properties[child_pg_name]}'")
+                
+                if routing_strategy != "Route to Property name":
+                    properties["Routing Strategy"] = "Route to Property name"
+                    logger.info(f"  Set Routing Strategy to 'Route to Property name'")
+                
+                logger.info(f"  ===== PROPERTIES TO UPDATE =====")
+                logger.info(f"  Total properties: {len(properties)}")
+                for prop_key, prop_value in properties.items():
+                    logger.info(f"    '{prop_key}': '{prop_value}'")
+                logger.info(f"  =================================")
+                logger.info(f"  Updating processor configuration...")
+                
+                # Update processor with new properties
+                try:
+                    # Create a proper ProcessorConfigDTO object
+                    from nipyapi.nifi import ProcessorConfigDTO
+                    
+                    logger.debug(f"  Creating ProcessorConfigDTO with {len(properties)} properties")
+                    
+                    # Create updated config with new properties
+                    updated_config = ProcessorConfigDTO(properties=properties)
+                    
+                    logger.debug(f"  Calling canvas.update_processor...")
+                    updated_processor = canvas.update_processor(
+                        processor=route_processor,
+                        update=updated_config,
+                    )
+                    
+                    if updated_processor:
+                        logger.info(f"  ✓ Successfully updated RouteOnAttribute processor properties")
+                        logger.debug(f"    Updated processor ID: {updated_processor.id}")
+                        
+                        # ALWAYS start processor to trigger validation and relationship registration
+                        # This is necessary even if processor was stopped before, because NiFi only
+                        # evaluates and registers dynamic relationships when the processor validates
+                        logger.info(f"  Starting processor to trigger relationship validation...")
+                        try:
+                            canvas.schedule_processor(updated_processor, scheduled=True)
+                            logger.info(f"  ✓ Processor started")
+                            import time
+                            time.sleep(1.5)  # Wait for NiFi to validate and register relationships
+                            
+                            # Refresh the processor object to get the new relationships
+                            logger.debug(f"  Refreshing processor to get updated relationships...")
+                            route_processor = canvas.get_processor(route_processor_id, "id")
+                            logger.debug(f"  Processor refreshed successfully")
+                            
+                            # Stop processor again if it was originally stopped
+                            if current_state == "STOPPED":
+                                logger.info(f"  Stopping processor (was originally stopped)...")
+                                canvas.schedule_processor(route_processor, scheduled=False)
+                                logger.info(f"  ✓ Processor stopped")
+                                time.sleep(0.5)
+                                # Refresh again to get final state
+                                route_processor = canvas.get_processor(route_processor_id, "id")
+                        except Exception as start_error:
+                            logger.warning(f"  Could not start/stop processor: {start_error}")
+                            # Still refresh to get whatever state we have
+                            route_processor = canvas.get_processor(route_processor_id, "id")
+                    else:
+                        logger.error("  ✗ Failed to update processor (returned None)")
+                        raise Exception("Processor update returned None")
+                        
+                except Exception as update_error:
+                    logger.error(f"  ✗ Failed to update RouteOnAttribute processor: {update_error}")
+                    import traceback
+                    logger.error(f"    Traceback: {traceback.format_exc()}")
+                    raise
+            else:
+                logger.info(f"  Configuration is correct - no update needed")
+                # Still refresh to get current state
+                logger.debug(f"  Refreshing processor to get current relationships...")
+                route_processor = canvas.get_processor(route_processor_id, "id")
+                logger.debug(f"  Processor refreshed successfully")
+            
+            # Log available relationships before creating connection
+            if hasattr(route_processor, "component") and hasattr(route_processor.component, "relationships"):
+                available_rels = [rel.name for rel in route_processor.component.relationships]
+                logger.info(f"  ===== RELATIONSHIPS DUMP =====")
+                logger.info(f"  Available relationships: {available_rels}")
+                logger.info(f"  Number of relationships: {len(available_rels)}")
+                for idx, rel in enumerate(route_processor.component.relationships):
+                    logger.info(f"    Relationship {idx}: name='{rel.name}', autoTerminate={getattr(rel, 'auto_terminate', 'N/A')}")
+                logger.info(f"  ==============================")
+                logger.info(f"  Looking for relationship: '{child_pg_name}'")
+                logger.info(f"  Relationship '{child_pg_name}' in list: {child_pg_name in available_rels}")
+            else:
+                logger.warning(f"  Could not retrieve available relationships from processor")
+            
+            # Create connection from RouteOnAttribute to child input port
+            route_processor_name = (
+                route_processor.component.name
+                if hasattr(route_processor, "component") and hasattr(route_processor.component, "name")
+                else "RouteOnAttribute"
+            )
+            
+            logger.info(f"  Creating connection with relationship: '{child_pg_name}'")
+            logger.info(f"  Connecting: '{route_processor_name}' -> '{child_port_name}'...")
+            logger.debug(f"    Connection parameters: name='{child_pg_name}', relationships=['{child_pg_name}']")
+            
+            created_conn = canvas.create_connection(
+                source=route_processor,
+                target=child_port,
+                name=child_pg_name,
+                relationships=[child_pg_name],
+            )
+            
+            logger.info(f"  ✓ Successfully created RouteOnAttribute connection (ID: {created_conn.id})")
+            logger.info(f"    Connection name: '{child_pg_name}'")
+            logger.info(f"    Relationship: '{child_pg_name}'")
+            
+        except Exception as connect_error:
+            logger.error(f"⚠ ERROR: Could not auto-connect input ports: {connect_error}")
+            logger.error(f"  Error type: {type(connect_error).__name__}")
+            import traceback
+            logger.error(f"  Traceback: {traceback.format_exc()}")
+            logger.warning(f"⚠ Warning: Could not auto-connect input ports: {connect_error}")

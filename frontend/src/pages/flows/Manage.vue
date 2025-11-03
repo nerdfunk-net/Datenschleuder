@@ -1545,12 +1545,23 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
 };
 
 const getFlowIdentifier = (flow: any) => {
-  return hierarchyColumns.value
-    .map(
-      (col) =>
-        `${flow[`src_${col.name.toLowerCase()}`]} → ${flow[`dest_${col.name.toLowerCase()}`]}`,
-    )
+  // Build source path
+  const sourceParts = hierarchyColumns.value
+    .map((col) => {
+      const value = flow[`src_${col.name.toLowerCase()}`];
+      return `${col.name} → ${value}`;
+    })
     .join(" / ");
+
+  // Build destination path
+  const destParts = hierarchyColumns.value
+    .map((col) => {
+      const value = flow[`dest_${col.name.toLowerCase()}`];
+      return `${col.name} → ${value}`;
+    })
+    .join(" / ");
+
+  return `Source: ${sourceParts} | Destination: ${destParts}`;
 };
 
 const handleConflictResolution = async (resolution: string) => {

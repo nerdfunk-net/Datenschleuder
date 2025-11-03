@@ -234,9 +234,13 @@ async def deploy_flow(
         logger.info(f"✓ Successfully deployed process group: {pg_id}")
 
         # Step 7: Rename process group if requested
-        pg_name, deployed_version = service.rename_process_group(
+        # Note: rename_process_group returns (pg_id, pg_name)
+        _, pg_name = service.rename_process_group(
             deployed_pg, deployment.process_group_name
         )
+
+        # Extract deployed version
+        deployed_version = service.extract_deployed_version(deployed_pg)
 
         # Step 8: Assign parameter context if specified
         if pg_id and deployment.parameter_context_id:

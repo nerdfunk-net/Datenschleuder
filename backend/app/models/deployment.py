@@ -33,6 +33,7 @@ class DeploymentRequest(BaseModel):
     )
     x_position: Optional[int] = 0
     y_position: Optional[int] = 0
+    parameter_context_id: Optional[str] = None  # Optional parameter context to assign to the deployed process group
 
 
 class DeploymentResponse(BaseModel):

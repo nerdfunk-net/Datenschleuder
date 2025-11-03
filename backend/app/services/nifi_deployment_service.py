@@ -407,13 +407,25 @@ class NiFiDeploymentService:
             pg_id: Child process group ID
             parent_pg_id: Parent process group ID
         """
+        logger.info("=" * 60)
+        logger.info("AUTO-CONNECT PORTS: Starting auto-connection process")
+        logger.info(f"  Child process group ID: {pg_id}")
+        logger.info(f"  Parent process group ID: {parent_pg_id}")
+        logger.info("=" * 60)
+        
         pg_api = ProcessGroupsApi()
 
         # Connect output ports
+        logger.info("\n--- Attempting OUTPUT port connections ---")
         self._connect_output_ports(pg_api, pg_id, parent_pg_id)
 
         # Connect input ports
+        logger.info("\n--- Attempting INPUT port connections ---")
         self._connect_input_ports(pg_api, pg_id, parent_pg_id)
+        
+        logger.info("=" * 60)
+        logger.info("AUTO-CONNECT PORTS: Completed auto-connection process")
+        logger.info("=" * 60)
 
     def _auto_connect_port(
         self,
@@ -438,11 +450,17 @@ class NiFiDeploymentService:
             raise ValueError(f"Invalid port_type: {port_type}. Must be 'input' or 'output'")
 
         try:
+            logger.info(f"=== Auto-connect {port_type} ports ===")
+            logger.info(f"  Child PG ID: {child_pg_id}")
+            logger.info(f"  Parent PG ID: {parent_pg_id}")
             logger.info(f"Checking for {port_type} ports to auto-connect...")
 
             # Get ports from child process group
+            logger.debug(f"  Fetching {port_type} ports from child process group...")
             if port_type == "output":
                 child_response = pg_api.get_output_ports(id=child_pg_id)
+                logger.debug(f"  Child response type: {type(child_response)}")
+                logger.debug(f"  Child response has 'output_ports': {hasattr(child_response, 'output_ports')}")
                 child_ports = (
                     child_response.output_ports
                     if hasattr(child_response, "output_ports")
@@ -450,15 +468,24 @@ class NiFiDeploymentService:
                 )
             else:  # input
                 child_response = pg_api.get_input_ports(id=child_pg_id)
+                logger.debug(f"  Child response type: {type(child_response)}")
+                logger.debug(f"  Child response has 'input_ports': {hasattr(child_response, 'input_ports')}")
                 child_ports = (
                     child_response.input_ports
                     if hasattr(child_response, "input_ports")
                     else []
                 )
 
+            logger.info(f"  Child {port_type} ports count: {len(child_ports) if child_ports else 0}")
+            if child_ports:
+                for idx, port in enumerate(child_ports):
+                    port_name = port.component.name if hasattr(port, 'component') and hasattr(port.component, 'name') else 'Unknown'
+                    port_id = port.id if hasattr(port, 'id') else 'Unknown'
+                    logger.debug(f"    Child port {idx}: '{port_name}' (ID: {port_id})")
+
             if not child_ports:
                 logger.info(
-                    f"  No {port_type} ports found in deployed process group - skipping {port_type} auto-connect"
+                    f"  No {port_type} ports found in child process group - skipping {port_type} auto-connect"
                 )
                 return
 
@@ -467,8 +494,11 @@ class NiFiDeploymentService:
             )
 
             # Get ports from parent process group
+            logger.debug(f"  Fetching {port_type} ports from parent process group...")
             if port_type == "output":
                 parent_response = pg_api.get_output_ports(id=parent_pg_id)
+                logger.debug(f"  Parent response type: {type(parent_response)}")
+                logger.debug(f"  Parent response has 'output_ports': {hasattr(parent_response, 'output_ports')}")
                 parent_ports = (
                     parent_response.output_ports
                     if hasattr(parent_response, "output_ports")
@@ -476,11 +506,20 @@ class NiFiDeploymentService:
                 )
             else:  # input
                 parent_response = pg_api.get_input_ports(id=parent_pg_id)
+                logger.debug(f"  Parent response type: {type(parent_response)}")
+                logger.debug(f"  Parent response has 'input_ports': {hasattr(parent_response, 'input_ports')}")
                 parent_ports = (
                     parent_response.input_ports
                     if hasattr(parent_response, "input_ports")
                     else []
                 )
+
+            logger.info(f"  Parent {port_type} ports count: {len(parent_ports) if parent_ports else 0}")
+            if parent_ports:
+                for idx, port in enumerate(parent_ports):
+                    port_name = port.component.name if hasattr(port, 'component') and hasattr(port.component, 'name') else 'Unknown'
+                    port_id = port.id if hasattr(port, 'id') else 'Unknown'
+                    logger.debug(f"    Parent port {idx}: '{port_name}' (ID: {port_id})")
 
             if not parent_ports:
                 logger.info(
@@ -505,14 +544,19 @@ class NiFiDeploymentService:
                 source_port = parent_port
                 target_port = child_port
 
+            source_name = source_port.component.name if hasattr(source_port, 'component') and hasattr(source_port.component, 'name') else 'Unknown'
+            target_name = target_port.component.name if hasattr(target_port, 'component') and hasattr(target_port.component, 'name') else 'Unknown'
+            
             logger.info(
-                f"  Connecting {port_type}: '{source_port.component.name}' -> '{target_port.component.name}'..."
+                f"  Connecting {port_type}: '{source_name}' -> '{target_name}'..."
             )
+            logger.debug(f"    Source port ID: {source_port.id if hasattr(source_port, 'id') else 'Unknown'}")
+            logger.debug(f"    Target port ID: {target_port.id if hasattr(target_port, 'id') else 'Unknown'}")
 
             created_conn = canvas.create_connection(
                 source=source_port,
                 target=target_port,
-                name=f"{source_port.component.name} to {target_port.component.name}",
+                name=f"{source_name} to {target_name}",
             )
 
             logger.info(
@@ -520,6 +564,12 @@ class NiFiDeploymentService:
             )
 
         except Exception as connect_error:
+            logger.error(
+                f"⚠ ERROR: Could not auto-connect {port_type} ports: {connect_error}"
+            )
+            logger.error(f"  Error type: {type(connect_error).__name__}")
+            import traceback
+            logger.error(f"  Traceback: {traceback.format_exc()}")
             logger.warning(
                 f"⚠ Warning: Could not auto-connect {port_type} ports: {connect_error}"
             )

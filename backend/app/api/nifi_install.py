@@ -1,5 +1,6 @@
 """NiFi installation API endpoints for checking and creating process groups"""
 
+import logging
 from typing import List, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -10,10 +11,12 @@ from app.core.database import get_db
 from app.core.security import verify_token
 from app.models.nifi_instance import NiFiInstance
 from app.services.nifi_auth import configure_nifi_connection
+from app.services.nifi_deployment_service import NiFiDeploymentService
 from app.api.settings import get_setting_value
 
 
 router = APIRouter(prefix="/api/nifi-install", tags=["nifi-install"])
+logger = logging.getLogger(__name__)
 
 
 class PathStatus(BaseModel):
@@ -324,6 +327,9 @@ async def create_groups(
 
         # Create missing groups
         created_groups = []
+        
+        # Initialize deployment service for port connections
+        deployment_service = NiFiDeploymentService(instance)
 
         for path in missing_paths:
             parts = path.split("/")
@@ -351,12 +357,30 @@ async def create_groups(
             )
 
             if not already_exists:
+                logger.info(f"Creating process group: {pg_name} in parent: {parent_id}")
                 new_pg = canvas.create_process_group(
                     parent_pg=canvas.get_process_group(parent_id, "id"),
                     new_pg_name=pg_name,
                     location=(0.0, 0.0),
                 )
+                logger.info(f"  Created process group ID: {new_pg.id}")
                 created_groups.append(path)
+                
+                # Auto-connect output ports between the new process group and its parent
+                # This checks if both have output ports and connects them if they do
+                logger.info(f"  Attempting to auto-connect ports for: {pg_name}")
+                logger.info(f"    New PG ID: {new_pg.id}")
+                logger.info(f"    Parent PG ID: {parent_id}")
+                try:
+                    deployment_service.auto_connect_ports(new_pg.id, parent_id)
+                    logger.info(f"  ✓ Auto-connect completed for {path}")
+                except Exception as port_error:
+                    # Log warning but don't fail the entire operation
+                    logger.warning(f"Could not auto-connect ports for {path}: {port_error}")
+                    logger.warning(f"  Error type: {type(port_error).__name__}")
+                    import traceback
+                    logger.warning(f"  Traceback: {traceback.format_exc()}")
+                
                 # Add to lookup for next iterations
                 pg_by_path[path] = {"id": new_pg.id, "name": pg_name, "parent_group_id": parent_id}
 

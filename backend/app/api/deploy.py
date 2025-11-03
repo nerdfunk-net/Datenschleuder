@@ -18,6 +18,10 @@ from app.models.deployment import (
     ConnectionRequest,
     ConnectionResponse,
 )
+from app.models.parameter_context import (
+    AssignParameterContextRequest,
+    AssignParameterContextResponse,
+)
 from app.services.encryption_service import encryption_service
 from app.services.nifi_deployment_service import NiFiDeploymentService
 from app.utils.nifi_helpers import extract_pg_info
@@ -238,9 +242,40 @@ async def deploy_flow(
             deployed_pg, deployment.process_group_name
         )
         
-        # Step 8: Auto-connect ports if parent PG specified
-        if pg_id and deployment.parent_process_group_id:
-            service.auto_connect_ports(pg_id, deployment.parent_process_group_id)
+        # Step 8: Assign parameter context if specified
+        if pg_id and deployment.parameter_context_id:
+            logger.info(f"Assigning parameter context {deployment.parameter_context_id} to process group {pg_id}")
+            try:
+                from nipyapi import parameters
+                
+                # Re-fetch the process group to get the latest state after rename
+                from nipyapi.nifi import ProcessGroupsApi
+                pg_api = ProcessGroupsApi()
+                pg = pg_api.get_process_group(id=pg_id)
+                
+                parameters.assign_context_to_process_group(
+                    pg=pg,
+                    context_id=deployment.parameter_context_id,
+                    cascade=False,
+                )
+                logger.info(f"✓ Parameter context assigned successfully")
+            except Exception as param_error:
+                logger.warning(f"⚠ Warning: Could not assign parameter context: {param_error}")
+                # Don't fail the deployment if parameter context assignment fails
+        
+        # Step 9: Auto-connect ports if parent PG specified
+        # Use parent_pg_id that was resolved (could be from ID or path)
+        logger.info(f"DEBUG: Checking auto-connect conditions:")
+        logger.info(f"  pg_id exists: {pg_id is not None}")
+        logger.info(f"  parent_pg_id resolved: {parent_pg_id}")
+        logger.info(f"  deployment.parent_process_group_id: {deployment.parent_process_group_id}")
+        logger.info(f"  deployment.parent_process_group_path: {deployment.parent_process_group_path}")
+        
+        if pg_id and parent_pg_id:
+            logger.info(f"✓ Triggering auto-connect between child={pg_id} and parent={parent_pg_id}")
+            service.auto_connect_ports(pg_id, parent_pg_id)
+        else:
+            logger.warning(f"⚠ Skipping auto-connect: pg_id={pg_id}, parent_pg_id={parent_pg_id}")
         
         # Build success response
         success_message = (
@@ -1181,4 +1216,97 @@ async def update_process_group_version(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update process group version: {error_msg}",
+        )
+
+
+@router.post(
+    "/{instance_id}/process-group/{process_group_id}/add-parameter",
+    response_model=AssignParameterContextResponse,
+)
+async def assign_parameter_context_to_process_group(
+    instance_id: int,
+    process_group_id: str,
+    request: AssignParameterContextRequest,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Assign a parameter context to a process group.
+    
+    Args:
+        instance_id: NiFi instance ID
+        process_group_id: Process group ID to assign parameter context to
+        request: Request body containing parameter_context_id and cascade flag
+        token_data: Authentication token data
+        db: Database session
+        
+    Returns:
+        Response with status and details of the assignment
+    """
+    try:
+        # Get NiFi instance
+        instance = (
+            db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+        )
+
+        if not instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"NiFi instance with ID {instance_id} not found",
+            )
+
+        logger.info(
+            f"Assigning parameter context {request.parameter_context_id} to "
+            f"process group {process_group_id} on instance {instance_id}"
+        )
+        logger.info(f"  Cascade: {request.cascade}")
+
+        # Configure NiFi connection
+        from app.services.nifi_auth import configure_nifi_connection
+
+        configure_nifi_connection(instance)
+
+        # Get the process group
+        from nipyapi.nifi import ProcessGroupsApi
+        from nipyapi import parameters
+
+        pg_api = ProcessGroupsApi()
+        pg = pg_api.get_process_group(id=process_group_id)
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group with ID {process_group_id} not found",
+            )
+
+        logger.info(f"Found process group: {pg.component.name if hasattr(pg, 'component') and hasattr(pg.component, 'name') else process_group_id}")
+
+        # Assign parameter context to process group
+        logger.info(f"Calling nipyapi.parameters.assign_context_to_process_group...")
+        result = parameters.assign_context_to_process_group(
+            pg=pg,
+            context_id=request.parameter_context_id,
+            cascade=request.cascade,
+        )
+
+        logger.info(f"✓ Parameter context assigned successfully")
+
+        return AssignParameterContextResponse(
+            status="success",
+            message=f"Parameter context assigned to process group successfully",
+            process_group_id=process_group_id,
+            parameter_context_id=request.parameter_context_id,
+            cascade=request.cascade,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to assign parameter context: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to assign parameter context: {error_msg}",
         )

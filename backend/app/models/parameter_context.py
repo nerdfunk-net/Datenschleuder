@@ -61,3 +61,20 @@ class ParameterContextUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     parameters: Optional[List[ParameterInput]] = None
+
+
+class AssignParameterContextRequest(BaseModel):
+    """Model for assigning a parameter context to a process group"""
+
+    parameter_context_id: str
+    cascade: bool = False
+
+
+class AssignParameterContextResponse(BaseModel):
+    """Response model for assigning a parameter context"""
+
+    status: str
+    message: str
+    process_group_id: str
+    parameter_context_id: str
+    cascade: bool

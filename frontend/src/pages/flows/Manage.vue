@@ -1442,14 +1442,14 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       );
     }
 
-    // Get process group using auto-selection logic (same as Deploy.vue)
-    const processGroupId = await autoSelectProcessGroupForFlow(
+    // Get process group path using auto-selection logic
+    const processGroupPath = await autoSelectProcessGroupForFlow(
       flow,
       target,
       instanceId,
       hierarchyValue,
     );
-    if (!processGroupId) {
+    if (!processGroupPath) {
       throw new Error(
         "Could not auto-select process group. Please use the full deployment wizard.",
       );
@@ -1465,10 +1465,10 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       throw new Error("No template configured for this flow");
     }
 
-    // Deploy
+    // Deploy using parent_process_group_path (will auto-create missing groups)
     const deploymentRequest = {
       template_id: templateId,
-      parent_process_group_id: processGroupId,
+      parent_process_group_path: processGroupPath,
       process_group_name: processGroupName,
       version: null,
       x_position: 0,
@@ -1600,7 +1600,7 @@ const handleConflictResolution = async (resolution: string) => {
     } else if (resolution === "delete_and_deploy") {
       // Delete existing process group first
       await apiRequest(
-        `/api/deploy/${instanceId}/process-group/${existingPgId}`,
+        `/api/nifi-instances/${instanceId}/process-group/${existingPgId}`,
         {
           method: "DELETE",
         },
@@ -1636,7 +1636,7 @@ const handleConflictResolution = async (resolution: string) => {
       };
 
       const result = await apiRequest(
-        `/api/deploy/${instanceId}/process-group/${existingPgId}/update-version`,
+        `/api/nifi-instances/${instanceId}/process-group/${existingPgId}/update-version`,
         {
           method: "POST",
           body: JSON.stringify(updateRequest),
@@ -1738,96 +1738,57 @@ const autoSelectProcessGroupForFlow = async (
       };
     }
 
-    // Load process group paths for this instance
-    if (!processGroupPaths.value[cacheKey]) {
-      const data = await apiRequest(`/api/deploy/${instanceId}/get-all-paths`);
-      if (data.status === "success" && data.process_groups) {
-        processGroupPaths.value[cacheKey] = data.process_groups;
-      }
-    }
-
-    const availablePaths = processGroupPaths.value[cacheKey] || [];
-    if (availablePaths.length === 0) return null;
-
-    // Get search path from settings
+    // Get configured base path from settings
     if (
       !deploymentSettings.value.paths ||
       !deploymentSettings.value.paths[instanceId]
     ) {
+      console.error("No deployment paths configured for this instance");
       return null;
     }
 
-    const searchPathId =
+    const pathConfig =
       target === "source"
         ? deploymentSettings.value.paths[instanceId].source_path
         : deploymentSettings.value.paths[instanceId].dest_path;
 
-    if (!searchPathId) return null;
+    if (!pathConfig) {
+      console.error(`No ${target} path configured for instance ${instanceId}`);
+      return null;
+    }
 
-    // Find the search path
-    const searchPath = availablePaths.find((p: any) => p.id === searchPathId);
-    if (!searchPath) return null;
+    // Extract base path string from config
+    // Support both new format (object with path property) and legacy format (string ID)
+    let basePathString: string;
+    if (typeof pathConfig === "object" && pathConfig.path) {
+      basePathString = pathConfig.path;
+    } else {
+      console.error("Invalid path configuration format");
+      return null;
+    }
 
-    const searchPathNames = searchPath.path
-      .slice()
-      .reverse()
-      .map((p: any) => p.name);
+    // Build full path: base_path + hierarchy_attributes (middle levels only)
+    const pathParts = basePathString.split("/").filter((s) => s.trim());
 
     // Get hierarchy attributes (skip first and last)
-    const hierarchyAttributes: string[] = [];
+    // First level is already in base path, last level is the flow name itself
     const prefix = target === "source" ? "src_" : "dest_";
 
     for (let i = 1; i < hierarchyColumns.value.length - 1; i++) {
       const attrName = hierarchyColumns.value[i].name.toLowerCase();
       const value = flow[`${prefix}${attrName}`];
       if (value) {
-        hierarchyAttributes.push(value);
+        pathParts.push(value);
       }
     }
 
-    // Find matching path
-    for (const pg of availablePaths) {
-      const pgPathNames = pg.path
-        .slice()
-        .reverse()
-        .map((p: any) => p.name);
+    // Return the full path string
+    const fullPath = pathParts.join("/");
+    console.log(
+      `Built deployment path for ${target}: ${fullPath}`,
+    );
 
-      // Check if starts with search path
-      let startsWithSearchPath = true;
-      for (let i = 0; i < searchPathNames.length; i++) {
-        if (pgPathNames[i] !== searchPathNames[i]) {
-          startsWithSearchPath = false;
-          break;
-        }
-      }
-
-      if (!startsWithSearchPath) continue;
-
-      // Check if contains hierarchy attributes in order
-      let matchesHierarchy = true;
-      let searchIndex = searchPathNames.length;
-
-      for (const attr of hierarchyAttributes) {
-        let found = false;
-        for (let i = searchIndex; i < pgPathNames.length; i++) {
-          if (pgPathNames[i] === attr) {
-            found = true;
-            searchIndex = i + 1;
-            break;
-          }
-        }
-        if (!found) {
-          matchesHierarchy = false;
-          break;
-        }
-      }
-
-      if (matchesHierarchy) {
-        return pg.id;
-      }
-    }
-
-    return null;
+    return fullPath;
   } catch (error) {
     console.error("Error in autoSelectProcessGroupForFlow:", error);
     return null;

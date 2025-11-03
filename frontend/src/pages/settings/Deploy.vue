@@ -269,7 +269,7 @@ const loadInstances = async () => {
 const loadPathsForInstance = async (instanceId: number) => {
   loadingPaths[instanceId] = true;
   try {
-    const data = await apiRequest(`/api/deploy/${instanceId}/get-all-paths`);
+    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-all-paths`);
     if (data.process_groups) {
       instancePaths[instanceId] = data.process_groups;
     }

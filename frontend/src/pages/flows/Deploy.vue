@@ -1003,7 +1003,7 @@ const loadProcessGroupPaths = async (
   }
 
   try {
-    const data = await apiRequest(`/api/deploy/${instanceId}/get-all-paths`);
+    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-all-paths`);
 
     if (data.status === "success" && data.process_groups) {
       processGroupPaths.value[cacheKey] = data.process_groups;
@@ -1404,7 +1404,7 @@ const handleConflictResolution = async (resolution: string) => {
     } else if (resolution === "delete_and_deploy") {
       // Delete existing process group first
       await apiRequest(
-        `/api/deploy/${config.instanceId}/process-group/${existingPgId}`,
+        `/api/nifi-instances/${config.instanceId}/process-group/${existingPgId}`,
         {
           method: "DELETE",
         },
@@ -1431,7 +1431,7 @@ const handleConflictResolution = async (resolution: string) => {
       };
 
       const result = await apiRequest(
-        `/api/deploy/${config.instanceId}/process-group/${existingPgId}/update-version`,
+        `/api/nifi-instances/${config.instanceId}/process-group/${existingPgId}/update-version`,
         {
           method: "POST",
           body: JSON.stringify(updateRequest),

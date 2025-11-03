@@ -17,6 +17,10 @@ from app.models.deployment import (
     PortInfo,
     ConnectionRequest,
     ConnectionResponse,
+    ProcessorInfo,
+    ProcessorsResponse,
+    InputPortInfo,
+    InputPortsResponse,
 )
 from app.models.parameter_context import (
     AssignParameterContextRequest,
@@ -1309,4 +1313,251 @@ async def assign_parameter_context_to_process_group(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to assign parameter context: {error_msg}",
+        )
+
+
+@router.get(
+    "/{instance_id}/process-group/{process_group_id}/processors",
+    response_model=ProcessorsResponse,
+)
+async def get_process_group_processors(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Get list of all processors in a process group.
+    
+    Args:
+        instance_id: NiFi instance ID
+        process_group_id: Process group ID to list processors from
+        token_data: Authentication token data
+        db: Database session
+        
+    Returns:
+        Response with list of processors in the process group
+    """
+    try:
+        # Get NiFi instance
+        instance = (
+            db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+        )
+
+        if not instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"NiFi instance with ID {instance_id} not found",
+            )
+
+        logger.info(
+            f"Getting processors for process group {process_group_id} "
+            f"on instance {instance_id}"
+        )
+
+        # Configure NiFi connection
+        from app.services.nifi_auth import configure_nifi_connection
+
+        configure_nifi_connection(instance)
+
+        # Get the process group to verify it exists and get its name
+        from nipyapi.nifi import ProcessGroupsApi
+        from nipyapi import canvas
+
+        pg_api = ProcessGroupsApi()
+        pg = pg_api.get_process_group(id=process_group_id)
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group with ID {process_group_id} not found",
+            )
+
+        pg_name = (
+            pg.component.name
+            if hasattr(pg, "component") and hasattr(pg.component, "name")
+            else None
+        )
+
+        logger.info(f"Found process group: {pg_name or process_group_id}")
+
+        # Get all processors in the process group
+        logger.info(f"Fetching processors using nipyapi.canvas.list_all_processors...")
+        processors_list = canvas.list_all_processors(pg_id=process_group_id)
+
+        # Convert to our response model
+        processors_info = []
+        if processors_list:
+            for processor in processors_list:
+                processor_data = ProcessorInfo(
+                    id=processor.id if hasattr(processor, "id") else "Unknown",
+                    name=processor.component.name
+                    if hasattr(processor, "component")
+                    and hasattr(processor.component, "name")
+                    else "Unknown",
+                    type=processor.component.type
+                    if hasattr(processor, "component")
+                    and hasattr(processor.component, "type")
+                    else "Unknown",
+                    state=processor.status.run_status
+                    if hasattr(processor, "status")
+                    and hasattr(processor.status, "run_status")
+                    else "Unknown",
+                    parent_group_id=processor.component.parent_group_id
+                    if hasattr(processor, "component")
+                    and hasattr(processor.component, "parent_group_id")
+                    else None,
+                    comments=processor.component.config.comments
+                    if hasattr(processor, "component")
+                    and hasattr(processor.component, "config")
+                    and hasattr(processor.component.config, "comments")
+                    else None,
+                )
+                processors_info.append(processor_data)
+
+        logger.info(f"✓ Found {len(processors_info)} processor(s)")
+
+        return ProcessorsResponse(
+            status="success",
+            process_group_id=process_group_id,
+            process_group_name=pg_name,
+            processors=processors_info,
+            count=len(processors_info),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to get processors: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get processors: {error_msg}",
+        )
+
+
+@router.get(
+    "/{instance_id}/process-group/{process_group_id}/input-ports",
+    response_model=InputPortsResponse,
+)
+async def get_process_group_input_ports(
+    instance_id: int,
+    process_group_id: str,
+    descendants: bool = True,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Get list of all input ports in a process group.
+    
+    Args:
+        instance_id: NiFi instance ID
+        process_group_id: Process group ID to list input ports from
+        descendants: Whether to include input ports from descendant process groups (default: True)
+        token_data: Authentication token data
+        db: Database session
+        
+    Returns:
+        Response with list of input ports in the process group
+    """
+    try:
+        # Get NiFi instance
+        instance = (
+            db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+        )
+
+        if not instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"NiFi instance with ID {instance_id} not found",
+            )
+
+        logger.info(
+            f"Getting input ports for process group {process_group_id} "
+            f"on instance {instance_id} (descendants={descendants})"
+        )
+
+        # Configure NiFi connection
+        from app.services.nifi_auth import configure_nifi_connection
+
+        configure_nifi_connection(instance)
+
+        # Get the process group to verify it exists and get its name
+        from nipyapi.nifi import ProcessGroupsApi
+        from nipyapi import canvas
+
+        pg_api = ProcessGroupsApi()
+        pg = pg_api.get_process_group(id=process_group_id)
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group with ID {process_group_id} not found",
+            )
+
+        pg_name = (
+            pg.component.name
+            if hasattr(pg, "component") and hasattr(pg.component, "name")
+            else None
+        )
+
+        logger.info(f"Found process group: {pg_name or process_group_id}")
+
+        # Get all input ports in the process group
+        logger.info(f"Fetching input ports using nipyapi.canvas.list_all_input_ports...")
+        input_ports_list = canvas.list_all_input_ports(
+            pg_id=process_group_id, descendants=descendants
+        )
+
+        # Convert to our response model
+        input_ports_info = []
+        if input_ports_list:
+            for port in input_ports_list:
+                port_data = InputPortInfo(
+                    id=port.id if hasattr(port, "id") else "Unknown",
+                    name=port.component.name
+                    if hasattr(port, "component")
+                    and hasattr(port.component, "name")
+                    else "Unknown",
+                    state=port.status.run_status
+                    if hasattr(port, "status")
+                    and hasattr(port.status, "run_status")
+                    else "Unknown",
+                    parent_group_id=port.component.parent_group_id
+                    if hasattr(port, "component")
+                    and hasattr(port.component, "parent_group_id")
+                    else None,
+                    comments=port.component.comments
+                    if hasattr(port, "component")
+                    and hasattr(port.component, "comments")
+                    else None,
+                    concurrent_tasks=port.component.concurrently_schedulable_task_count
+                    if hasattr(port, "component")
+                    and hasattr(port.component, "concurrently_schedulable_task_count")
+                    else None,
+                )
+                input_ports_info.append(port_data)
+
+        logger.info(f"✓ Found {len(input_ports_info)} input port(s)")
+
+        return InputPortsResponse(
+            status="success",
+            process_group_id=process_group_id,
+            process_group_name=pg_name,
+            input_ports=input_ports_info,
+            count=len(input_ports_info),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to get input ports: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get input ports: {error_msg}",
         )

@@ -107,3 +107,45 @@ class DeploymentSettings(BaseModel):
     )
     disable_after_deploy: bool = False
     create_parameter_context: bool = True
+
+
+class ProcessorInfo(BaseModel):
+    """Information about a NiFi processor"""
+
+    id: str
+    name: str
+    type: str
+    state: str
+    parent_group_id: Optional[str] = None
+    comments: Optional[str] = None
+
+
+class ProcessorsResponse(BaseModel):
+    """Response model for listing processors"""
+
+    status: str
+    process_group_id: str
+    process_group_name: Optional[str] = None
+    processors: List[ProcessorInfo]
+    count: int
+
+
+class InputPortInfo(BaseModel):
+    """Information about a NiFi input port"""
+
+    id: str
+    name: str
+    state: str
+    parent_group_id: Optional[str] = None
+    comments: Optional[str] = None
+    concurrent_tasks: Optional[int] = None
+
+
+class InputPortsResponse(BaseModel):
+    """Response model for listing input ports"""
+
+    status: str
+    process_group_id: str
+    process_group_name: Optional[str] = None
+    input_ports: List[InputPortInfo]
+    count: int

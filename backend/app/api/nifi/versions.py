@@ -7,8 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.api.nifi.nifi_helpers import get_instance_or_404
-from app.services.encryption_service import encryption_service
+from app.api.nifi.nifi_helpers import get_instance_or_404, setup_nifi_connection
 
 logger = logging.getLogger(__name__)
 
@@ -29,33 +28,10 @@ async def update_process_group_version(
     instance = get_instance_or_404(db, instance_id)
 
     try:
-        import nipyapi
-        from nipyapi import config, security, versioning
+        from nipyapi import versioning
 
-        # Configure nipyapi
-        nifi_base_url = instance.nifi_url.rstrip("/")
-        if nifi_base_url.endswith("/nifi-api"):
-            nifi_base_url = nifi_base_url[:-9]
-
-        config.nifi_config.host = f"{nifi_base_url}/nifi-api"
-        config.nifi_config.verify_ssl = instance.verify_ssl
-
-        if not instance.verify_ssl:
-            nipyapi.config.disable_insecure_request_warnings = True
-
-        # Decrypt password and authenticate
-        password = None
-        if instance.password_encrypted:
-            password = encryption_service.decrypt_from_string(
-                instance.password_encrypted
-            )
-
-        if instance.username and password:
-            config.nifi_config.username = instance.username
-            config.nifi_config.password = password
-            security.service_login(
-                service="nifi", username=instance.username, password=password
-            )
+        # Configure nipyapi connection with proper SSL handling
+        setup_nifi_connection(instance, normalize_url=True)
 
         logger.info(f"Updating process group {process_group_id} to new version...")
 
@@ -86,4 +62,78 @@ async def update_process_group_version(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update process group version: {error_msg}",
+        )
+
+
+@router.post("/{instance_id}/process-group/{process_group_id}/stop-versioning")
+async def stop_process_group_versioning(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Stop version control for a process group.
+    Removes the process group from version control, making it a standalone flow.
+    """
+    instance = get_instance_or_404(db, instance_id)
+
+    try:
+        from nipyapi import versioning, canvas
+
+        # Configure nipyapi connection with proper SSL handling
+        setup_nifi_connection(instance, normalize_url=True)
+
+        logger.info(f"Stopping version control for process group {process_group_id}...")
+
+        # Get the process group
+        pg = canvas.get_process_group(process_group_id, 'id')
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group {process_group_id} not found"
+            )
+
+        # Check if process group is under version control
+        if not hasattr(pg, 'component') or not hasattr(pg.component, 'version_control_information'):
+            logger.info(f"Process group {process_group_id} is not under version control")
+            return {
+                "status": "success",
+                "message": "Process group is not under version control",
+                "process_group_id": process_group_id,
+                "was_versioned": False,
+            }
+
+        version_info = pg.component.version_control_information
+        if not version_info:
+            logger.info(f"Process group {process_group_id} is not under version control")
+            return {
+                "status": "success",
+                "message": "Process group is not under version control",
+                "process_group_id": process_group_id,
+                "was_versioned": False,
+            }
+
+        # Stop version control
+        logger.info(f"Removing process group from version control...")
+        versioning.stop_flow_ver(pg, refresh=True)
+
+        logger.info(f"✓ Version control stopped for process group {process_group_id}")
+
+        return {
+            "status": "success",
+            "message": "Version control stopped successfully",
+            "process_group_id": process_group_id,
+            "was_versioned": True,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to stop version control: {error_msg}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to stop version control: {error_msg}",
         )

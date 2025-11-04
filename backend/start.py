@@ -21,6 +21,7 @@ def main():
         port=8000,
         reload=True,
         log_level="info",
+        access_log=True,  # Enable access logs
     )
 
 

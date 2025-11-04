@@ -40,6 +40,16 @@
               </small>
             </div>
 
+            <!-- Stop Versioning After Deploy -->
+            <div class="col-md-12">
+              <b-form-checkbox v-model="settings.global.stop_versioning_after_deploy">
+                Stop versioning after deployment
+              </b-form-checkbox>
+              <small class="form-text text-muted d-block">
+                If enabled, version control will be stopped for the deployed process group
+              </small>
+            </div>
+
             <!-- Create Parameter Context -->
             <div class="col-md-12">
               <b-form-checkbox
@@ -204,6 +214,7 @@ interface DeploymentSettings {
   global: {
     process_group_name_template: string;
     disable_after_deploy: boolean;
+    stop_versioning_after_deploy: boolean;
     create_parameter_context: boolean;
   };
   paths: {
@@ -227,6 +238,7 @@ const settings = ref<DeploymentSettings>({
   global: {
     process_group_name_template: "{last_hierarchy_value}",
     disable_after_deploy: false,
+    stop_versioning_after_deploy: false,
     create_parameter_context: true,
   },
   paths: {},

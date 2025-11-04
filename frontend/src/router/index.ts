@@ -26,6 +26,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import("../pages/nifi/Install.vue"),
       },
       {
+        path: "nifi/parameter",
+        name: "nifi-parameter",
+        component: () => import("../pages/settings/Parameter.vue"),
+      },
+      {
         path: "flows/manage",
         name: "flows-manage",
         component: () => import("../pages/flows/Manage.vue"),
@@ -49,11 +54,6 @@ const routes: RouteRecordRaw[] = [
         path: "settings/hierarchy",
         name: "settings-hierarchy",
         component: () => import("../pages/settings/Hierarchy.vue"),
-      },
-      {
-        path: "settings/parameter",
-        name: "settings-parameter",
-        component: () => import("../pages/settings/Parameter.vue"),
       },
       {
         path: "settings/deploy",

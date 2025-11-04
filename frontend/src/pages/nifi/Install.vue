@@ -434,7 +434,8 @@ const deployFlow = async (missingPath: string, instanceId: number, type: 'source
     const requestBody: any = {
       template_id: selectedFlowId,
       parent_process_group_path: parentPath || "/",
-      process_group_name: targetProcessGroupName
+      process_group_name: targetProcessGroupName,
+      stop_versioning_after_deploy: true  // Always stop versioning when deploying via Install mechanism
     };
 
     // Add parameter context if selected (and not "None")

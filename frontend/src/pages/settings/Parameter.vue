@@ -2,13 +2,25 @@
   <div class="settings-page">
     <div class="page-header mb-4">
       <h2>Parameter Contexts</h2>
-      <b-button
-        variant="primary"
-        @click="showCreateModal"
-        class="new-context-btn"
-      >
-        <i class="pe-7s-plus"></i> New Parameter Context
-      </b-button>
+      <div class="header-actions">
+        <b-form-input
+          v-model="searchQuery"
+          placeholder="Filter by name..."
+          class="search-input"
+          size="sm"
+        >
+          <template #prepend>
+            <i class="pe-7s-search"></i>
+          </template>
+        </b-form-input>
+        <b-button
+          variant="primary"
+          @click="showCreateModal"
+          class="new-context-btn"
+        >
+          <i class="pe-7s-plus"></i> New Parameter Context
+        </b-button>
+      </div>
     </div>
 
     <!-- Loading State -->
@@ -37,8 +49,8 @@
 
         <!-- Parameter Contexts Table -->
         <b-table
-          v-else-if="parameterContextsByInstance[instance.id]?.length > 0"
-          :items="parameterContextsByInstance[instance.id]"
+          v-else-if="getFilteredContexts(instance.id)?.length > 0"
+          :items="getFilteredContexts(instance.id)"
           :fields="tableFields"
           striped
           hover
@@ -369,6 +381,7 @@ const instanceLoading = ref<Record<number, boolean>>({});
 const showModal = ref(false);
 const modalMode = ref<"create" | "edit">("create");
 const saving = ref(false);
+const searchQuery = ref("");
 
 // Inheritance modal state
 const inheritanceModal = ref<any>(null);
@@ -413,6 +426,19 @@ const instanceOptions = computed(() => {
     text: `${instance.hierarchy_attribute}=${instance.hierarchy_value} (${instance.nifi_url})`,
   }));
 });
+
+// Filter function
+function getFilteredContexts(instanceId: number) {
+  const contexts = parameterContextsByInstance.value[instanceId] || [];
+  if (!searchQuery.value.trim()) {
+    return contexts;
+  }
+
+  const query = searchQuery.value.toLowerCase();
+  return contexts.filter((context) =>
+    context.name?.toLowerCase().includes(query)
+  );
+}
 
 // Helper functions for inheritance
 async function buildInheritedParametersMap(
@@ -1044,6 +1070,22 @@ onMounted(() => {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-input {
+  width: 300px;
+  background: white;
+  border-radius: 6px;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
 }
 
 .new-context-btn {

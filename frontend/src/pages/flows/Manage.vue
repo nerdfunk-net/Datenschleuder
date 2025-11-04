@@ -1532,6 +1532,7 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       version: null,
       x_position: 0,
       y_position: 0,
+      stop_versioning_after_deploy: deploymentSettings.value?.global?.stop_versioning_after_deploy || false,
     };
 
     try {

@@ -889,3 +889,56 @@ class NiFiDeploymentService:
             import traceback
             logger.error(f"  Traceback: {traceback.format_exc()}")
             logger.warning(f"⚠ Warning: Could not auto-connect input ports: {connect_error}")
+
+    def stop_version_control(self, pg_id: str) -> None:
+        """
+        Stop version control for a deployed process group.
+
+        Args:
+            pg_id: Process group ID to remove from version control
+        """
+        try:
+            logger.info(f"=" * 60)
+            logger.info(f"STOP VERSION CONTROL: Starting for process group {pg_id}")
+            logger.info(f"=" * 60)
+
+            # Get the process group
+            pg = canvas.get_process_group(pg_id, 'id')
+
+            if not pg:
+                logger.warning(f"  Process group {pg_id} not found")
+                return
+
+            # Check if process group is under version control
+            logger.info(f"  Checking if process group has version control information...")
+            logger.info(f"  - Has 'component' attribute: {hasattr(pg, 'component')}")
+            if hasattr(pg, 'component'):
+                logger.info(f"  - Has 'version_control_information' attribute: {hasattr(pg.component, 'version_control_information')}")
+                if hasattr(pg.component, 'version_control_information'):
+                    version_info = pg.component.version_control_information
+                    logger.info(f"  - version_control_information is not None: {version_info is not None}")
+                    if version_info:
+                        logger.info(f"  - Version control info: bucket={getattr(version_info, 'bucket_id', 'N/A')}, flow={getattr(version_info, 'flow_id', 'N/A')}, version={getattr(version_info, 'version', 'N/A')}")
+
+            if not hasattr(pg, 'component') or not hasattr(pg.component, 'version_control_information'):
+                logger.info(f"  Process group {pg_id} is not under version control (no version_control_information attribute)")
+                return
+
+            version_info = pg.component.version_control_information
+            if not version_info:
+                logger.info(f"  Process group {pg_id} is not under version control (version_control_information is None)")
+                return
+
+            # Stop version control
+            logger.info(f"  Removing process group from version control...")
+            versioning.stop_flow_ver(pg, refresh=True)
+
+            logger.info(f"  ✓ Version control stopped for process group {pg_id}")
+            logger.info(f"=" * 60)
+
+        except Exception as e:
+            logger.error(f"  ✗ Failed to stop version control for {pg_id}: {e}")
+            import traceback
+            logger.error(f"  Traceback: {traceback.format_exc()}")
+            # Don't raise - this is a non-critical operation
+            logger.warning(f"  Warning: Could not stop version control: {e}")

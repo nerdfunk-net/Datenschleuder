@@ -34,6 +34,7 @@ class DeploymentRequest(BaseModel):
     x_position: Optional[int] = 0
     y_position: Optional[int] = 0
     parameter_context_id: Optional[str] = None  # Optional parameter context to assign to the deployed process group
+    stop_versioning_after_deploy: Optional[bool] = False  # Stop version control after deployment
 
 
 class DeploymentResponse(BaseModel):
@@ -106,6 +107,7 @@ class DeploymentSettings(BaseModel):
         "{last_hierarchy_value}"  # Default: use last hierarchy value
     )
     disable_after_deploy: bool = False
+    stop_versioning_after_deploy: bool = False
     create_parameter_context: bool = True
 
 

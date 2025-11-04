@@ -20,19 +20,34 @@ from app.models.user import User
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,  # Set root level to INFO (DEBUG creates too much noise)
+    level=logging.INFO,  # Set root level to INFO
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    force=True,  # Force reconfiguration even if logging was already set up
 )
 
+# Get the root logger
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 # Set specific loggers to appropriate levels
-logging.getLogger("app.services.nifi_deployment_service").setLevel(logging.DEBUG)
+logging.getLogger("app").setLevel(logging.INFO)  # All app modules
+logging.getLogger("app.services.nifi_deployment_service").setLevel(logging.INFO)
 logging.getLogger("app.api.deploy").setLevel(logging.INFO)
-logging.getLogger("uvicorn").setLevel(logging.WARNING)  # Reduce uvicorn noise
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)  # Reduce access logs
-logging.getLogger("uvicorn.error").setLevel(logging.WARNING)
-logging.getLogger("sqlalchemy").setLevel(logging.WARNING)  # Reduce SQL noise
-logging.getLogger("nipyapi").setLevel(logging.WARNING)  # Reduce NiFi API noise
-logging.getLogger("urllib3").setLevel(logging.WARNING)  # Reduce HTTP client noise
+logging.getLogger("app.api.nifi").setLevel(logging.INFO)
+logging.getLogger("app.api.nifi.parameters").setLevel(logging.INFO)
+logging.getLogger("app.api.nifi_install").setLevel(logging.INFO)
+
+# Configure external library logging
+logging.getLogger("uvicorn").setLevel(logging.INFO)  # Show uvicorn server logs
+logging.getLogger("uvicorn.access").setLevel(logging.INFO)  # Show HTTP access logs
+logging.getLogger("uvicorn.error").setLevel(logging.INFO)  # Show uvicorn errors
+
+# Reduce noise from database and HTTP libraries
+logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+logging.getLogger("nipyapi").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
 # Create FastAPI application
 app = FastAPI(

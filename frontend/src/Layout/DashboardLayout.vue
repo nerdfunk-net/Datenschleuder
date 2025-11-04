@@ -19,31 +19,6 @@
       </div>
 
       <nav class="ds-sidebar-nav">
-        <!-- NiFi Menu -->
-        <div class="ds-nav-section">
-          <div class="ds-nav-item" @click="toggleMenu('nifi')">
-            <i class="pe-7s-server"></i>
-            <span v-if="!isSidebarCollapsed" class="ds-nav-text">NiFi</span>
-            <i
-              v-if="!isSidebarCollapsed"
-              :class="menuState.nifi ? 'pe-7s-angle-up' : 'pe-7s-angle-down'"
-              class="ds-nav-arrow"
-            ></i>
-          </div>
-          <div
-            v-if="menuState.nifi && !isSidebarCollapsed"
-            class="ds-nav-submenu"
-          >
-            <router-link
-              to="/nifi/install"
-              class="ds-nav-subitem"
-              active-class="ds-active"
-            >
-              <span>Install</span>
-            </router-link>
-          </div>
-        </div>
-
         <!-- Flows Menu -->
         <div class="ds-nav-section">
           <div class="ds-nav-item" @click="toggleMenu('flows')">
@@ -72,6 +47,38 @@
               active-class="ds-active"
             >
               <span>Deploy</span>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- NiFi Menu -->
+        <div class="ds-nav-section">
+          <div class="ds-nav-item" @click="toggleMenu('nifi')">
+            <i class="pe-7s-server"></i>
+            <span v-if="!isSidebarCollapsed" class="ds-nav-text">NiFi</span>
+            <i
+              v-if="!isSidebarCollapsed"
+              :class="menuState.nifi ? 'pe-7s-angle-up' : 'pe-7s-angle-down'"
+              class="ds-nav-arrow"
+            ></i>
+          </div>
+          <div
+            v-if="menuState.nifi && !isSidebarCollapsed"
+            class="ds-nav-submenu"
+          >
+            <router-link
+              to="/nifi/install"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
+              <span>Install</span>
+            </router-link>
+            <router-link
+              to="/nifi/parameter"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
+              <span>Parameter</span>
             </router-link>
           </div>
         </div>
@@ -106,13 +113,6 @@
               active-class="ds-active"
             >
               <span>Registry</span>
-            </router-link>
-            <router-link
-              to="/settings/parameter"
-              class="ds-nav-subitem"
-              active-class="ds-active"
-            >
-              <span>Parameter</span>
             </router-link>
             <router-link
               to="/settings/hierarchy"
@@ -190,11 +190,11 @@ const username = ref("Admin User");
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
     "/nifi/install": "NiFi Installation",
+    "/nifi/parameter": "Parameter Contexts",
     "/flows/manage": "Manage Flows",
     "/flows/deploy": "Deploy Flows",
     "/settings/nifi": "NiFi Settings",
     "/settings/registry": "Registry Settings",
-    "/settings/parameter": "Parameter Settings",
     "/settings/hierarchy": "Hierarchy Settings",
     "/settings/deploy": "Deployment Settings",
     "/settings/profile": "Profile Settings",

@@ -296,6 +296,14 @@
                   </b-button>
                   <b-button
                     size="sm"
+                    variant="outline-secondary"
+                    @click="handleCopy(flow)"
+                    title="Copy"
+                  >
+                    <i class="pe-7s-copy-file"></i>
+                  </b-button>
+                  <b-button
+                    size="sm"
                     variant="outline-danger"
                     @click="handleRemove(flow)"
                     title="Remove"
@@ -818,6 +826,33 @@
         </div>
       </div>
     </b-modal>
+
+    <!-- Error Modal -->
+    <b-modal
+      v-model="showErrorModal"
+      :title="errorTitle"
+      size="md"
+      hide-footer
+    >
+      <div class="error-modal-content">
+        <div class="result-icon failed">
+          <i class="pe-7s-close"></i>
+        </div>
+        <div class="error-message">
+          {{ errorMessage }}
+        </div>
+        <div class="result-actions mt-3">
+          <b-button
+            variant="danger"
+            @click="showErrorModal = false"
+            class="w-100"
+          >
+            <i class="pe-7s-check"></i>
+            Close
+          </b-button>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -936,6 +971,11 @@ const deploymentResult = ref({
   processGroupId: "",
   error: "",
 });
+
+// Error modal
+const showErrorModal = ref(false);
+const errorMessage = ref("");
+const errorTitle = ref("");
 
 const modalTitle = computed(() => {
   if (!selectedFlow.value) return "";
@@ -1412,6 +1452,25 @@ const handleRemove = async (flow: any) => {
   }
 };
 
+const handleCopy = async (flow: any) => {
+  try {
+    // Create a copy of the flow with active set to false
+    const copiedFlow = { ...flow };
+    delete copiedFlow.id;
+    delete copiedFlow.created_at;
+    delete copiedFlow.modified_at;
+    copiedFlow.active = false;
+
+    // Open the edit modal with the copied flow data
+    selectedFlow.value = copiedFlow;
+    isViewMode.value = false;
+    showModal.value = true;
+  } catch (error: any) {
+    console.error("Error copying flow:", error);
+    alert("Error: " + (error.message || "Failed to copy flow"));
+  }
+};
+
 // Quick deploy functions
 const handleQuickDeploySource = async (flow: any) => {
   await quickDeploy(flow, "source");
@@ -1881,7 +1940,6 @@ const handleModalOk = async () => {
         method: "PUT",
         body: JSON.stringify(payload),
       });
-      alert("Flow updated successfully!");
       showModal.value = false;
       await loadFlows();
     } else {
@@ -1890,13 +1948,14 @@ const handleModalOk = async () => {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      alert("Flow created successfully!");
       showModal.value = false;
       await loadFlows();
     }
   } catch (error: any) {
     console.error("Error saving flow:", error);
-    alert("Error: " + (error.message || "Failed to save flow"));
+    errorTitle.value = "Failed to Save Flow";
+    errorMessage.value = error.message || "An unknown error occurred while saving the flow. Please try again.";
+    showErrorModal.value = true;
   }
 };
 
@@ -2488,6 +2547,38 @@ onMounted(async () => {
 
   .result-actions {
     margin-top: 20px;
+  }
+}
+
+// Error Modal
+.error-modal-content {
+  text-align: center;
+
+  .result-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+
+    &.failed {
+      background: #f8d7da;
+      color: #dc3545;
+    }
+  }
+
+  .error-message {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+    color: #dc3545;
+    font-size: 14px;
+    line-height: 1.6;
   }
 }
 </style>

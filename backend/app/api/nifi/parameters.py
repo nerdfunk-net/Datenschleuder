@@ -146,6 +146,122 @@ async def get_parameter_contexts(
         )
 
 
+@router.get("/{instance_id}/parameter-contexts/{context_id}")
+async def get_parameter_context(
+    instance_id: int,
+    context_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Get a specific parameter context by ID from NiFi instance"""
+    instance = get_instance_or_404(db, instance_id)
+
+    try:
+        import nipyapi
+
+        # Configure nipyapi with authentication
+        setup_nifi_connection(instance)
+
+        # Get the parameter context using nipyapi
+        context = nipyapi.parameters.get_parameter_context(
+            identifier=context_id, identifier_type="id", greedy=True
+        )
+
+        if not context:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Parameter context with id {context_id} not found",
+            )
+
+        # Extract parameters
+        parameters = []
+        if hasattr(context, "component") and hasattr(context.component, "parameters"):
+            for param in context.component.parameters:
+                param_data = ParameterEntity(
+                    name=param.parameter.name
+                    if hasattr(param, "parameter") and hasattr(param.parameter, "name")
+                    else "Unknown",
+                    description=param.parameter.description
+                    if hasattr(param, "parameter")
+                    and hasattr(param.parameter, "description")
+                    else None,
+                    sensitive=param.parameter.sensitive
+                    if hasattr(param, "parameter")
+                    and hasattr(param.parameter, "sensitive")
+                    else False,
+                    value=param.parameter.value
+                    if hasattr(param, "parameter")
+                    and hasattr(param.parameter, "value")
+                    and not param.parameter.sensitive
+                    else None,
+                    provided=param.parameter.provided
+                    if hasattr(param, "parameter")
+                    and hasattr(param.parameter, "provided")
+                    else False,
+                    referenced_attributes=param.parameter.referenced_attributes
+                    if hasattr(param, "parameter")
+                    and hasattr(param.parameter, "referenced_attributes")
+                    else None,
+                    parameter_context_id=context.id if hasattr(context, "id") else None,
+                )
+                parameters.append(param_data)
+
+        # Extract bound process groups
+        bound_groups = []
+        if hasattr(context, "component") and hasattr(
+            context.component, "bound_process_groups"
+        ):
+            for pg in context.component.bound_process_groups:
+                if hasattr(pg, "to_dict"):
+                    bound_groups.append(pg.to_dict())
+
+        # Extract inherited parameter contexts
+        inherited_contexts = []
+        if hasattr(context, "component") and hasattr(
+            context.component, "inherited_parameter_contexts"
+        ):
+            for ipc in context.component.inherited_parameter_contexts:
+                if hasattr(ipc, "id"):
+                    inherited_contexts.append(ipc.id)
+
+        context_data = ParameterContext(
+            id=context.id if hasattr(context, "id") else "Unknown",
+            name=context.component.name
+            if hasattr(context, "component") and hasattr(context.component, "name")
+            else "Unknown",
+            description=context.component.description
+            if hasattr(context, "component")
+            and hasattr(context.component, "description")
+            else None,
+            parameters=parameters,
+            bound_process_groups=bound_groups if bound_groups else None,
+            inherited_parameter_contexts=inherited_contexts
+            if inherited_contexts
+            else None,
+            component_revision=context.revision.to_dict()
+            if hasattr(context, "revision") and hasattr(context.revision, "to_dict")
+            else None,
+            permissions=context.permissions.to_dict()
+            if hasattr(context, "permissions")
+            and hasattr(context.permissions, "to_dict")
+            else None,
+        )
+
+        return {
+            "status": "success",
+            "parameter_context": context_data,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get parameter context: {error_msg}",
+        )
+
+
 @router.post("/{instance_id}/parameter-contexts")
 async def create_parameter_context(
     instance_id: int,
@@ -328,6 +444,44 @@ async def update_parameter_context(
             existing_context.component.name = data.name
         if data.description is not None:
             existing_context.component.description = data.description
+
+        # Handle inherited parameter contexts
+        if hasattr(data, 'inherited_parameter_contexts') and data.inherited_parameter_contexts is not None:
+            print(f"Setting inherited_parameter_contexts: {data.inherited_parameter_contexts}")
+            # Build list of inherited context references
+            from nipyapi.nifi.models import ParameterContextReferenceEntity, ParameterContextReferenceDTO
+            inherited_refs = []
+            for context_id_str in data.inherited_parameter_contexts:
+                # Fetch the referenced context to get its name
+                try:
+                    ref_context = param_api.get_parameter_context(id=context_id_str)
+                    # Create proper reference with component
+                    ref_dto = ParameterContextReferenceDTO(
+                        id=context_id_str,
+                        name=ref_context.component.name if hasattr(ref_context, 'component') else None
+                    )
+                    ref_entity = ParameterContextReferenceEntity(
+                        id=context_id_str,
+                        component=ref_dto,
+                        permissions={'canRead': True, 'canWrite': True}
+                    )
+                    inherited_refs.append(ref_entity)
+                    print(f"  Added reference to context: {ref_dto.name} ({context_id_str})")
+                except Exception as e:
+                    print(f"  Warning: Could not resolve context {context_id_str}: {e}")
+                    # Try with just ID and component
+                    ref_dto = ParameterContextReferenceDTO(id=context_id_str)
+                    ref_entity = ParameterContextReferenceEntity(
+                        id=context_id_str,
+                        component=ref_dto
+                    )
+                    inherited_refs.append(ref_entity)
+
+            existing_context.component.inherited_parameter_contexts = inherited_refs if inherited_refs else None
+        elif hasattr(data, 'inherited_parameter_contexts') and data.inherited_parameter_contexts is None:
+            # Explicitly set to None/empty list to clear inheritance
+            print("Clearing inherited_parameter_contexts")
+            existing_context.component.inherited_parameter_contexts = None
 
         # Submit update request with the modified existing context
         update_response = param_api.submit_parameter_context_update(

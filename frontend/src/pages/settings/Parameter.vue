@@ -43,6 +43,7 @@
           striped
           hover
           responsive
+          small
         >
           <template #cell(name)="data">
             <strong>{{ data.value }}</strong>
@@ -69,12 +70,12 @@
                 <i class="pe-7s-pen"></i>
               </b-button>
               <b-button
-                variant="outline-info"
+                variant="outline-secondary"
                 size="sm"
-                @click="viewParameterContext(instance.id, data.item)"
-                title="View"
+                @click="copyParameterContext(instance.id, data.item)"
+                title="Copy"
               >
-                <i class="pe-7s-look"></i>
+                <i class="pe-7s-copy-file"></i>
               </b-button>
               <b-button
                 variant="outline-danger"
@@ -108,9 +109,7 @@
       :title="
         modalMode === 'create'
           ? 'Create Parameter Context'
-          : modalMode === 'edit'
-            ? 'Edit Parameter Context'
-            : 'View Parameter Context'
+          : 'Edit Parameter Context'
       "
       size="xl"
       @hidden="resetForm"
@@ -119,46 +118,48 @@
       @ok="handleSave"
       :ok-disabled="saving"
       modal-class="parameter-modal"
+      body-class="compact-modal-body"
     >
       <form @submit.prevent="handleSave">
         <!-- NiFi Instance Selection (only for create) -->
-        <div v-if="modalMode === 'create'" class="mb-3">
-          <label class="form-label">NiFi Instance</label>
+        <div v-if="modalMode === 'create'" class="mb-2">
+          <label class="form-label compact-label">NiFi Instance</label>
           <b-form-select
             v-model="form.instance_id"
             :options="instanceOptions"
             required
             :disabled="modalMode !== 'create'"
+            size="sm"
           ></b-form-select>
         </div>
 
         <!-- Name -->
-        <div class="mb-3">
-          <label class="form-label"
+        <div class="mb-2">
+          <label class="form-label compact-label"
             >Name <span class="text-danger">*</span></label
           >
           <b-form-input
             v-model="form.name"
             required
-            :disabled="modalMode === 'view'"
             placeholder="Enter parameter context name"
+            size="sm"
           ></b-form-input>
         </div>
 
         <!-- Description -->
-        <div class="mb-3">
-          <label class="form-label">Description</label>
+        <div class="mb-2">
+          <label class="form-label compact-label">Description</label>
           <b-form-textarea
             v-model="form.description"
-            :disabled="modalMode === 'view'"
             rows="2"
             placeholder="Enter description (optional)"
+            size="sm"
           ></b-form-textarea>
         </div>
 
         <!-- Parameters Table -->
-        <div class="mb-3">
-          <label class="form-label">Parameters</label>
+        <div class="mb-2">
+          <label class="form-label compact-label">Parameters</label>
           <b-table
             :items="form.parameters"
             :fields="parameterFields"
@@ -169,7 +170,7 @@
               <b-form-input
                 v-model="data.item.name"
                 size="sm"
-                :disabled="modalMode === 'view' || data.item.isExisting"
+                :disabled="data.item.isExisting"
                 placeholder="Parameter name"
               ></b-form-input>
             </template>
@@ -179,16 +180,16 @@
                 v-if="!data.item.sensitive"
                 v-model="data.item.value"
                 size="sm"
-                :disabled="modalMode === 'view'"
                 placeholder="Parameter value"
+                @input="markParameterAsLocal(data.item)"
               ></b-form-input>
               <b-form-input
                 v-else
                 v-model="data.item.value"
                 type="password"
                 size="sm"
-                :disabled="modalMode === 'view'"
                 placeholder="Sensitive value"
+                @input="markParameterAsLocal(data.item)"
               ></b-form-input>
             </template>
 
@@ -196,7 +197,6 @@
               <b-form-input
                 v-model="data.item.description"
                 size="sm"
-                :disabled="modalMode === 'view'"
                 placeholder="Description (optional)"
               ></b-form-input>
             </template>
@@ -204,14 +204,25 @@
             <template #cell(sensitive)="data">
               <b-form-checkbox
                 v-model="data.item.sensitive"
-                :disabled="modalMode === 'view'"
                 switch
               ></b-form-checkbox>
             </template>
 
+            <template #cell(status)="data">
+              <span
+                v-if="data.item.inheritedFrom"
+                :class="data.item.isOverridden ? 'status-overridden' : 'status-inherited'"
+              >
+                <i :class="data.item.isOverridden ? 'pe-7s-refresh-2' : 'pe-7s-link'"></i>
+                {{ data.item.isOverridden ? 'Overridden' : 'Inherited' }} from {{ data.item.inheritedFrom }}
+              </span>
+              <span v-else class="status-local">
+                <i class="pe-7s-home"></i> Local
+              </span>
+            </template>
+
             <template #cell(actions)="data">
               <b-button
-                v-if="modalMode !== 'view'"
                 variant="link"
                 size="sm"
                 class="text-danger"
@@ -223,15 +234,121 @@
           </b-table>
 
           <b-button
-            v-if="modalMode !== 'view'"
             variant="outline-primary"
             size="sm"
             @click="addParameter"
           >
             <i class="pe-7s-plus"></i> Add Parameter
           </b-button>
+          <b-button
+            v-if="modalMode === 'edit'"
+            variant="outline-secondary"
+            size="sm"
+            @click.prevent.stop="showInheritanceModal"
+            class="ms-2"
+            type="button"
+          >
+            <i class="pe-7s-link"></i> Add Inheritance
+          </b-button>
         </div>
       </form>
+    </b-modal>
+
+    <!-- Inheritance Management Modal -->
+    <b-modal
+      ref="inheritanceModal"
+      title="🔗 Manage Parameter Context Inheritance"
+      size="xl"
+      modal-class="inheritance-modal"
+      body-class="compact-modal-body"
+      :hide-header-close="false"
+      :no-close-on-backdrop="true"
+      :no-close-on-esc="true"
+      hide-footer
+      @show="onInheritanceModalShow"
+      @shown="onInheritanceModalShown"
+      @hide="onInheritanceModalHide"
+      @hidden="onInheritanceModalHidden"
+    >
+
+      <div class="inheritance-container">
+        <!-- Available Parameter Contexts -->
+        <div class="inheritance-panel">
+          <h5 class="panel-title">Available Parameter Contexts</h5>
+          <div class="context-list available-list">
+            <div
+              v-for="context in availableContexts"
+              :key="context.id"
+              class="context-item"
+              draggable="true"
+              @dragstart="onDragStart($event, context, 'available')"
+              @dragend="onDragEnd"
+            >
+              <i class="pe-7s-menu"></i>
+              <span class="context-name">{{ context.name }}</span>
+            </div>
+            <div v-if="availableContexts.length === 0" class="empty-state">
+              All contexts are already inherited
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div class="arrow-container">
+          <i class="pe-7s-angle-right"></i>
+        </div>
+
+        <!-- Inherited Parameter Contexts -->
+        <div class="inheritance-panel">
+          <h5 class="panel-title">Inherited Parameter Contexts (in order)</h5>
+          <div
+            class="context-list inherited-list"
+            @dragover="onDragOver"
+            @drop="onDrop($event, 'inherited')"
+          >
+            <div
+              v-for="(context, index) in inheritedContexts"
+              :key="context.id"
+              class="context-item inherited-item"
+              draggable="true"
+              @dragstart="onDragStart($event, context, 'inherited')"
+              @dragend="onDragEnd"
+              @dragover="onDragOver"
+              @drop="onDropReorder($event, index)"
+            >
+              <i class="pe-7s-menu drag-handle"></i>
+              <span class="context-name">{{ context.name }}</span>
+              <span class="order-badge">{{ index + 1 }}</span>
+              <b-button
+                variant="link"
+                size="sm"
+                class="remove-btn"
+                @click="removeFromInherited(index)"
+              >
+                <i class="pe-7s-close-circle"></i>
+              </b-button>
+            </div>
+            <div v-if="inheritedContexts.length === 0" class="empty-state">
+              Drag contexts here to inherit parameters
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Footer -->
+      <div class="custom-modal-footer">
+        <b-button variant="secondary" @click="closeInheritanceModal">
+          Cancel
+        </b-button>
+        <b-button
+          variant="primary"
+          @click.prevent.stop="saveInheritance"
+          :disabled="savingInheritance"
+          type="button"
+        >
+          Save
+        </b-button>
+      </div>
     </b-modal>
   </div>
 </template>
@@ -250,8 +367,17 @@ const instances = ref<any[]>([]);
 const parameterContextsByInstance = ref<Record<number, any[]>>({});
 const instanceLoading = ref<Record<number, boolean>>({});
 const showModal = ref(false);
-const modalMode = ref<"create" | "edit" | "view">("create");
+const modalMode = ref<"create" | "edit">("create");
 const saving = ref(false);
+
+// Inheritance modal state
+const inheritanceModal = ref<any>(null);
+const savingInheritance = ref(false);
+const availableContexts = ref<any[]>([]);
+const inheritedContexts = ref<any[]>([]);
+const draggedItem = ref<any>(null);
+const draggedFrom = ref<string>("");
+const allParameterContexts = ref<any[]>([]);
 
 // Form
 const form = ref({
@@ -260,6 +386,7 @@ const form = ref({
   name: "",
   description: "",
   parameters: [] as any[],
+  inherited_parameter_contexts: [] as string[],
 });
 
 // Table fields
@@ -271,11 +398,12 @@ const tableFields = [
 ];
 
 const parameterFields = [
-  { key: "name", label: "Name" },
-  { key: "value", label: "Value" },
-  { key: "description", label: "Description" },
-  { key: "sensitive", label: "Sensitive" },
-  { key: "actions", label: "", class: "text-end" },
+  { key: "name", label: "Name", thStyle: { width: "20%" } },
+  { key: "value", label: "Value", thStyle: { width: "25%" } },
+  { key: "description", label: "Description", thStyle: { width: "20%" } },
+  { key: "sensitive", label: "Sensitive", thStyle: { width: "10%" } },
+  { key: "status", label: "Status", thStyle: { width: "20%" } },
+  { key: "actions", label: "", class: "text-end", thStyle: { width: "5%" } },
 ];
 
 // Computed
@@ -285,6 +413,101 @@ const instanceOptions = computed(() => {
     text: `${instance.hierarchy_attribute}=${instance.hierarchy_value} (${instance.nifi_url})`,
   }));
 });
+
+// Helper functions for inheritance
+async function buildInheritedParametersMap(
+  instanceId: number,
+  inheritedContextIds: any[]
+) {
+  console.log("buildInheritedParametersMap called with:", { instanceId, inheritedContextIds });
+
+  const inheritedMap = new Map<
+    string,
+    { value: string; description: string; sensitive: boolean; contextName: string }
+  >();
+
+  // Process each inherited context in order
+  for (const inheritedContext of inheritedContextIds) {
+    try {
+      const contextId =
+        typeof inheritedContext === "object" ? inheritedContext.id : inheritedContext;
+
+      console.log(`Fetching inherited context: ${contextId}`);
+
+      const response = await api.get(
+        `/api/nifi-instances/${instanceId}/parameter-contexts/${contextId}`
+      );
+
+      console.log("Inherited context response:", response);
+
+      // Handle different response structures
+      const contextDetails = response.parameter_context || response.data || response;
+
+      console.log("Inherited context details:", contextDetails);
+
+      // Add or overwrite parameters from this context
+      if (contextDetails.parameters && contextDetails.parameters.length > 0) {
+        console.log(`Found ${contextDetails.parameters.length} parameters in inherited context`);
+        for (const param of contextDetails.parameters) {
+          inheritedMap.set(param.name, {
+            value: param.value || "",
+            description: param.description || "",
+            sensitive: param.sensitive || false,
+            contextName: contextDetails.name,
+          });
+        }
+      } else {
+        console.log("No parameters in inherited context");
+      }
+    } catch (error: any) {
+      console.error(`Failed to load inherited context:`, error);
+    }
+  }
+
+  console.log("Final inherited map:", inheritedMap);
+  return inheritedMap;
+}
+
+function buildCombinedParametersList(localParams: any[], inheritedMap: Map<string, any>) {
+  const combinedParams: any[] = [];
+  const processedKeys = new Set<string>();
+
+  // First, add local parameters (these may override inherited ones)
+  for (const param of localParams) {
+    const inheritedParam = inheritedMap.get(param.name);
+
+    combinedParams.push({
+      name: param.name,
+      value: param.value || "",
+      description: param.description || "",
+      sensitive: param.sensitive || false,
+      isExisting: true,
+      isLocal: true, // This parameter is defined locally
+      inheritedFrom: inheritedParam ? inheritedParam.contextName : null,
+      isOverridden: !!inheritedParam, // True if this overrides an inherited param
+    });
+
+    processedKeys.add(param.name);
+  }
+
+  // Then, add inherited parameters that aren't overridden
+  for (const [key, inheritedParam] of inheritedMap.entries()) {
+    if (!processedKeys.has(key)) {
+      combinedParams.push({
+        name: key,
+        value: inheritedParam.value,
+        description: inheritedParam.description,
+        sensitive: inheritedParam.sensitive,
+        isExisting: true,
+        isLocal: false, // This parameter is only inherited, not local
+        inheritedFrom: inheritedParam.contextName,
+        isOverridden: false,
+      });
+    }
+  }
+
+  return combinedParams;
+}
 
 // Methods
 async function loadInstances() {
@@ -357,38 +580,80 @@ function showCreateModal() {
   showModal.value = true;
 }
 
-function viewParameterContext(instanceId: number, context: any) {
-  modalMode.value = "view";
-  form.value = {
-    instance_id: instanceId,
-    context_id: context.id,
-    name: context.name,
-    description: context.description || "",
-    parameters: context.parameters.map((p: any) => ({
-      name: p.name,
-      value: p.value || "",
-      description: p.description || "",
-      sensitive: p.sensitive || false,
-      isExisting: true,
-    })),
-  };
-  showModal.value = true;
+async function editParameterContext(instanceId: number, context: any) {
+  console.log("editParameterContext called with:", { instanceId, context });
+
+  modalMode.value = "edit";
+  loading.value = true;
+
+  try {
+    // Fetch detailed parameter context configuration
+    console.log(`Fetching: /api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`);
+
+    const response = await api.get(
+      `/api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`
+    );
+
+    console.log("API Response:", response);
+
+    // Handle different response structures
+    const detailedContext = response.parameter_context || response.data || response;
+
+    console.log("Detailed context:", detailedContext);
+
+    // Build inherited parameters map
+    const inheritedParams = await buildInheritedParametersMap(
+      instanceId,
+      detailedContext.inherited_parameter_contexts || []
+    );
+
+    // Get local parameters
+    const localParams = detailedContext.parameters || [];
+
+    console.log("Local params:", localParams);
+    console.log("Inherited params:", inheritedParams);
+
+    // Build combined parameters list with inheritance info
+    const combinedParams = buildCombinedParametersList(localParams, inheritedParams);
+
+    console.log("Combined params:", combinedParams);
+
+    form.value = {
+      instance_id: instanceId,
+      context_id: context.id,
+      name: detailedContext.name || context.name,
+      description: detailedContext.description || "",
+      parameters: combinedParams,
+      inherited_parameter_contexts: detailedContext.inherited_parameter_contexts || [],
+    };
+
+    showModal.value = true;
+  } catch (error: any) {
+    console.error("Error loading parameter context:", error);
+    showError(error.message || "Failed to load parameter context details");
+  } finally {
+    loading.value = false;
+  }
 }
 
-function editParameterContext(instanceId: number, context: any) {
-  modalMode.value = "edit";
+function copyParameterContext(instanceId: number, context: any) {
+  modalMode.value = "create";
   form.value = {
     instance_id: instanceId,
-    context_id: context.id,
-    name: context.name,
+    context_id: null,
+    name: `copy_of_${context.name}`,
     description: context.description || "",
     parameters: context.parameters.map((p: any) => ({
       name: p.name,
       value: p.value || "",
       description: p.description || "",
       sensitive: p.sensitive || false,
-      isExisting: true, // Mark as existing parameter
+      isExisting: false,
+      isLocal: true,
+      inheritedFrom: null,
+      isOverridden: false,
     })),
+    inherited_parameter_contexts: [],
   };
   showModal.value = true;
 }
@@ -419,8 +684,19 @@ function addParameter() {
     value: "",
     description: "",
     sensitive: false,
-    isExisting: false, // Mark as new parameter
+    isExisting: false,
+    isLocal: true,
+    inheritedFrom: null,
+    isOverridden: false,
   });
+}
+
+function markParameterAsLocal(parameter: any) {
+  // When editing an inherited parameter, mark it as local (overridden)
+  if (!parameter.isLocal && parameter.inheritedFrom) {
+    parameter.isLocal = true;
+    parameter.isOverridden = true;
+  }
 }
 
 function removeParameter(index: number) {
@@ -464,8 +740,11 @@ async function handleSave(bvModalEvent?: any) {
     const payload = {
       name: form.value.name,
       description: form.value.description || undefined,
+      inherited_parameter_contexts: form.value.inherited_parameter_contexts.length > 0
+        ? form.value.inherited_parameter_contexts
+        : null,
       parameters: form.value.parameters
-        .filter((p) => p.name) // Only include parameters with names
+        .filter((p) => p.name && p.isLocal) // Only include local parameters with names
         .map((p) => ({
           name: p.name,
           description: p.description || undefined,
@@ -518,7 +797,237 @@ function resetForm() {
     name: "",
     description: "",
     parameters: [],
+    inherited_parameter_contexts: [],
   };
+}
+
+// Inheritance management methods
+async function showInheritanceModal() {
+  console.log("showInheritanceModal called");
+
+  if (!form.value.instance_id) {
+    showError("Instance ID is missing");
+    return;
+  }
+
+  try {
+    // Fetch all parameter contexts for this instance
+    console.log("Fetching all parameter contexts for instance:", form.value.instance_id);
+    const response = await api.get(
+      `/api/nifi-instances/${form.value.instance_id}/get-parameters`
+    );
+
+    console.log("Parameter contexts response:", response);
+
+    if (response.status === "success") {
+      allParameterContexts.value = response.parameter_contexts;
+
+      // Build inherited contexts list (with names)
+      const currentInheritedIds =
+        parameterContextsByInstance.value[form.value.instance_id!]
+          ?.find((ctx) => ctx.id === form.value.context_id)
+          ?.inherited_parameter_contexts || [];
+
+      // Fetch details for inherited contexts to get their names
+      const detailedContext = await api.get(
+        `/api/nifi-instances/${form.value.instance_id}/parameter-contexts/${form.value.context_id}`
+      );
+
+      const inheritedIds =
+        detailedContext.parameter_context?.inherited_parameter_contexts || [];
+
+      // Map inherited IDs to full context objects in order
+      inheritedContexts.value = inheritedIds
+        .map((id: string) => allParameterContexts.value.find((ctx) => ctx.id === id))
+        .filter((ctx: any) => ctx !== undefined);
+
+      // Build available contexts (excluding current context and already inherited)
+      const inheritedIdSet = new Set(inheritedIds);
+      availableContexts.value = allParameterContexts.value.filter(
+        (ctx) => ctx.id !== form.value.context_id && !inheritedIdSet.has(ctx.id)
+      );
+
+      console.log("Available contexts:", availableContexts.value);
+      console.log("Inherited contexts:", inheritedContexts.value);
+      console.log("Opening inheritance modal");
+
+      // Use $refs to manually show the modal with a small delay
+      // to ensure the DOM is ready
+      setTimeout(() => {
+        if (inheritanceModal.value) {
+          console.log("Calling inheritanceModal.show()");
+          inheritanceModal.value.show();
+          console.log("inheritanceModal.show() called");
+        } else {
+          console.error("inheritanceModal ref is null");
+        }
+      }, 100);
+    }
+  } catch (error: any) {
+    showError(error.message || "Failed to load parameter contexts");
+  }
+}
+
+function onInheritanceModalShow(event: any) {
+  console.log("onInheritanceModalShow - modal is showing", event);
+}
+
+function onInheritanceModalShown() {
+  console.log("onInheritanceModalShown - modal is fully shown");
+}
+
+function onModalOk(event: any) {
+  console.log("onModalOk - preventing default OK behavior");
+  event.preventDefault();
+}
+
+function onInheritanceModalHide(event: any) {
+  console.log("onInheritanceModalHide - modal is hiding", event);
+
+  // Check if the modal is being closed unexpectedly
+  if (event && event.trigger) {
+    console.log("Hide trigger:", event.trigger);
+
+    // Prevent closing if triggered by OK button
+    if (event.trigger === 'ok') {
+      console.log("Preventing OK trigger close");
+      event.preventDefault();
+    }
+  }
+}
+
+function onInheritanceModalHidden() {
+  console.log("onInheritanceModalHidden - modal is hidden");
+
+  availableContexts.value = [];
+  inheritedContexts.value = [];
+  draggedItem.value = null;
+  draggedFrom.value = "";
+}
+
+function closeInheritanceModal() {
+  console.log("closeInheritanceModal called");
+  console.trace("closeInheritanceModal stack trace");
+  if (inheritanceModal.value) {
+    inheritanceModal.value.hide();
+  }
+}
+
+// Drag and drop handlers
+function onDragStart(event: DragEvent, context: any, from: string) {
+  draggedItem.value = context;
+  draggedFrom.value = from;
+  if (event.target instanceof HTMLElement) {
+    event.target.classList.add("dragging");
+  }
+}
+
+function onDragEnd(event: DragEvent) {
+  if (event.target instanceof HTMLElement) {
+    event.target.classList.remove("dragging");
+  }
+}
+
+function onDragOver(event: DragEvent) {
+  event.preventDefault();
+}
+
+function onDrop(event: DragEvent, to: string) {
+  event.preventDefault();
+
+  if (!draggedItem.value) return;
+
+  if (draggedFrom.value === "available" && to === "inherited") {
+    // Add to inherited list
+    inheritedContexts.value.push(draggedItem.value);
+    // Remove from available list
+    availableContexts.value = availableContexts.value.filter(
+      (ctx) => ctx.id !== draggedItem.value.id
+    );
+  }
+
+  draggedItem.value = null;
+  draggedFrom.value = "";
+}
+
+function onDropReorder(event: DragEvent, targetIndex: number) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!draggedItem.value || draggedFrom.value !== "inherited") return;
+
+  // Find current index
+  const currentIndex = inheritedContexts.value.findIndex(
+    (ctx) => ctx.id === draggedItem.value.id
+  );
+
+  if (currentIndex === -1 || currentIndex === targetIndex) return;
+
+  // Remove from current position
+  const item = inheritedContexts.value.splice(currentIndex, 1)[0];
+
+  // Insert at new position
+  const newIndex = currentIndex < targetIndex ? targetIndex : targetIndex;
+  inheritedContexts.value.splice(newIndex, 0, item);
+}
+
+function removeFromInherited(index: number) {
+  const removed = inheritedContexts.value.splice(index, 1)[0];
+  availableContexts.value.push(removed);
+}
+
+async function saveInheritance() {
+  console.log("=== saveInheritance called ===");
+  console.log("Inherited contexts:", inheritedContexts.value);
+
+  // Build the list of inherited context IDs in order
+  const inheritedIds = inheritedContexts.value.map((ctx) => ctx.id);
+
+  console.log("Updating form with inheritance IDs:", inheritedIds);
+
+  // Update the form with new inherited contexts (local copy only)
+  form.value.inherited_parameter_contexts = inheritedIds;
+
+  // Close the inheritance modal
+  if (inheritanceModal.value) {
+    inheritanceModal.value.hide();
+  }
+
+  // Rebuild parameters list with new inheritance
+  await rebuildParametersWithInheritance();
+}
+
+async function rebuildParametersWithInheritance() {
+  if (!form.value.instance_id) return;
+
+  try {
+    console.log("Rebuilding parameters with inheritance:", form.value.inherited_parameter_contexts);
+
+    // Build inherited parameters map from the new inheritance list
+    const inheritedParams = await buildInheritedParametersMap(
+      form.value.instance_id,
+      form.value.inherited_parameter_contexts
+    );
+
+    // Get current local parameters (only those marked as local)
+    const localParams = form.value.parameters.filter((p) => p.isLocal);
+
+    console.log("Local params:", localParams);
+    console.log("Inherited params:", inheritedParams);
+
+    // Build combined parameters list with new inheritance info
+    const combinedParams = buildCombinedParametersList(localParams, inheritedParams);
+
+    console.log("Combined params after inheritance update:", combinedParams);
+
+    // Update form parameters
+    form.value.parameters = combinedParams;
+
+    showSuccess("Inheritance updated. Click Save to apply changes.");
+  } catch (error: any) {
+    console.error("Error rebuilding parameters:", error);
+    showError("Failed to update parameters with new inheritance");
+  }
 }
 
 onMounted(() => {
@@ -599,11 +1108,11 @@ h4 .text-muted {
   background: #667eea;
   color: white;
   border: none;
-  padding: 0.875rem 1rem;
+  padding: 0.375rem 0.5rem;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
+  font-size: 0.7rem;
+  letter-spacing: 0.3px;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -625,10 +1134,11 @@ h4 .text-muted {
 }
 
 :deep(.table tbody td) {
-  padding: 0.875rem 1rem;
+  padding: 0.375rem 0.5rem;
   vertical-align: middle;
   color: #2c3e50;
   border-right: 1px solid #f1f3f5;
+  font-size: 0.875rem;
 }
 
 :deep(.table tbody td:last-child) {
@@ -638,16 +1148,18 @@ h4 .text-muted {
 :deep(.table tbody td strong) {
   color: #1a202c;
   font-weight: 600;
+  font-size: 0.875rem;
 }
 
 :deep(.table tbody td .text-muted) {
   color: #6c757d !important;
+  font-size: 0.875rem;
 }
 
 :deep(.table tbody td .param-count) {
   color: #2c3e50;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
 }
 
 :deep(.table .badge) {
@@ -662,13 +1174,13 @@ h4 .text-muted {
 /* Action buttons */
 .action-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   justify-content: flex-end;
 }
 
 :deep(.action-buttons .btn) {
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
   transition: all 0.2s ease;
 }
 
@@ -678,7 +1190,7 @@ h4 .text-muted {
 }
 
 :deep(.action-buttons .btn i) {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 :deep(.action-buttons .btn-outline-primary) {
@@ -702,24 +1214,24 @@ h4 .text-muted {
   background-color: transparent !important;
 }
 
-:deep(.action-buttons .btn-outline-info) {
-  color: #17a2b8;
-  border-color: #17a2b8;
+:deep(.action-buttons .btn-outline-secondary) {
+  color: #6c757d;
+  border-color: #6c757d;
   background-color: transparent;
 }
 
-:deep(.action-buttons .btn-outline-info:hover) {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
+:deep(.action-buttons .btn-outline-secondary:hover) {
+  background-color: #6c757d;
+  border-color: #6c757d;
   color: white;
 }
 
 :deep(
-  .action-buttons .btn-outline-info:focus,
-  .action-buttons .btn-outline-info:active
+  .action-buttons .btn-outline-secondary:focus,
+  .action-buttons .btn-outline-secondary:active
 ) {
-  color: #17a2b8 !important;
-  border-color: #17a2b8 !important;
+  color: #6c757d !important;
+  border-color: #6c757d !important;
   background-color: transparent !important;
 }
 
@@ -778,6 +1290,191 @@ h4 .text-muted {
 
 :deep(.spinner-border) {
   color: #667eea;
+}
+
+/* Compact modal styling */
+.compact-modal-body {
+  padding: 0.75rem 1rem !important;
+}
+
+.compact-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+/* Parameter status indicators */
+.status-inherited {
+  color: #17a2b8;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-inherited i {
+  margin-right: 0.25rem;
+}
+
+.status-overridden {
+  color: #ff9800;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-overridden i {
+  margin-right: 0.25rem;
+}
+
+.status-local {
+  color: #28a745;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-local i {
+  margin-right: 0.25rem;
+}
+
+/* Inheritance modal styling */
+:deep(.inheritance-modal .modal-footer) {
+  display: none !important;
+}
+
+.inheritance-modal:deep(.modal-footer) {
+  display: none !important;
+}
+
+.inheritance-container {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  min-height: 400px;
+}
+
+.inheritance-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #667eea;
+}
+
+.context-list {
+  flex: 1;
+  border: 2px dashed #e9ecef;
+  border-radius: 8px;
+  padding: 0.75rem;
+  min-height: 300px;
+  overflow-y: auto;
+  background: #f8f9fa;
+}
+
+.inherited-list {
+  border-color: #667eea;
+  background: #f0f2ff;
+}
+
+.context-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: move;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.context-item:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  transform: translateY(-1px);
+}
+
+.context-item.dragging {
+  opacity: 0.5;
+}
+
+.context-item i.pe-7s-menu {
+  color: #6c757d;
+  font-size: 1.2rem;
+}
+
+.context-name {
+  flex: 1;
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.inherited-item {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f2ff 100%);
+  border-color: #667eea;
+}
+
+.order-badge {
+  background: #667eea;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.remove-btn {
+  padding: 0;
+  color: #dc3545;
+}
+
+.remove-btn:hover {
+  color: #c82333;
+}
+
+.remove-btn i {
+  font-size: 1.2rem;
+}
+
+.arrow-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+}
+
+.arrow-container i {
+  font-size: 2rem;
+  color: #667eea;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.drag-handle {
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.custom-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 0 0 0;
+  border-top: 1px solid #e9ecef;
+  margin-top: 1rem;
 }
 </style>
 

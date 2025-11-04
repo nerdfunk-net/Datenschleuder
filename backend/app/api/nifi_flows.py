@@ -482,6 +482,87 @@ async def update_nifi_flow(
         )
 
 
+@router.post("/{flow_id}/copy", response_model=dict)
+async def copy_nifi_flow(
+    flow_id: int,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Copy an existing NiFi flow entry"""
+    try:
+        engine = get_engine()
+        # Check if table exists
+        inspector = inspect(engine)
+        if not inspector.has_table("nifi_flows"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="NiFi flows table does not exist.",
+            )
+
+        # Get the original flow
+        with engine.connect() as conn:
+            result = conn.execute(
+                text("SELECT * FROM nifi_flows WHERE id = :flow_id"),
+                {"flow_id": flow_id},
+            )
+            row = result.fetchone()
+            if not row:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Flow with id {flow_id} not found",
+                )
+
+            # Get column names and values
+            columns = result.keys()
+            values_dict = dict(zip(columns, row))
+
+            # Remove id, created_at, and modified_at from the copy
+            excluded_columns = ["id", "created_at", "modified_at"]
+            columns_to_copy = [col for col in columns if col not in excluded_columns]
+            values_to_copy = [values_dict[col] for col in columns_to_copy]
+            
+            # Set active to False for the copied flow
+            if "active" in columns_to_copy:
+                active_index = columns_to_copy.index("active")
+                values_to_copy[active_index] = False
+
+            # Build insert query
+            cols_str = ", ".join(columns_to_copy)
+            placeholders = ", ".join([f":{i}" for i in range(len(values_to_copy))])
+            query = text(
+                f"INSERT INTO nifi_flows ({cols_str}) VALUES ({placeholders}) RETURNING id"
+            )
+
+            # Execute insert
+            result = conn.execute(
+                query, {str(i): v for i, v in enumerate(values_to_copy)}
+            )
+            conn.commit()
+            new_id = result.fetchone()[0]
+
+            # Fetch the newly created flow
+            result = conn.execute(
+                text("SELECT * FROM nifi_flows WHERE id = :flow_id"),
+                {"flow_id": new_id},
+            )
+            new_row = result.fetchone()
+            new_flow = dict(zip(result.keys(), new_row))
+
+        return {
+            "message": "NiFi flow copied successfully",
+            "id": new_id,
+            "flow": new_flow,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to copy flow: {str(e)}",
+        )
+
+
 @router.delete("/{flow_id}")
 async def delete_nifi_flow(
     flow_id: int,

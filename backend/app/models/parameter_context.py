@@ -61,6 +61,7 @@ class ParameterContextUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     parameters: Optional[List[ParameterInput]] = None
+    inherited_parameter_contexts: Optional[List[str]] = None
 
 
 class AssignParameterContextRequest(BaseModel):

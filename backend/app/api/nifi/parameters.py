@@ -447,41 +447,42 @@ async def update_parameter_context(
 
         # Handle inherited parameter contexts
         if hasattr(data, 'inherited_parameter_contexts') and data.inherited_parameter_contexts is not None:
-            print(f"Setting inherited_parameter_contexts: {data.inherited_parameter_contexts}")
-            # Build list of inherited context references
-            from nipyapi.nifi.models import ParameterContextReferenceEntity, ParameterContextReferenceDTO
-            inherited_refs = []
-            for context_id_str in data.inherited_parameter_contexts:
-                # Fetch the referenced context to get its name
-                try:
-                    ref_context = param_api.get_parameter_context(id=context_id_str)
-                    # Create proper reference with component
-                    ref_dto = ParameterContextReferenceDTO(
-                        id=context_id_str,
-                        name=ref_context.component.name if hasattr(ref_context, 'component') else None
-                    )
-                    ref_entity = ParameterContextReferenceEntity(
-                        id=context_id_str,
-                        component=ref_dto,
-                        permissions={'canRead': True, 'canWrite': True}
-                    )
-                    inherited_refs.append(ref_entity)
-                    print(f"  Added reference to context: {ref_dto.name} ({context_id_str})")
-                except Exception as e:
-                    print(f"  Warning: Could not resolve context {context_id_str}: {e}")
-                    # Try with just ID and component
-                    ref_dto = ParameterContextReferenceDTO(id=context_id_str)
-                    ref_entity = ParameterContextReferenceEntity(
-                        id=context_id_str,
-                        component=ref_dto
-                    )
-                    inherited_refs.append(ref_entity)
+            if len(data.inherited_parameter_contexts) == 0:
+                # Empty list means clear all inheritance
+                print("Clearing inherited_parameter_contexts (empty list)")
+                existing_context.component.inherited_parameter_contexts = []
+            else:
+                print(f"Setting inherited_parameter_contexts: {data.inherited_parameter_contexts}")
+                # Build list of inherited context references
+                from nipyapi.nifi.models import ParameterContextReferenceEntity, ParameterContextReferenceDTO
+                inherited_refs = []
+                for context_id_str in data.inherited_parameter_contexts:
+                    # Fetch the referenced context to get its name
+                    try:
+                        ref_context = param_api.get_parameter_context(id=context_id_str)
+                        # Create proper reference with component
+                        ref_dto = ParameterContextReferenceDTO(
+                            id=context_id_str,
+                            name=ref_context.component.name if hasattr(ref_context, 'component') else None
+                        )
+                        ref_entity = ParameterContextReferenceEntity(
+                            id=context_id_str,
+                            component=ref_dto,
+                            permissions={'canRead': True, 'canWrite': True}
+                        )
+                        inherited_refs.append(ref_entity)
+                        print(f"  Added reference to context: {ref_dto.name} ({context_id_str})")
+                    except Exception as e:
+                        print(f"  Warning: Could not resolve context {context_id_str}: {e}")
+                        # Try with just ID and component
+                        ref_dto = ParameterContextReferenceDTO(id=context_id_str)
+                        ref_entity = ParameterContextReferenceEntity(
+                            id=context_id_str,
+                            component=ref_dto
+                        )
+                        inherited_refs.append(ref_entity)
 
-            existing_context.component.inherited_parameter_contexts = inherited_refs if inherited_refs else None
-        elif hasattr(data, 'inherited_parameter_contexts') and data.inherited_parameter_contexts is None:
-            # Explicitly set to None/empty list to clear inheritance
-            print("Clearing inherited_parameter_contexts")
-            existing_context.component.inherited_parameter_contexts = None
+                existing_context.component.inherited_parameter_contexts = inherited_refs
 
         # Submit update request with the modified existing context
         update_response = param_api.submit_parameter_context_update(

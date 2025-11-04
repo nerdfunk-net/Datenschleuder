@@ -248,7 +248,7 @@
             class="ms-2"
             type="button"
           >
-            <i class="pe-7s-link"></i> Add Inheritance
+            <i class="pe-7s-link"></i> Edit Inheritance
           </b-button>
         </div>
       </form>
@@ -742,7 +742,7 @@ async function handleSave(bvModalEvent?: any) {
       description: form.value.description || undefined,
       inherited_parameter_contexts: form.value.inherited_parameter_contexts.length > 0
         ? form.value.inherited_parameter_contexts
-        : null,
+        : [],  // Send empty array instead of null to clear inheritance
       parameters: form.value.parameters
         .filter((p) => p.name && p.isLocal) // Only include local parameters with names
         .map((p) => ({
@@ -767,7 +767,6 @@ async function handleSave(bvModalEvent?: any) {
         payload,
       );
       console.log("Create result:", result);
-      showSuccess("Parameter context created successfully");
       await loadParameterContexts(form.value.instance_id!);
     } else if (modalMode.value === "edit") {
       const result = await api.put(
@@ -775,7 +774,6 @@ async function handleSave(bvModalEvent?: any) {
         payload,
       );
       console.log("Update result:", result);
-      showSuccess("Parameter context updated successfully");
       await loadParameterContexts(form.value.instance_id!);
     }
 
@@ -822,19 +820,11 @@ async function showInheritanceModal() {
     if (response.status === "success") {
       allParameterContexts.value = response.parameter_contexts;
 
-      // Build inherited contexts list (with names)
-      const currentInheritedIds =
-        parameterContextsByInstance.value[form.value.instance_id!]
-          ?.find((ctx) => ctx.id === form.value.context_id)
-          ?.inherited_parameter_contexts || [];
+      // Use the locally stored inherited contexts from the form (not from server)
+      // This ensures we show the current state including unsaved changes
+      const inheritedIds = form.value.inherited_parameter_contexts || [];
 
-      // Fetch details for inherited contexts to get their names
-      const detailedContext = await api.get(
-        `/api/nifi-instances/${form.value.instance_id}/parameter-contexts/${form.value.context_id}`
-      );
-
-      const inheritedIds =
-        detailedContext.parameter_context?.inherited_parameter_contexts || [];
+      console.log("Using local inherited_parameter_contexts:", inheritedIds);
 
       // Map inherited IDs to full context objects in order
       inheritedContexts.value = inheritedIds
@@ -1022,8 +1012,6 @@ async function rebuildParametersWithInheritance() {
 
     // Update form parameters
     form.value.parameters = combinedParams;
-
-    showSuccess("Inheritance updated. Click Save to apply changes.");
   } catch (error: any) {
     console.error("Error rebuilding parameters:", error);
     showError("Failed to update parameters with new inheritance");
@@ -1335,14 +1323,6 @@ h4 .text-muted {
 }
 
 /* Inheritance modal styling */
-:deep(.inheritance-modal .modal-footer) {
-  display: none !important;
-}
-
-.inheritance-modal:deep(.modal-footer) {
-  display: none !important;
-}
-
 .inheritance-container {
   display: flex;
   gap: 1rem;
@@ -1500,6 +1480,13 @@ h4 .text-muted {
         opacity: 1;
       }
     }
+  }
+}
+
+/* Hide default modal footer in inheritance modal */
+.inheritance-modal {
+  .modal-footer {
+    display: none !important;
   }
 }
 </style>

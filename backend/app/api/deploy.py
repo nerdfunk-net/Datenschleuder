@@ -170,7 +170,6 @@ async def deploy_flow(
     logger.info(f"Process Group Name: {deployment.process_group_name}")
     logger.info(f"Stop Versioning After Deploy: {deployment.stop_versioning_after_deploy}")
     logger.info(f"Disable After Deploy: {deployment.disable_after_deploy}")
-    logger.info(f"Create Parameter Context: {deployment.create_parameter_context}")
 
     # Get the NiFi instance
     instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()

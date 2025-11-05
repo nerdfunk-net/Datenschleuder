@@ -50,19 +50,6 @@
                 If enabled, version control will be stopped for the deployed process group
               </small>
             </div>
-
-            <!-- Create Parameter Context -->
-            <div class="col-md-12">
-              <b-form-checkbox
-                v-model="settings.global.create_parameter_context"
-              >
-                Create and overwrite parameter context
-              </b-form-checkbox>
-              <small class="form-text text-muted d-block">
-                If enabled, parameter contexts will be created and overwritten
-                during deployment
-              </small>
-            </div>
           </div>
 
           <!-- Per-Instance Path Settings -->
@@ -216,7 +203,6 @@ interface DeploymentSettings {
     process_group_name_template: string;
     disable_after_deploy: boolean;
     stop_versioning_after_deploy: boolean;
-    create_parameter_context: boolean;
   };
   paths: {
     [instanceId: number]: {
@@ -240,7 +226,6 @@ const settings = ref<DeploymentSettings>({
     process_group_name_template: "{last_hierarchy_value}",
     disable_after_deploy: false,
     stop_versioning_after_deploy: false,
-    create_parameter_context: true,
   },
   paths: {},
 });

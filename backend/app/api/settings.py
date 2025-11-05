@@ -326,7 +326,6 @@ async def get_deployment_settings(
             "process_group_name_template": "{last_hierarchy_value}",
             "disable_after_deploy": False,
             "stop_versioning_after_deploy": False,
-            "create_parameter_context": True,
         }
 
     # Get per-instance path settings

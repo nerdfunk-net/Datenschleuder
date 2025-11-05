@@ -589,12 +589,11 @@ class NiFiDeploymentService:
     ) -> None:
         """
         Connect input ports between parent and child process groups.
-        
-        Strategy:
-        1. Try standard port-to-port connection (parent output port -> child input port)
-        2. If no parent output port exists, look for RouteOnAttribute processor in parent
-        3. Connect RouteOnAttribute -> child input port using relationship named after the child PG
-        
+
+        Strategy (Priority Order):
+        1. Check if parent has a RouteOnAttribute processor - if yes, connect to child INPUT port
+        2. If no RouteOnAttribute, try standard port-to-port connection (parent INPUT port -> child INPUT port)
+
         Args:
             pg_api: ProcessGroupsApi instance for port operations
             child_pg_id: ID of the child (deployed) process group
@@ -623,39 +622,9 @@ class NiFiDeploymentService:
             child_port = child_ports[0]
             child_port_name = child_port.component.name if hasattr(child_port, 'component') and hasattr(child_port.component, 'name') else 'Unknown'
             logger.info(f"  Child input port: '{child_port_name}' (ID: {child_port.id})")
-            
-            # Try to get parent output ports first (standard connection)
-            logger.debug("  Fetching output ports from parent process group...")
-            parent_response = pg_api.get_output_ports(id=parent_pg_id)
-            parent_ports = (
-                parent_response.output_ports
-                if hasattr(parent_response, "output_ports")
-                else []
-            )
-            
-            logger.info(f"  Parent output ports count: {len(parent_ports) if parent_ports else 0}")
-            
-            # Strategy 1: Standard port-to-port connection
-            if parent_ports:
-                logger.info("  Strategy 1: Connecting parent output port -> child input port")
-                parent_port = parent_ports[0]
-                parent_port_name = parent_port.component.name if hasattr(parent_port, 'component') and hasattr(parent_port.component, 'name') else 'Unknown'
-                
-                logger.info(f"  Connecting: '{parent_port_name}' -> '{child_port_name}'...")
-                
-                created_conn = canvas.create_connection(
-                    source=parent_port,
-                    target=child_port,
-                    name=f"{parent_port_name} to {child_port_name}",
-                )
-                
-                logger.info(f"  ✓ Successfully created input connection (ID: {created_conn.id})")
-                return
-            
-            # Strategy 2: Connect RouteOnAttribute processor to child input port
-            logger.info("  No parent output port found - trying Strategy 2: RouteOnAttribute connection")
-            
-            # Get all processors in the parent process group
+
+            # Strategy 1 (PRIORITY): Check for RouteOnAttribute processor in parent
+            logger.info("  Strategy 1 (Priority): Looking for RouteOnAttribute processor in parent...")
             logger.debug("  Fetching processors from parent process group...")
             processors_list = canvas.list_all_processors(pg_id=parent_pg_id)
             
@@ -698,8 +667,38 @@ class NiFiDeploymentService:
                     break
             
             if not route_processor:
-                logger.warning("  No RouteOnAttribute processor found in parent - cannot auto-connect")
-                return
+                logger.info("  No RouteOnAttribute processor found in parent")
+                logger.info("  Strategy 2 (Fallback): Trying parent INPUT port -> child INPUT port connection")
+
+                # Fallback: Try to get parent INPUT ports
+                logger.debug("  Fetching INPUT ports from parent process group...")
+                parent_input_response = pg_api.get_input_ports(id=parent_pg_id)
+                parent_input_ports = (
+                    parent_input_response.input_ports
+                    if hasattr(parent_input_response, "input_ports")
+                    else []
+                )
+
+                logger.info(f"  Parent INPUT ports count: {len(parent_input_ports) if parent_input_ports else 0}")
+
+                if parent_input_ports:
+                    logger.info("  Connecting parent INPUT port -> child INPUT port")
+                    parent_input_port = parent_input_ports[0]
+                    parent_port_name = parent_input_port.component.name if hasattr(parent_input_port, 'component') and hasattr(parent_input_port.component, 'name') else 'Unknown'
+
+                    logger.info(f"  Connecting: '{parent_port_name}' (parent INPUT) -> '{child_port_name}' (child INPUT)...")
+
+                    created_conn = canvas.create_connection(
+                        source=parent_input_port,
+                        target=child_port,
+                        name=f"{parent_port_name} to {child_port_name}",
+                    )
+
+                    logger.info(f"  ✓ Successfully created input connection (ID: {created_conn.id})")
+                    return
+                else:
+                    logger.warning("  No parent INPUT port found either - cannot auto-connect")
+                    return
             
             # Get the child process group name to use as relationship name
             logger.debug("  Fetching child process group details for relationship name...")

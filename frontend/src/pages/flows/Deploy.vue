@@ -331,17 +331,6 @@
               If enabled, version control will be stopped for the deployed process group
             </small>
           </div>
-
-          <!-- Create Parameter Context -->
-          <div class="form-group">
-            <b-form-checkbox v-model="deploymentSettings.global.create_parameter_context">
-              Create and overwrite parameter context
-            </b-form-checkbox>
-            <small class="form-text text-muted d-block">
-              If enabled, parameter contexts will be created and overwritten
-              during deployment
-            </small>
-          </div>
         </div>
 
         <div class="wizard-actions">
@@ -413,13 +402,6 @@
                   <span>
                     <i :class="deploymentSettings.global.stop_versioning_after_deploy ? 'pe-7s-check text-success' : 'pe-7s-close text-muted'"></i>
                     {{ deploymentSettings.global.stop_versioning_after_deploy ? "Yes" : "No" }}
-                  </span>
-                </div>
-                <div class="review-row">
-                  <span class="review-label">Create Parameter Context:</span>
-                  <span>
-                    <i :class="deploymentSettings.global.create_parameter_context ? 'pe-7s-check text-success' : 'pe-7s-close text-muted'"></i>
-                    {{ deploymentSettings.global.create_parameter_context ? "Yes" : "No" }}
                   </span>
                 </div>
               </div>
@@ -840,7 +822,6 @@ const deploymentSettings = ref<any>({
     process_group_name_template: "{last_hierarchy_value}",
     disable_after_deploy: false,
     stop_versioning_after_deploy: false,
-    create_parameter_context: true,
   },
   paths: {},
 });
@@ -1360,7 +1341,6 @@ const deployFlows = async () => {
           y_position: 0,
           stop_versioning_after_deploy: deploymentSettings.value.global.stop_versioning_after_deploy,
           disable_after_deploy: deploymentSettings.value.global.disable_after_deploy,
-          create_parameter_context: deploymentSettings.value.global.create_parameter_context,
         };
 
         console.log("Deployment request:", deploymentRequest);
@@ -1667,7 +1647,6 @@ const loadDeploymentSettings = async () => {
         process_group_name_template: data.global?.process_group_name_template || "{last_hierarchy_value}",
         disable_after_deploy: data.global?.disable_after_deploy || false,
         stop_versioning_after_deploy: data.global?.stop_versioning_after_deploy || false,
-        create_parameter_context: data.global?.create_parameter_context !== false, // default to true
       },
       paths: paths,
     };

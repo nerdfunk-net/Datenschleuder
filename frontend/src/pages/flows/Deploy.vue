@@ -1304,6 +1304,78 @@ const autoSelectProcessGroup = (
   }
 };
 
+/**
+ * Get the hierarchy attribute name for a given process group.
+ * 
+ * The backend builds paths as: configured_path + hierarchy_values
+ * We need to determine which hierarchy level the selected PG represents
+ * by comparing its path against the configured deployment path.
+ * 
+ * For example:
+ * - Configured path: "NiFi Flow/To net1"
+ * - Selected PG path: "NiFi Flow/To net1/o1/ou1"
+ * - Hierarchy offset: 2 (ou1 is the 2nd level after configured path)
+ * - Returns: hierarchy[2] = "datenschleuder_ou"
+ * 
+ * @param processGroupId - The ID of the selected process group
+ * @param instanceKey - The key to lookup process group paths (e.g., "source_123")
+ * @param instanceId - The NiFi instance ID to get configured path
+ * @param target - "source" or "destination" to determine which configured path to use
+ * @returns The hierarchy attribute name (e.g., "datenschleuder_ou") or null if not found
+ */
+const getHierarchyAttributeForProcessGroup = (
+  processGroupId: string,
+  instanceKey: string,
+  instanceId: number,
+  target: "source" | "destination",
+): string | null => {
+  if (!hierarchyConfig.value.length || !deploymentSettings.value) return null;
+  
+  // Find the process group in the paths
+  const paths = processGroupPaths.value[instanceKey] || [];
+  const selectedPg = paths.find((pg) => pg.id === processGroupId);
+  
+  if (!selectedPg || !selectedPg.path || selectedPg.path.length === 0) return null;
+  
+  // Get configured path for this instance
+  const instanceSettings = deploymentSettings.value.paths?.[instanceId];
+  if (!instanceSettings) return null;
+  
+  // Get the PathConfig object (contains id and path properties)
+  const pathConfig = target === "source" 
+    ? instanceSettings.source_path 
+    : instanceSettings.dest_path;
+  
+  if (!pathConfig || !pathConfig.path) return null;
+  
+  // Extract the path string from the PathConfig object
+  const configuredPath = pathConfig.path;
+  
+  // Build PG path string from the path array (excluding root)
+  const pgPathSegments = selectedPg.path
+    .filter((p: any) => p.name !== "NiFi Flow") // Exclude root
+    .map((p: any) => p.name);
+  
+  // Count configured path segments
+  const configuredSegments = configuredPath.split('/').filter((p: string) => p.length > 0);
+  
+  // Calculate hierarchy offset: PG segments - configured segments
+  // This tells us how many hierarchy levels deep we are after the configured path
+  const hierarchyOffset = pgPathSegments.length - configuredSegments.length;
+  
+  // Map to hierarchy index (accounting for skipped first level)
+  // hierarchy[0] = top level (DC) - in configured path
+  // hierarchy[1] = second level (O) - first deployed level
+  // hierarchy[2] = third level (OU) - second deployed level
+  const hierarchyIndex = hierarchyOffset;
+  
+  if (hierarchyIndex > 0 && hierarchyIndex < hierarchyConfig.value.length) {
+    return hierarchyConfig.value[hierarchyIndex].name;
+  }
+  
+  return null;
+};
+
 const deployFlows = async () => {
   isDeploying.value = true;
 
@@ -1331,8 +1403,18 @@ const deployFlows = async () => {
           throw new Error("No process group selected");
         }
 
+        // Calculate hierarchy attribute based on selected process group path
+        // accounting for configured deployment paths
+        const instanceKey = `${config.target}_${config.instanceId}`;
+        const hierarchyAttribute = getHierarchyAttributeForProcessGroup(
+          config.selectedProcessGroupId,
+          instanceKey,
+          config.instanceId,
+          config.target,
+        );
+
         // Prepare deployment request using the settings from step 4
-        const deploymentRequest = {
+        const deploymentRequest: any = {
           template_id: config.templateId,
           parent_process_group_id: config.selectedProcessGroupId,
           process_group_name: config.processGroupName,
@@ -1342,6 +1424,11 @@ const deployFlows = async () => {
           stop_versioning_after_deploy: deploymentSettings.value.global.stop_versioning_after_deploy,
           disable_after_deploy: deploymentSettings.value.global.disable_after_deploy,
         };
+
+        // Add hierarchy attribute if calculated
+        if (hierarchyAttribute) {
+          deploymentRequest.hierarchy_attribute = hierarchyAttribute;
+        }
 
         console.log("Deployment request:", deploymentRequest);
 

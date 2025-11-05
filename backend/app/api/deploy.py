@@ -170,6 +170,7 @@ async def deploy_flow(
     logger.info(f"Parent PG ID: {deployment.parent_process_group_id}")
     logger.info(f"Parent PG Path: {deployment.parent_process_group_path}")
     logger.info(f"Process Group Name: {deployment.process_group_name}")
+    logger.info(f"Hierarchy Attribute (from request): {deployment.hierarchy_attribute}")
     logger.info(f"Stop Versioning After Deploy: {deployment.stop_versioning_after_deploy}")
     logger.info(f"Disable After Deploy: {deployment.disable_after_deploy}")
 
@@ -243,8 +244,12 @@ async def deploy_flow(
         else:
             logger.info(f"No hierarchy config found, using default: 'cn'")
 
+        # Use hierarchy_attribute from request if provided, otherwise use the last from config
+        hierarchy_attr_to_use = deployment.hierarchy_attribute or last_hierarchy_attr
+        logger.info(f"Using hierarchy attribute: '{hierarchy_attr_to_use}' (from {'request' if deployment.hierarchy_attribute else 'config'})")
+
         # Initialize deployment service with hierarchy info
-        service = NiFiDeploymentService(instance, last_hierarchy_attr)
+        service = NiFiDeploymentService(instance, hierarchy_attr_to_use)
 
         # Step 1: Get registry information (from template or direct parameters)
         bucket_id, flow_id, registry_client_id, template_name = service.get_registry_info(

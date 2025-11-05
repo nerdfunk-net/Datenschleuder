@@ -248,6 +248,12 @@ interface ParameterContext {
   name: string;
 }
 
+interface HierarchyAttribute {
+  name: string;
+  label: string;
+  order: number;
+}
+
 const sourceInstance = ref<number | null>(null);
 const destinationInstance = ref<number | null>(null);
 const instances = ref<NiFiInstance[]>([]);
@@ -257,6 +263,12 @@ const loadingSourcePath = ref(false);
 const loadingDestinationPath = ref(false);
 const sourceCollapsed = ref(true);
 const destinationCollapsed = ref(true);
+
+// Hierarchy configuration
+const hierarchyConfig = ref<HierarchyAttribute[]>([]);
+
+// Deployment settings (for configured paths)
+const deploymentSettings = ref<any>(null);
 
 // Registry flows for deployment
 const sourceRegistryFlows = ref<RegistryFlow[]>([]);
@@ -339,6 +351,94 @@ const loadInstances = async () => {
     console.error("Error loading instances:", error);
     alert("Failed to load NiFi instances");
   }
+};
+
+const loadHierarchyConfig = async () => {
+  try {
+    const data = await apiRequest("/api/settings/hierarchy");
+    if (data.hierarchy) {
+      hierarchyConfig.value = data.hierarchy.sort(
+        (a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order,
+      );
+    }
+  } catch (error) {
+    console.error("Error loading hierarchy config:", error);
+  }
+};
+
+const loadDeploymentSettings = async () => {
+  try {
+    const data = await apiRequest("/api/settings/deploy");
+    deploymentSettings.value = data;
+  } catch (error) {
+    console.error("Error loading deployment settings:", error);
+  }
+};
+
+/**
+ * Calculate the hierarchy attribute name based on the path depth,
+ * accounting for configured deployment paths.
+ * 
+ * The backend builds paths as: configured_path + hierarchy_values
+ * For example:
+ * - Configured path: "NiFi Flow/To net1" (2 segments)
+ * - Hierarchy values: "o1", "ou1" (excluding first DC and last CN)
+ * - Full path: "NiFi Flow/To net1/o1/ou1" (4 segments total)
+ * 
+ * To get the correct hierarchy level:
+ * 1. Count configured path segments
+ * 2. Subtract from total path depth to get hierarchy offset
+ * 3. Use hierarchy_config[offset] (accounting for skipped first level)
+ * 
+ * @param path - The full deployment path (e.g., "NiFi Flow/To net1/o1/ou1")
+ * @param instanceId - The NiFi instance ID to get configured path
+ * @param pathType - "source" or "destination"
+ * @returns The hierarchy attribute name (e.g., "datenschleuder_ou") or null if not found
+ */
+const getHierarchyAttributeFromPath = (
+  path: string, 
+  instanceId: number, 
+  pathType: 'source' | 'destination'
+): string | null => {
+  if (!hierarchyConfig.value.length || !deploymentSettings.value) return null;
+  
+  // Get configured path for this instance
+  const instanceSettings = deploymentSettings.value.paths?.[instanceId];
+  if (!instanceSettings) return null;
+  
+  // Get the PathConfig object (contains id and path properties)
+  const pathConfig = pathType === 'source' 
+    ? instanceSettings.source_path 
+    : instanceSettings.dest_path;
+  
+  if (!pathConfig || !pathConfig.path) return null;
+  
+  // Extract the path string from the PathConfig object
+  const configuredPath = pathConfig.path;
+  
+  // Count configured path segments (e.g., "NiFi Flow/To net1" = 2)
+  const configuredSegments = configuredPath.split('/').filter((p: string) => p.length > 0).length;
+  
+  // Split full path and filter empty segments
+  const pathSegments = path.split('/').filter(p => p.length > 0);
+  const totalDepth = pathSegments.length;
+  
+  // Calculate hierarchy offset: total depth - configured segments
+  // Example: 4 total - 2 configured = 2 (meaning 2nd hierarchy level after top)
+  const hierarchyOffset = totalDepth - configuredSegments;
+  
+  // The hierarchy index accounts for skipping the first (top) level
+  // hierarchy[0] = top level (DC) - already in configured path
+  // hierarchy[1] = second level (O) - first level we deploy
+  // hierarchy[2] = third level (OU) - second level we deploy
+  // So hierarchyOffset 1 -> hierarchy[1], hierarchyOffset 2 -> hierarchy[2]
+  const hierarchyIndex = hierarchyOffset; // Direct mapping since we skip hierarchy[0]
+  
+  if (hierarchyIndex > 0 && hierarchyIndex < hierarchyConfig.value.length) {
+    return hierarchyConfig.value[hierarchyIndex].name;
+  }
+  
+  return null;
 };
 
 const loadRegistryFlows = async (instanceId: number, type: 'source' | 'destination') => {
@@ -431,12 +531,21 @@ const deployFlow = async (missingPath: string, instanceId: number, type: 'source
   deployingPaths.value.add(missingPath);
 
   try {
+    // Calculate hierarchy attribute from the missing path depth
+    // accounting for configured deployment paths
+    const hierarchyAttribute = getHierarchyAttributeFromPath(missingPath, instanceId, type);
+    
     const requestBody: any = {
       template_id: selectedFlowId,
       parent_process_group_path: parentPath || "/",
       process_group_name: targetProcessGroupName,
       stop_versioning_after_deploy: true  // Always stop versioning when deploying via Install mechanism
     };
+
+    // Add hierarchy attribute if calculated
+    if (hierarchyAttribute) {
+      requestBody.hierarchy_attribute = hierarchyAttribute;
+    }
 
     // Add parameter context if selected (and not "None")
     if (selectedParameterContextId) {
@@ -490,6 +599,8 @@ watch(destinationInstance, (newInstanceId: number | null) => {
 
 onMounted(() => {
   loadInstances();
+  loadHierarchyConfig();
+  loadDeploymentSettings();
 });
 </script>
 

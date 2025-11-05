@@ -325,6 +325,7 @@ async def get_deployment_settings(
         global_settings = {
             "process_group_name_template": "{last_hierarchy_value}",
             "disable_after_deploy": False,
+            "start_after_deploy": True,
             "stop_versioning_after_deploy": False,
         }
 

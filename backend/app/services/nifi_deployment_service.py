@@ -28,6 +28,7 @@ class NiFiDeploymentService:
         """
         self.instance = instance
         self.last_hierarchy_attr = last_hierarchy_attr
+        logger.info(f"=== NiFiDeploymentService initialized with hierarchy_attr: '{last_hierarchy_attr}' ===")
 
     def get_registry_info(
         self, deployment: DeploymentRequest, db: Session
@@ -771,8 +772,13 @@ class NiFiDeploymentService:
                 
                 # Add/update properties
                 if not property_exists:
-                    properties[child_pg_name] = f"${{{self.last_hierarchy_attr}:equalsIgnoreCase('{child_pg_name}')}}"
-                    logger.info(f"  Added property: '{child_pg_name}' = '{properties[child_pg_name]}'")
+                    property_value = f"${{{self.last_hierarchy_attr}:equalsIgnoreCase('{child_pg_name}')}}"
+                    properties[child_pg_name] = property_value
+                    logger.info(f"  ===== CREATING PROPERTY =====")
+                    logger.info(f"  Property name: '{child_pg_name}'")
+                    logger.info(f"  Hierarchy attribute used: '{self.last_hierarchy_attr}'")
+                    logger.info(f"  Property value: '{property_value}'")
+                    logger.info(f"  =============================")
                 
                 if routing_strategy != "Route to Property name":
                     properties["Routing Strategy"] = "Route to Property name"

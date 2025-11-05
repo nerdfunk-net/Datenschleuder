@@ -28,6 +28,7 @@ class DeploymentRequest(BaseModel):
     process_group_name: Optional[str] = (
         None  # Name for the deployed process group (will rename after deployment)
     )
+    hierarchy_attribute: Optional[str] = None  # Hierarchy attribute name for RouteOnAttribute processor (e.g., "datenschleuder_cn")
     version: Optional[Union[int, str]] = (
         None  # None = latest; int for NiFi Registry, str (commit hash) for GitHub Registry
     )

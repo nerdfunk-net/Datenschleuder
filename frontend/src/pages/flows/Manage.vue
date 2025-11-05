@@ -901,11 +901,18 @@ interface RegistryFlow {
   bucket_name: string;
 }
 
+interface HierarchyAttribute {
+  name: string;
+  label: string;
+  order: number;
+}
+
 const isLoading = ref(false);
 const tableExists = ref(false);
 const hierarchyColumns = ref<HierarchyColumn[]>([]);
 const allColumns = ref<TableColumn[]>([]);
 const hierarchyValues = ref<Record<string, string[]>>({});
+const hierarchyConfig = ref<HierarchyAttribute[]>([]);
 const flows = ref<any[]>([]);
 const filters = ref<Record<string, string>>({});
 const registryFlows = ref<RegistryFlow[]>([]);
@@ -1127,6 +1134,19 @@ const loadHierarchyValues = async () => {
     }
   } catch (error) {
     console.error("Error loading hierarchy values:", error);
+  }
+};
+
+const loadHierarchyConfig = async () => {
+  try {
+    const data = await apiRequest("/api/settings/hierarchy");
+    if (data.hierarchy) {
+      hierarchyConfig.value = data.hierarchy.sort(
+        (a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order,
+      );
+    }
+  } catch (error) {
+    console.error("Error loading hierarchy config:", error);
   }
 };
 
@@ -1661,9 +1681,14 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       throw new Error("No template configured for this flow");
     }
 
+    // Get last hierarchy attribute for RouteOnAttribute processor
+    const lastHierarchyAttr = hierarchyConfig.value.length > 0 
+      ? hierarchyConfig.value[hierarchyConfig.value.length - 1].name 
+      : null;
+
     // Deploy using parent_process_group_path (will auto-create missing groups)
     // Use all deployment settings from database defaults
-    const deploymentRequest = {
+    const deploymentRequest: any = {
       template_id: templateId,
       parent_process_group_path: processGroupPath,
       process_group_name: processGroupName,
@@ -1673,6 +1698,11 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       stop_versioning_after_deploy: deploymentSettings.value?.global?.stop_versioning_after_deploy || false,
       disable_after_deploy: deploymentSettings.value?.global?.disable_after_deploy || false,
     };
+
+    // Add hierarchy attribute if available
+    if (lastHierarchyAttr) {
+      deploymentRequest.hierarchy_attribute = lastHierarchyAttr;
+    }
 
     try {
       const result = await apiRequest(`/api/deploy/${instanceId}/flow`, {
@@ -2135,6 +2165,7 @@ watch(() => {
 onMounted(async () => {
   await loadTableInfo();
   await loadFlows();
+  await loadHierarchyConfig();
 });
 </script>
 

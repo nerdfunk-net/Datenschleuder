@@ -41,6 +41,17 @@
               </small>
             </div>
 
+            <!-- Start After Deploy -->
+            <div class="col-md-12">
+              <b-form-checkbox v-model="settings.global.start_after_deploy">
+                Start flow after deployment
+              </b-form-checkbox>
+              <small class="form-text text-muted d-block">
+                If enabled, the deployed process group will be STARTED after deployment.
+                This allows the flow to begin processing data immediately.
+              </small>
+            </div>
+
             <!-- Stop Versioning After Deploy -->
             <div class="col-md-12">
               <b-form-checkbox v-model="settings.global.stop_versioning_after_deploy">
@@ -202,6 +213,7 @@ interface DeploymentSettings {
   global: {
     process_group_name_template: string;
     disable_after_deploy: boolean;
+    start_after_deploy: boolean;
     stop_versioning_after_deploy: boolean;
   };
   paths: {
@@ -225,6 +237,7 @@ const settings = ref<DeploymentSettings>({
   global: {
     process_group_name_template: "{last_hierarchy_value}",
     disable_after_deploy: false,
+    start_after_deploy: true,
     stop_versioning_after_deploy: false,
   },
   paths: {},

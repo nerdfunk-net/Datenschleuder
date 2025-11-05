@@ -1,5 +1,6 @@
 """Flow deployment API endpoints"""
 
+import json
 import logging
 from typing import Dict, Any
 
@@ -10,6 +11,7 @@ from app.core.database import get_db
 from app.core.security import verify_token
 from app.models.nifi_instance import NiFiInstance
 from app.models.registry_flow import RegistryFlow
+from app.models.setting import Setting
 from app.models.deployment import (
     DeploymentRequest,
     DeploymentResponse,
@@ -195,8 +197,54 @@ async def deploy_flow(
         if instance.username and instance.password_encrypted:
             logger.info("Successfully configured authentication")
 
-        # Initialize deployment service
-        service = NiFiDeploymentService(instance)
+        # Fetch hierarchy configuration from settings
+        hierarchy_setting = db.query(Setting).filter(Setting.key == "hierarchy_config").first()
+        last_hierarchy_attr = "cn"  # Default fallback
+        
+        logger.info(f"DEBUG: hierarchy_setting found: {hierarchy_setting is not None}")
+        if hierarchy_setting:
+            logger.info(f"DEBUG: hierarchy_setting.value type: {type(hierarchy_setting.value)}")
+            logger.info(f"DEBUG: hierarchy_setting.value: {hierarchy_setting.value[:200] if hierarchy_setting.value else 'None'}")
+        
+        if hierarchy_setting and hierarchy_setting.value:
+            try:
+                hierarchy_config = json.loads(hierarchy_setting.value)
+                logger.info(f"DEBUG: Parsed hierarchy_config type: {type(hierarchy_config)}")
+                logger.info(f"DEBUG: Parsed hierarchy_config: {hierarchy_config}")
+                
+                # Handle both formats: direct list or wrapped in {"hierarchy": [...]}
+                hierarchy_list = None
+                if isinstance(hierarchy_config, dict) and "hierarchy" in hierarchy_config:
+                    hierarchy_list = hierarchy_config["hierarchy"]
+                    logger.info(f"DEBUG: Found 'hierarchy' key in dict, extracted list")
+                elif isinstance(hierarchy_config, list):
+                    hierarchy_list = hierarchy_config
+                    logger.info(f"DEBUG: hierarchy_config is already a list")
+                
+                if hierarchy_list and isinstance(hierarchy_list, list) and len(hierarchy_list) > 0:
+                    logger.info(f"DEBUG: hierarchy_list has {len(hierarchy_list)} items")
+                    # Get the last item's name from the hierarchy
+                    last_item = hierarchy_list[-1]
+                    logger.info(f"DEBUG: Last item: {last_item}")
+                    logger.info(f"DEBUG: Last item type: {type(last_item)}")
+                    
+                    if isinstance(last_item, dict) and "name" in last_item:
+                        last_hierarchy_attr = last_item["name"]
+                        logger.info(f"Using hierarchy attribute from config: '{last_hierarchy_attr}'")
+                    else:
+                        logger.warning(f"Invalid hierarchy config format, using default: 'cn'")
+                        logger.warning(f"DEBUG: Last item doesn't have 'name' key or isn't a dict")
+                else:
+                    logger.warning(f"Empty hierarchy config, using default: 'cn'")
+                    logger.warning(f"DEBUG: hierarchy_list is empty or invalid")
+            except (json.JSONDecodeError, Exception) as e:
+                logger.warning(f"Failed to parse hierarchy config: {e}, using default: 'cn'")
+                logger.error(f"DEBUG: Exception details: {type(e).__name__}: {str(e)}")
+        else:
+            logger.info(f"No hierarchy config found, using default: 'cn'")
+
+        # Initialize deployment service with hierarchy info
+        service = NiFiDeploymentService(instance, last_hierarchy_attr)
 
         # Step 1: Get registry information (from template or direct parameters)
         bucket_id, flow_id, registry_client_id, template_name = service.get_registry_info(

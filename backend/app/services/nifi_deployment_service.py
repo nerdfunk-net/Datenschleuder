@@ -18,14 +18,16 @@ logger = logging.getLogger(__name__)
 class NiFiDeploymentService:
     """Service class for NiFi flow deployment operations."""
 
-    def __init__(self, instance: NiFiInstance) -> None:
+    def __init__(self, instance: NiFiInstance, last_hierarchy_attr: str = "cn") -> None:
         """
         Initialize the deployment service.
 
         Args:
             instance: The NiFi instance to deploy to
+            last_hierarchy_attr: The last hierarchy attribute name for routing (e.g., "cn")
         """
         self.instance = instance
+        self.last_hierarchy_attr = last_hierarchy_attr
 
     def get_registry_info(
         self, deployment: DeploymentRequest, db: Session
@@ -769,7 +771,7 @@ class NiFiDeploymentService:
                 
                 # Add/update properties
                 if not property_exists:
-                    properties[child_pg_name] = f"#{{{child_pg_name}}}"
+                    properties[child_pg_name] = f"${{{self.last_hierarchy_attr}:equalsIgnoreCase('{child_pg_name}')}}"
                     logger.info(f"  Added property: '{child_pg_name}' = '{properties[child_pg_name]}'")
                 
                 if routing_strategy != "Route to Property name":
@@ -803,33 +805,13 @@ class NiFiDeploymentService:
                         logger.info(f"  ✓ Successfully updated RouteOnAttribute processor properties")
                         logger.debug(f"    Updated processor ID: {updated_processor.id}")
                         
-                        # ALWAYS start processor to trigger validation and relationship registration
-                        # This is necessary even if processor was stopped before, because NiFi only
-                        # evaluates and registers dynamic relationships when the processor validates
-                        logger.info(f"  Starting processor to trigger relationship validation...")
-                        try:
-                            canvas.schedule_processor(updated_processor, scheduled=True)
-                            logger.info(f"  ✓ Processor started")
-                            import time
-                            time.sleep(1.5)  # Wait for NiFi to validate and register relationships
-                            
-                            # Refresh the processor object to get the new relationships
-                            logger.debug(f"  Refreshing processor to get updated relationships...")
-                            route_processor = canvas.get_processor(route_processor_id, "id")
-                            logger.debug(f"  Processor refreshed successfully")
-                            
-                            # Stop processor again if it was originally stopped
-                            if current_state == "STOPPED":
-                                logger.info(f"  Stopping processor (was originally stopped)...")
-                                canvas.schedule_processor(route_processor, scheduled=False)
-                                logger.info(f"  ✓ Processor stopped")
-                                time.sleep(0.5)
-                                # Refresh again to get final state
-                                route_processor = canvas.get_processor(route_processor_id, "id")
-                        except Exception as start_error:
-                            logger.warning(f"  Could not start/stop processor: {start_error}")
-                            # Still refresh to get whatever state we have
-                            route_processor = canvas.get_processor(route_processor_id, "id")
+                        # Refresh the processor object to get the new relationships
+                        # NiFi will validate and register dynamic relationships automatically
+                        logger.debug(f"  Refreshing processor to get updated relationships...")
+                        import time
+                        time.sleep(0.5)  # Wait briefly for NiFi to process the update
+                        route_processor = canvas.get_processor(route_processor_id, "id")
+                        logger.debug(f"  Processor refreshed successfully")
                     else:
                         logger.error("  ✗ Failed to update processor (returned None)")
                         raise Exception("Processor update returned None")

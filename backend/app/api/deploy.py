@@ -173,6 +173,7 @@ async def deploy_flow(
     logger.info(f"Hierarchy Attribute (from request): {deployment.hierarchy_attribute}")
     logger.info(f"Stop Versioning After Deploy: {deployment.stop_versioning_after_deploy}")
     logger.info(f"Disable After Deploy: {deployment.disable_after_deploy}")
+    logger.info(f"Start After Deploy: {deployment.start_after_deploy}")
 
     # Get the NiFi instance
     instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
@@ -349,6 +350,17 @@ async def deploy_flow(
                 logger.info(f"✓ Process group disabled successfully (locked - cannot be started)")
             except Exception as e:
                 logger.warning(f"Failed to disable process group after deployment: {e}")
+
+        # Step 12: Start the process group if requested
+        if pg_id and deployment.start_after_deploy:
+            logger.info(f"Starting process group after deployment (start_after_deploy=True)")
+            logger.info(f"Note: NiFi deploys flows in STOPPED state by default. This will START them.")
+            try:
+                # Start the process group (sets to RUNNING state)
+                service.start_process_group(pg_id)
+                logger.info(f"✓ Process group started successfully")
+            except Exception as e:
+                logger.warning(f"Failed to start process group after deployment: {e}")
 
         # Build success response
         success_message = (

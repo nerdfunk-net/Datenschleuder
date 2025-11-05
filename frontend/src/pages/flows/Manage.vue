@@ -1697,6 +1697,7 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       y_position: 0,
       stop_versioning_after_deploy: deploymentSettings.value?.global?.stop_versioning_after_deploy || false,
       disable_after_deploy: deploymentSettings.value?.global?.disable_after_deploy || false,
+      start_after_deploy: deploymentSettings.value?.global?.start_after_deploy || false,
     };
 
     // Add hierarchy attribute if available

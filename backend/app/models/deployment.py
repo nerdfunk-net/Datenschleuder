@@ -37,6 +37,7 @@ class DeploymentRequest(BaseModel):
     parameter_context_id: Optional[str] = None  # Optional parameter context to assign to the deployed process group
     stop_versioning_after_deploy: Optional[bool] = False  # Stop version control after deployment
     disable_after_deploy: Optional[bool] = False  # DISABLE (lock) the process group after deployment (prevents starting)
+    start_after_deploy: Optional[bool] = False  # START the process group after deployment
 
 
 class DeploymentResponse(BaseModel):

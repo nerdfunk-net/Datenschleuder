@@ -930,6 +930,174 @@ class NiFiDeploymentService:
             # Don't raise - this is a non-critical operation
             logger.warning(f"  Warning: Could not stop version control: {e}")
 
+    def start_process_group(self, pg_id: str) -> None:
+        """
+        Start all components in a process group.
+
+        This sets all processors, input ports, and output ports to RUNNING state.
+        This recursively starts all components within the process group and its child process groups.
+
+        Note: NiFi deploys flows in STOPPED state by default. This method is used when you want
+        to automatically start the flow after deployment.
+
+        Args:
+            pg_id: Process group ID to start
+        """
+        try:
+            from nipyapi.nifi import (
+                ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
+                InputPortsApi, OutputPortsApi, PortRunStatusEntity
+            )
+
+            logger.info(f"=" * 60)
+            logger.info(f"START PROCESS GROUP: Starting for process group {pg_id}")
+            logger.info(f"=" * 60)
+
+            # Verify the process group exists first
+            pg = canvas.get_process_group(pg_id, 'id')
+
+            if not pg:
+                logger.warning(f"  Process group {pg_id} not found")
+                return
+
+            logger.info(f"  Process group found: {pg.status.name if hasattr(pg, 'status') else 'Unknown'}")
+            logger.info(f"  Note: NiFi deploys flows in STOPPED state. This will START them.")
+
+            # Get all processors in the process group (recursively)
+            processors = canvas.list_all_processors(pg_id)
+            logger.info(f"  Found {len(processors)} processor(s) to start")
+
+            processors_api = ProcessorsApi()
+            started_processors = 0
+
+            for processor in processors:
+                try:
+                    processor_id = processor.id
+                    current_revision = processor.revision
+                    current_state = processor.status.run_status if hasattr(processor, 'status') else 'UNKNOWN'
+                    processor_name = processor.status.name if hasattr(processor, 'status') else processor_id
+
+                    logger.info(f"    - Processor: {processor_name} (current state: {current_state})")
+
+                    # Skip if already running
+                    if current_state == 'RUNNING':
+                        logger.info(f"      Already running, skipping")
+                        continue
+
+                    # Skip if disabled (cannot start disabled processors)
+                    if current_state == 'DISABLED':
+                        logger.info(f"      Disabled (locked), skipping")
+                        continue
+
+                    run_status = ProcessorRunStatusEntity(
+                        revision=RevisionDTO(version=current_revision.version),
+                        state="RUNNING"
+                    )
+
+                    # Use the correct API method name: update_run_status4
+                    processors_api.update_run_status4(body=run_status, id=processor_id)
+                    started_processors += 1
+                    logger.info(f"      ✓ Started")
+
+                except Exception as e:
+                    logger.warning(f"      ✗ Failed to start processor {processor_id}: {e}")
+                    logger.error(f"      Error details: {type(e).__name__}")
+                    # Continue with other processors
+
+            logger.info(f"  Started {started_processors} processor(s)")
+
+            # Get all input ports (recursively)
+            input_ports = canvas.list_all_input_ports(pg_id)
+            logger.info(f"  Found {len(input_ports)} input port(s) to start")
+
+            input_ports_api = InputPortsApi()
+            started_input_ports = 0
+
+            for port in input_ports:
+                try:
+                    port_id = port.id
+                    current_revision = port.revision
+                    current_state = port.status.run_status if hasattr(port, 'status') else 'UNKNOWN'
+                    port_name = port.status.name if hasattr(port, 'status') else port_id
+
+                    logger.info(f"    - Input Port: {port_name} (current state: {current_state})")
+
+                    # Skip if already running
+                    if current_state == 'RUNNING':
+                        logger.info(f"      Already running, skipping")
+                        continue
+
+                    # Skip if disabled
+                    if current_state == 'DISABLED':
+                        logger.info(f"      Disabled (locked), skipping")
+                        continue
+
+                    run_status = PortRunStatusEntity(
+                        revision=RevisionDTO(version=current_revision.version),
+                        state="RUNNING"
+                    )
+
+                    # Use the correct API method name: update_run_status2
+                    input_ports_api.update_run_status2(body=run_status, id=port_id)
+                    started_input_ports += 1
+                    logger.info(f"      ✓ Started")
+
+                except Exception as e:
+                    logger.warning(f"      ✗ Failed to start input port {port_id}: {e}")
+                    # Continue with other ports
+
+            logger.info(f"  Started {started_input_ports} input port(s)")
+
+            # Get all output ports (recursively)
+            output_ports = canvas.list_all_output_ports(pg_id)
+            logger.info(f"  Found {len(output_ports)} output port(s) to start")
+
+            output_ports_api = OutputPortsApi()
+            started_output_ports = 0
+
+            for port in output_ports:
+                try:
+                    port_id = port.id
+                    current_revision = port.revision
+                    current_state = port.status.run_status if hasattr(port, 'status') else 'UNKNOWN'
+                    port_name = port.status.name if hasattr(port, 'status') else port_id
+
+                    logger.info(f"    - Output Port: {port_name} (current state: {current_state})")
+
+                    # Skip if already running
+                    if current_state == 'RUNNING':
+                        logger.info(f"      Already running, skipping")
+                        continue
+
+                    # Skip if disabled
+                    if current_state == 'DISABLED':
+                        logger.info(f"      Disabled (locked), skipping")
+                        continue
+
+                    run_status = PortRunStatusEntity(
+                        revision=RevisionDTO(version=current_revision.version),
+                        state="RUNNING"
+                    )
+
+                    # Use the correct API method name: update_run_status3
+                    output_ports_api.update_run_status3(body=run_status, id=port_id)
+                    started_output_ports += 1
+                    logger.info(f"      ✓ Started")
+
+                except Exception as e:
+                    logger.warning(f"      ✗ Failed to start output port {port_id}: {e}")
+                    # Continue with other ports
+
+            logger.info(f"  Started {started_output_ports} output port(s)")
+            logger.info(f"=" * 60)
+            logger.info(f"START PROCESS GROUP: Completed")
+            logger.info(f"  Total started: {started_processors} processors, {started_input_ports} input ports, {started_output_ports} output ports")
+            logger.info(f"=" * 60)
+
+        except Exception as e:
+            logger.error(f"Failed to start process group {pg_id}: {e}")
+            raise
+
     def stop_process_group(self, pg_id: str) -> None:
         """
         Disable all components in a process group.

@@ -331,6 +331,17 @@
               If enabled, version control will be stopped for the deployed process group
             </small>
           </div>
+
+          <!-- Start After Deploy -->
+          <div class="form-group">
+            <b-form-checkbox v-model="deploymentSettings.global.start_after_deploy">
+              Start flow after deployment
+            </b-form-checkbox>
+            <small class="form-text text-muted d-block">
+              If enabled, the deployed process group will be STARTED after deployment.
+              Note: By default, NiFi deploys flows in STOPPED state.
+            </small>
+          </div>
         </div>
 
         <div class="wizard-actions">
@@ -402,6 +413,13 @@
                   <span>
                     <i :class="deploymentSettings.global.stop_versioning_after_deploy ? 'pe-7s-check text-success' : 'pe-7s-close text-muted'"></i>
                     {{ deploymentSettings.global.stop_versioning_after_deploy ? "Yes" : "No" }}
+                  </span>
+                </div>
+                <div class="review-row">
+                  <span class="review-label">Start After Deploy:</span>
+                  <span>
+                    <i :class="deploymentSettings.global.start_after_deploy ? 'pe-7s-check text-success' : 'pe-7s-close text-muted'"></i>
+                    {{ deploymentSettings.global.start_after_deploy ? "Yes" : "No" }}
                   </span>
                 </div>
               </div>
@@ -822,6 +840,7 @@ const deploymentSettings = ref<any>({
     process_group_name_template: "{last_hierarchy_value}",
     disable_after_deploy: false,
     stop_versioning_after_deploy: false,
+    start_after_deploy: false,
   },
   paths: {},
 });
@@ -1423,6 +1442,7 @@ const deployFlows = async () => {
           y_position: 0,
           stop_versioning_after_deploy: deploymentSettings.value.global.stop_versioning_after_deploy,
           disable_after_deploy: deploymentSettings.value.global.disable_after_deploy,
+          start_after_deploy: deploymentSettings.value.global.start_after_deploy,
         };
 
         // Add hierarchy attribute if calculated
@@ -1734,6 +1754,7 @@ const loadDeploymentSettings = async () => {
         process_group_name_template: data.global?.process_group_name_template || "{last_hierarchy_value}",
         disable_after_deploy: data.global?.disable_after_deploy || false,
         stop_versioning_after_deploy: data.global?.stop_versioning_after_deploy || false,
+        start_after_deploy: data.global?.start_after_deploy || false,
       },
       paths: paths,
     };

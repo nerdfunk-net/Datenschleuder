@@ -169,6 +169,8 @@ async def deploy_flow(
     logger.info(f"Parent PG Path: {deployment.parent_process_group_path}")
     logger.info(f"Process Group Name: {deployment.process_group_name}")
     logger.info(f"Stop Versioning After Deploy: {deployment.stop_versioning_after_deploy}")
+    logger.info(f"Disable After Deploy: {deployment.disable_after_deploy}")
+    logger.info(f"Create Parameter Context: {deployment.create_parameter_context}")
 
     # Get the NiFi instance
     instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
@@ -282,6 +284,19 @@ async def deploy_flow(
         if pg_id and deployment.stop_versioning_after_deploy:
             logger.info(f"Stopping version control after deployment (stop_versioning_after_deploy=True)")
             service.stop_version_control(pg_id)
+
+        # Step 11: Disable the process group if requested
+        if pg_id and deployment.disable_after_deploy:
+            logger.info(f"Disabling process group after deployment (disable_after_deploy=True)")
+            logger.info(f"Note: NiFi deploys flows in STOPPED state by default. This will DISABLE (lock) them.")
+            try:
+                # Disable all components in the process group (sets to DISABLED state)
+                # DISABLED = locked, cannot be started (prevents accidental starting)
+                # Note: NiFi already deploys in STOPPED state, this goes further to DISABLE
+                service.stop_process_group(pg_id)
+                logger.info(f"✓ Process group disabled successfully (locked - cannot be started)")
+            except Exception as e:
+                logger.warning(f"Failed to disable process group after deployment: {e}")
 
         # Build success response
         success_message = (

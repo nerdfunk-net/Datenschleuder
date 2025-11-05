@@ -35,8 +35,9 @@
                 Disable flow after deployment
               </b-form-checkbox>
               <small class="form-text text-muted d-block">
-                If enabled, the deployed process group will be stopped after
-                deployment
+                If enabled, the deployed process group will be DISABLED (locked) after deployment.
+                Note: NiFi deploys flows in STOPPED state by default. This setting goes further
+                to DISABLE them, preventing accidental starting.
               </small>
             </div>
 

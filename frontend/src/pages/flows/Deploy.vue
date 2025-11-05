@@ -281,16 +281,88 @@
             @click="goToNextStep"
             :disabled="!allProcessGroupsSelected"
           >
+            Next: Settings
+            <i class="pe-7s-angle-right"></i>
+          </b-button>
+        </div>
+      </div>
+
+      <!-- Step 4: Settings -->
+      <div v-if="currentStep === 3" class="wizard-content">
+        <div class="step-header">
+          <h3>Step 4: Deployment Settings</h3>
+          <p class="text-muted">
+            Configure deployment parameters (leave as default or override)
+          </p>
+        </div>
+
+        <div class="settings-form">
+          <!-- Process Group Name Template -->
+          <div class="form-group">
+            <label class="form-label">Process Group Name Template</label>
+            <b-form-input
+              v-model="deploymentSettings.global.process_group_name_template"
+              placeholder="{last_hierarchy_value}"
+            />
+            <small class="form-text text-muted">
+              Default: {last_hierarchy_value} - Use the value of the last
+              hierarchy attribute (e.g., CN value)
+            </small>
+          </div>
+
+          <!-- Disable After Deploy -->
+          <div class="form-group">
+            <b-form-checkbox v-model="deploymentSettings.global.disable_after_deploy">
+              Disable flow after deployment
+            </b-form-checkbox>
+            <small class="form-text text-muted d-block">
+              If enabled, the deployed process group will be DISABLED (locked) after deployment.
+              Note: NiFi deploys flows in STOPPED state by default. This setting goes further
+              to DISABLE them, preventing accidental starting.
+            </small>
+          </div>
+
+          <!-- Stop Versioning After Deploy -->
+          <div class="form-group">
+            <b-form-checkbox v-model="deploymentSettings.global.stop_versioning_after_deploy">
+              Stop versioning after deployment
+            </b-form-checkbox>
+            <small class="form-text text-muted d-block">
+              If enabled, version control will be stopped for the deployed process group
+            </small>
+          </div>
+
+          <!-- Create Parameter Context -->
+          <div class="form-group">
+            <b-form-checkbox v-model="deploymentSettings.global.create_parameter_context">
+              Create and overwrite parameter context
+            </b-form-checkbox>
+            <small class="form-text text-muted d-block">
+              If enabled, parameter contexts will be created and overwritten
+              during deployment
+            </small>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <b-button variant="outline-secondary" @click="goToPreviousStep">
+            <i class="pe-7s-angle-left"></i>
+            Back
+          </b-button>
+          <b-button
+            variant="primary"
+            @click="goToNextStep"
+          >
             Next: Review & Deploy
             <i class="pe-7s-angle-right"></i>
           </b-button>
         </div>
       </div>
 
-      <!-- Step 4: Review & Deploy -->
-      <div v-if="currentStep === 3" class="wizard-content">
+      <!-- Step 5: Review & Deploy -->
+      <div v-if="currentStep === 4" class="wizard-content">
         <div class="step-header">
-          <h3>Step 4: Review & Deploy</h3>
+          <h3>Step 5: Review & Deploy</h3>
           <p class="text-muted">
             Review your deployment configuration before proceeding
           </p>
@@ -322,7 +394,38 @@
           </div>
 
           <div class="review-details">
-            <h5>Deployment Details</h5>
+            <h5>Deployment Settings</h5>
+            <div class="review-card settings-card">
+              <div class="review-card-body">
+                <div class="review-row">
+                  <span class="review-label">Process Group Name Template:</span>
+                  <span class="final-pg-name">{{ deploymentSettings.global.process_group_name_template }}</span>
+                </div>
+                <div class="review-row">
+                  <span class="review-label">Disable After Deploy:</span>
+                  <span>
+                    <i :class="deploymentSettings.global.disable_after_deploy ? 'pe-7s-check text-success' : 'pe-7s-close text-muted'"></i>
+                    {{ deploymentSettings.global.disable_after_deploy ? "Yes" : "No" }}
+                  </span>
+                </div>
+                <div class="review-row">
+                  <span class="review-label">Stop Versioning After Deploy:</span>
+                  <span>
+                    <i :class="deploymentSettings.global.stop_versioning_after_deploy ? 'pe-7s-check text-success' : 'pe-7s-close text-muted'"></i>
+                    {{ deploymentSettings.global.stop_versioning_after_deploy ? "Yes" : "No" }}
+                  </span>
+                </div>
+                <div class="review-row">
+                  <span class="review-label">Create Parameter Context:</span>
+                  <span>
+                    <i :class="deploymentSettings.global.create_parameter_context ? 'pe-7s-check text-success' : 'pe-7s-close text-muted'"></i>
+                    {{ deploymentSettings.global.create_parameter_context ? "Yes" : "No" }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <h5 class="mt-4">Deployment Details</h5>
             <div
               v-for="deployment in deploymentConfigs"
               :key="deployment.key"
@@ -693,6 +796,7 @@ const steps = [
   "Select Flows",
   "Choose Targets",
   "Choose Process Groups",
+  "Settings",
   "Review & Deploy",
 ];
 const currentStep = ref(0);
@@ -731,7 +835,15 @@ const deploymentTargets = ref<
 >({});
 const deploymentConfigs = ref<DeploymentConfig[]>([]);
 const processGroupPaths = ref<Record<string, ProcessGroupPath[]>>({});
-const deploymentSettings = ref<any>(null);
+const deploymentSettings = ref<any>({
+  global: {
+    process_group_name_template: "{last_hierarchy_value}",
+    disable_after_deploy: false,
+    stop_versioning_after_deploy: false,
+    create_parameter_context: true,
+  },
+  paths: {},
+});
 
 // Computed
 const allSelected = computed(() => {
@@ -1238,7 +1350,7 @@ const deployFlows = async () => {
           throw new Error("No process group selected");
         }
 
-        // Prepare deployment request
+        // Prepare deployment request using the settings from step 4
         const deploymentRequest = {
           template_id: config.templateId,
           parent_process_group_id: config.selectedProcessGroupId,
@@ -1246,7 +1358,9 @@ const deployFlows = async () => {
           version: null, // Use latest version
           x_position: 0,
           y_position: 0,
-          stop_versioning_after_deploy: deploymentSettings.value?.global?.stop_versioning_after_deploy || false,
+          stop_versioning_after_deploy: deploymentSettings.value.global.stop_versioning_after_deploy,
+          disable_after_deploy: deploymentSettings.value.global.disable_after_deploy,
+          create_parameter_context: deploymentSettings.value.global.create_parameter_context,
         };
 
         console.log("Deployment request:", deploymentRequest);
@@ -1549,7 +1663,12 @@ const loadDeploymentSettings = async () => {
     }
 
     deploymentSettings.value = {
-      global: data.global,
+      global: {
+        process_group_name_template: data.global?.process_group_name_template || "{last_hierarchy_value}",
+        disable_after_deploy: data.global?.disable_after_deploy || false,
+        stop_versioning_after_deploy: data.global?.stop_versioning_after_deploy || false,
+        create_parameter_context: data.global?.create_parameter_context !== false, // default to true
+      },
       paths: paths,
     };
   } catch (error) {
@@ -2261,6 +2380,62 @@ onMounted(async () => {
     margin-top: 25px;
     padding-top: 20px;
     border-top: 2px solid #e9ecef;
+  }
+}
+
+// Settings Form
+.settings-form {
+  max-width: 800px;
+  margin-bottom: 30px;
+
+  .form-group {
+    margin-bottom: 24px;
+
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #495057;
+      font-size: 0.95rem;
+    }
+
+    .form-text {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+  }
+
+  .form-control,
+  .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.875rem;
+
+    &:focus {
+      border-color: #2196f3;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+  }
+}
+
+// Settings Card in Review Section
+.settings-card {
+  background: #f8f9fa;
+  border: 2px solid #007bff !important;
+
+  .review-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      font-size: 1.2rem;
+    }
   }
 }
 </style>

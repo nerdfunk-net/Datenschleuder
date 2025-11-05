@@ -71,6 +71,20 @@
             >
           </template>
 
+          <template #cell(bound)="data">
+            <span v-if="!data.item.bound_process_groups || data.item.bound_process_groups.length === 0" class="text-muted">
+              0
+            </span>
+            <a
+              v-else
+              href="javascript:void(0)"
+              @click="showBoundProcessGroups(data.item)"
+              class="bound-link"
+            >
+              {{ data.item.bound_process_groups.length }}
+            </a>
+          </template>
+
           <template #cell(actions)="data">
             <div class="action-buttons">
               <b-button
@@ -362,6 +376,124 @@
         </b-button>
       </div>
     </b-modal>
+
+    <!-- Bound Process Groups Modal -->
+    <b-modal
+      v-model="showBoundModal"
+      title="Bound Process Groups"
+      size="md"
+    >
+      <div v-if="selectedBoundContext">
+        <div class="mb-3">
+          <strong>Parameter Context:</strong> {{ selectedBoundContext.name }}
+        </div>
+
+        <div v-if="selectedBoundContext.bound_process_groups && selectedBoundContext.bound_process_groups.length > 0">
+          <label class="form-label">Process Groups:</label>
+          <ul class="process-group-list">
+            <li v-for="(pg, index) in selectedBoundContext.bound_process_groups" :key="index">
+              <strong>{{ pg.component?.name || pg.id }}</strong>
+              <div class="text-muted small" v-if="pg.id">
+                ID: <code>{{ pg.id }}</code>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div v-else class="text-muted">
+          No process groups bound to this parameter context.
+        </div>
+      </div>
+
+      <template #modal-footer>
+        <b-button variant="primary" @click="showBoundModal = false">
+          Close
+        </b-button>
+      </template>
+    </b-modal>
+
+    <!-- Error Modal (Cannot Delete) -->
+    <b-modal
+      v-model="showErrorModal"
+      title="Cannot Delete Parameter Context"
+      size="lg"
+      hide-footer
+      modal-class="error-modal"
+    >
+      <div v-if="errorModalData" class="error-modal-content">
+        <!-- Error Icon and Title -->
+        <div class="error-header">
+          <div class="error-icon">
+            <i class="pe-7s-attention"></i>
+          </div>
+          <h5 class="error-title">Parameter Context Cannot Be Deleted</h5>
+        </div>
+
+        <!-- Parameter Context Info -->
+        <div class="error-info-box">
+          <div class="error-info-row">
+            <span class="error-label">Parameter Context:</span>
+            <strong>{{ errorModalData.context.name }}</strong>
+          </div>
+          <div class="error-info-row" v-if="errorModalData.context.description">
+            <span class="error-label">Description:</span>
+            <span class="text-muted">{{ errorModalData.context.description }}</span>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="alert alert-danger mb-3">
+          <strong>Error:</strong> {{ errorModalData.message }}
+        </div>
+
+        <!-- Bound Process Groups -->
+        <div v-if="errorModalData.context.bound_process_groups && errorModalData.context.bound_process_groups.length > 0">
+          <div class="bound-warning">
+            <i class="pe-7s-link"></i>
+            <span>This parameter context is currently bound to <strong>{{ errorModalData.context.bound_process_groups.length }}</strong> process group(s):</span>
+          </div>
+
+          <ul class="process-group-list mt-2">
+            <li v-for="(pg, index) in errorModalData.context.bound_process_groups" :key="index" class="error-pg-item">
+              <div class="d-flex align-items-center">
+                <i class="pe-7s-box2 me-2"></i>
+                <div class="flex-grow-1">
+                  <strong>{{ pg.component?.name || 'Unnamed Process Group' }}</strong>
+                  <div class="text-muted small" v-if="pg.id">
+                    ID: <code>{{ pg.id }}</code>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <div class="help-text mt-3">
+            <i class="pe-7s-info"></i>
+            <strong>How to resolve:</strong>
+            <ol class="mb-0 mt-2">
+              <li>Unbind this parameter context from all process groups in NiFi</li>
+              <li>Or delete/modify the process groups that reference this parameter context</li>
+              <li>Then try deleting this parameter context again</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="error-modal-footer">
+          <b-button
+            variant="outline-primary"
+            @click="showBoundProcessGroups(errorModalData.context); showErrorModal = false"
+            v-if="errorModalData.context.bound_process_groups && errorModalData.context.bound_process_groups.length > 0"
+          >
+            <i class="pe-7s-link"></i>
+            View Bound Process Groups
+          </b-button>
+          <b-button variant="primary" @click="showErrorModal = false">
+            <i class="pe-7s-close-circle"></i>
+            Close
+          </b-button>
+        </div>
+      </div>
+    </b-modal>
   </div>
 </template>
 
@@ -382,6 +514,14 @@ const showModal = ref(false);
 const modalMode = ref<"create" | "edit">("create");
 const saving = ref(false);
 const searchQuery = ref("");
+
+// Bound process groups modal state
+const showBoundModal = ref(false);
+const selectedBoundContext = ref<any>(null);
+
+// Error modal state
+const showErrorModal = ref(false);
+const errorModalData = ref<any>(null);
 
 // Inheritance modal state
 const inheritanceModal = ref<any>(null);
@@ -407,6 +547,7 @@ const tableFields = [
   { key: "name", label: "Name", sortable: true },
   { key: "description", label: "Description", sortable: true },
   { key: "parameter_count", label: "Parameters", sortable: true },
+  { key: "bound", label: "Bound", sortable: true },
   { key: "actions", label: "Actions", class: "text-end" },
 ];
 
@@ -697,11 +838,25 @@ async function deleteParameterContext(instanceId: number, context: any) {
     await api.delete(
       `/api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`,
     );
-    showSuccess("Parameter context deleted successfully");
     await loadParameterContexts(instanceId);
   } catch (error: any) {
-    showError(error.message || "Failed to delete parameter context");
+    // Check if error is due to bound process groups
+    if (error.response?.status === 409 || error.message?.includes("bound") || error.message?.includes("referenced")) {
+      errorModalData.value = {
+        context: context,
+        error: error,
+        message: error.message || "Cannot delete parameter context because it is bound to one or more process groups",
+      };
+      showErrorModal.value = true;
+    } else {
+      showError(error.message || "Failed to delete parameter context");
+    }
   }
+}
+
+function showBoundProcessGroups(context: any) {
+  selectedBoundContext.value = context;
+  showBoundModal.value = true;
 }
 
 function addParameter() {
@@ -1497,6 +1652,169 @@ h4 .text-muted {
   padding: 1rem 0 0 0;
   border-top: 1px solid #e9ecef;
   margin-top: 1rem;
+}
+
+.bound-link {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bound-link:hover {
+  color: #764ba2;
+  text-decoration: underline;
+}
+
+.process-group-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.process-group-list li {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+}
+
+.process-group-list li:last-child {
+  margin-bottom: 0;
+}
+
+.process-group-list code {
+  font-size: 0.85rem;
+  color: #667eea;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Error Modal Styles */
+.error-modal-content {
+  padding: 0.5rem 0;
+}
+
+.error-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f8d7da;
+}
+
+.error-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-icon i {
+  font-size: 2rem;
+  color: white;
+}
+
+.error-title {
+  margin: 0;
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.error-info-box {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #dc3545;
+}
+
+.error-info-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.error-label {
+  font-weight: 600;
+  color: #6c757d;
+  min-width: 140px;
+}
+
+.bound-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #fff3cd;
+  border-radius: 6px;
+  border-left: 4px solid #ffc107;
+  color: #856404;
+  font-size: 0.95rem;
+}
+
+.bound-warning i {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.error-pg-item {
+  background: #fff;
+  border: 2px solid #dc3545;
+  border-left: 4px solid #dc3545;
+}
+
+.error-pg-item i {
+  color: #dc3545;
+  font-size: 1.25rem;
+}
+
+.help-text {
+  background: #e7f3ff;
+  border-left: 4px solid #0d6efd;
+  padding: 1rem;
+  border-radius: 6px;
+  color: #084298;
+}
+
+.help-text i {
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.help-text ol {
+  padding-left: 1.5rem;
+}
+
+.help-text li {
+  margin-bottom: 0.5rem;
+}
+
+.error-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.error-modal-footer .btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 </style>
 

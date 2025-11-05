@@ -734,6 +734,550 @@ async def create_connection(
         )
 
 
+@router.post("/{instance_id}/process-group/{process_group_id}/start")
+async def start_process_group(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Start all components in a process group.
+
+    This sets all processors, input ports, and output ports to RUNNING state.
+    This recursively starts all components within the process group and its child process groups.
+    """
+    instance = get_instance_or_404(db, instance_id)
+
+    try:
+        from nipyapi import canvas
+        from nipyapi.nifi import (
+            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
+            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+        )
+
+        # Configure nipyapi connection with proper SSL handling
+        setup_nifi_connection(instance, normalize_url=True)
+
+        logger.info(f"Starting process group {process_group_id}...")
+
+        # Verify the process group exists first
+        pg = canvas.get_process_group(process_group_id, 'id')
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group {process_group_id} not found"
+            )
+
+        # Get all processors in the process group (recursively)
+        processors = canvas.list_all_processors(process_group_id)
+        logger.info(f"Found {len(processors)} processor(s) to start")
+
+        processors_api = ProcessorsApi()
+        started_processors = 0
+
+        for processor in processors:
+            try:
+                processor_id = processor.id
+                current_revision = processor.revision
+
+                run_status = ProcessorRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="RUNNING"
+                )
+
+                processors_api.update_run_status4(body=run_status, id=processor_id)
+                started_processors += 1
+                logger.debug(f"  Started processor: {processor.component.name} ({processor_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to start processor {processor_id}: {e}")
+
+        # Get all input ports in the process group (recursively)
+        input_ports = canvas.list_all_input_ports(process_group_id)
+        logger.info(f"Found {len(input_ports)} input port(s) to start")
+
+        input_ports_api = InputPortsApi()
+        started_input_ports = 0
+
+        for port in input_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="RUNNING"
+                )
+
+                input_ports_api.update_run_status2(body=run_status, id=port_id)
+                started_input_ports += 1
+                logger.debug(f"  Started input port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to start input port {port_id}: {e}")
+
+        # Get all output ports in the process group (recursively)
+        output_ports = canvas.list_all_output_ports(process_group_id)
+        logger.info(f"Found {len(output_ports)} output port(s) to start")
+
+        output_ports_api = OutputPortsApi()
+        started_output_ports = 0
+
+        for port in output_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="RUNNING"
+                )
+
+                output_ports_api.update_run_status3(body=run_status, id=port_id)
+                started_output_ports += 1
+                logger.debug(f"  Started output port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to start output port {port_id}: {e}")
+
+        total_started = started_processors + started_input_ports + started_output_ports
+        logger.info(f"✓ Started {started_processors} processor(s), {started_input_ports} input port(s), {started_output_ports} output port(s)")
+
+        return {
+            "status": "success",
+            "message": f"Process group started successfully ({total_started} components)",
+            "process_group_id": process_group_id,
+            "started_count": {
+                "processors": started_processors,
+                "input_ports": started_input_ports,
+                "output_ports": started_output_ports,
+                "total": total_started
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to start process group: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to start process group: {error_msg}",
+        )
+
+
+@router.post("/{instance_id}/process-group/{process_group_id}/stop")
+async def stop_process_group(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Stop all components in a process group.
+
+    This sets all processors, input ports, and output ports to STOPPED state.
+    This recursively stops all components within the process group and its child process groups.
+    """
+    instance = get_instance_or_404(db, instance_id)
+
+    try:
+        from nipyapi import canvas
+        from nipyapi.nifi import (
+            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
+            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+        )
+
+        # Configure nipyapi connection with proper SSL handling
+        setup_nifi_connection(instance, normalize_url=True)
+
+        logger.info(f"Stopping process group {process_group_id}...")
+
+        # Verify the process group exists first
+        pg = canvas.get_process_group(process_group_id, 'id')
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group {process_group_id} not found"
+            )
+
+        # Get all processors in the process group (recursively)
+        processors = canvas.list_all_processors(process_group_id)
+        logger.info(f"Found {len(processors)} processor(s) to stop")
+
+        processors_api = ProcessorsApi()
+        stopped_processors = 0
+
+        for processor in processors:
+            try:
+                processor_id = processor.id
+                current_revision = processor.revision
+
+                run_status = ProcessorRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="STOPPED"
+                )
+
+                processors_api.update_run_status4(body=run_status, id=processor_id)
+                stopped_processors += 1
+                logger.debug(f"  Stopped processor: {processor.component.name} ({processor_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to stop processor {processor_id}: {e}")
+
+        # Get all input ports in the process group (recursively)
+        input_ports = canvas.list_all_input_ports(process_group_id)
+        logger.info(f"Found {len(input_ports)} input port(s) to stop")
+
+        input_ports_api = InputPortsApi()
+        stopped_input_ports = 0
+
+        for port in input_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="STOPPED"
+                )
+
+                input_ports_api.update_run_status2(body=run_status, id=port_id)
+                stopped_input_ports += 1
+                logger.debug(f"  Stopped input port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to stop input port {port_id}: {e}")
+
+        # Get all output ports in the process group (recursively)
+        output_ports = canvas.list_all_output_ports(process_group_id)
+        logger.info(f"Found {len(output_ports)} output port(s) to stop")
+
+        output_ports_api = OutputPortsApi()
+        stopped_output_ports = 0
+
+        for port in output_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="STOPPED"
+                )
+
+                output_ports_api.update_run_status3(body=run_status, id=port_id)
+                stopped_output_ports += 1
+                logger.debug(f"  Stopped output port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to stop output port {port_id}: {e}")
+
+        total_stopped = stopped_processors + stopped_input_ports + stopped_output_ports
+        logger.info(f"✓ Stopped {stopped_processors} processor(s), {stopped_input_ports} input port(s), {stopped_output_ports} output port(s)")
+
+        return {
+            "status": "success",
+            "message": f"Process group stopped successfully ({total_stopped} components)",
+            "process_group_id": process_group_id,
+            "stopped_count": {
+                "processors": stopped_processors,
+                "input_ports": stopped_input_ports,
+                "output_ports": stopped_output_ports,
+                "total": total_stopped
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to stop process group: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to stop process group: {error_msg}",
+        )
+
+
+@router.post("/{instance_id}/process-group/{process_group_id}/enable")
+async def enable_process_group(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Enable (start) all components in a process group.
+
+    This recursively starts all processors, input ports, and output ports
+    within the process group and its child process groups.
+    """
+    instance = get_instance_or_404(db, instance_id)
+
+    try:
+        from nipyapi import canvas
+        from nipyapi.nifi import (
+            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
+            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+        )
+
+        # Configure nipyapi connection with proper SSL handling
+        setup_nifi_connection(instance, normalize_url=True)
+
+        logger.info(f"Enabling process group {process_group_id}...")
+
+        # Verify the process group exists first
+        pg = canvas.get_process_group(process_group_id, 'id')
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group {process_group_id} not found"
+            )
+
+        # Get all processors in the process group (recursively)
+        processors = canvas.list_all_processors(process_group_id)
+        logger.info(f"Found {len(processors)} processor(s) to enable")
+
+        processors_api = ProcessorsApi()
+        enabled_processors = 0
+
+        for processor in processors:
+            try:
+                processor_id = processor.id
+                current_revision = processor.revision
+
+                run_status = ProcessorRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="STOPPED"
+                )
+
+                processors_api.update_run_status4(body=run_status, id=processor_id)
+                enabled_processors += 1
+                logger.debug(f"  Enabled processor: {processor.component.name} ({processor_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to enable processor {processor_id}: {e}")
+
+        # Get all input ports in the process group (recursively)
+        input_ports = canvas.list_all_input_ports(process_group_id)
+        logger.info(f"Found {len(input_ports)} input port(s) to enable")
+
+        input_ports_api = InputPortsApi()
+        enabled_input_ports = 0
+
+        for port in input_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="STOPPED"
+                )
+
+                input_ports_api.update_run_status2(body=run_status, id=port_id)
+                enabled_input_ports += 1
+                logger.debug(f"  Enabled input port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to enable input port {port_id}: {e}")
+
+        # Get all output ports in the process group (recursively)
+        output_ports = canvas.list_all_output_ports(process_group_id)
+        logger.info(f"Found {len(output_ports)} output port(s) to enable")
+
+        output_ports_api = OutputPortsApi()
+        enabled_output_ports = 0
+
+        for port in output_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="STOPPED"
+                )
+
+                output_ports_api.update_run_status3(body=run_status, id=port_id)
+                enabled_output_ports += 1
+                logger.debug(f"  Enabled output port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to enable output port {port_id}: {e}")
+
+        total_enabled = enabled_processors + enabled_input_ports + enabled_output_ports
+        logger.info(f"✓ Enabled {enabled_processors} processor(s), {enabled_input_ports} input port(s), {enabled_output_ports} output port(s)")
+
+        return {
+            "status": "success",
+            "message": f"Process group enabled successfully ({total_enabled} components)",
+            "process_group_id": process_group_id,
+            "enabled_count": {
+                "processors": enabled_processors,
+                "input_ports": enabled_input_ports,
+                "output_ports": enabled_output_ports,
+                "total": total_enabled
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to enable process group: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to enable process group: {error_msg}",
+        )
+
+
+@router.post("/{instance_id}/process-group/{process_group_id}/disable")
+async def disable_process_group(
+    instance_id: int,
+    process_group_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Disable all processors in a process group.
+
+    This sets all processors to DISABLED state, which prevents them from being started.
+    This recursively disables all processors within the process group and its child process groups.
+    """
+    instance = get_instance_or_404(db, instance_id)
+
+    try:
+        from nipyapi import canvas
+        from nipyapi.nifi import (
+            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
+            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+        )
+
+        # Configure nipyapi connection with proper SSL handling
+        setup_nifi_connection(instance, normalize_url=True)
+
+        logger.info(f"Disabling process group {process_group_id}...")
+
+        # Verify the process group exists first
+        pg = canvas.get_process_group(process_group_id, 'id')
+
+        if not pg:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Process group {process_group_id} not found"
+            )
+
+        # Get all processors in the process group (recursively)
+        processors = canvas.list_all_processors(process_group_id)
+        logger.info(f"Found {len(processors)} processor(s) to disable")
+
+        processors_api = ProcessorsApi()
+        disabled_processors = 0
+
+        for processor in processors:
+            try:
+                processor_id = processor.id
+                current_revision = processor.revision
+
+                run_status = ProcessorRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="DISABLED"
+                )
+
+                processors_api.update_run_status4(body=run_status, id=processor_id)
+                disabled_processors += 1
+                logger.debug(f"  Disabled processor: {processor.component.name} ({processor_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to disable processor {processor_id}: {e}")
+
+        # Get all input ports in the process group (recursively)
+        input_ports = canvas.list_all_input_ports(process_group_id)
+        logger.info(f"Found {len(input_ports)} input port(s) to disable")
+
+        input_ports_api = InputPortsApi()
+        disabled_input_ports = 0
+
+        for port in input_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="DISABLED"
+                )
+
+                input_ports_api.update_run_status2(body=run_status, id=port_id)
+                disabled_input_ports += 1
+                logger.debug(f"  Disabled input port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to disable input port {port_id}: {e}")
+
+        # Get all output ports in the process group (recursively)
+        output_ports = canvas.list_all_output_ports(process_group_id)
+        logger.info(f"Found {len(output_ports)} output port(s) to disable")
+
+        output_ports_api = OutputPortsApi()
+        disabled_output_ports = 0
+
+        for port in output_ports:
+            try:
+                port_id = port.id
+                current_revision = port.revision
+
+                run_status = PortRunStatusEntity(
+                    revision=RevisionDTO(version=current_revision.version),
+                    state="DISABLED"
+                )
+
+                output_ports_api.update_run_status3(body=run_status, id=port_id)
+                disabled_output_ports += 1
+                logger.debug(f"  Disabled output port: {port.component.name} ({port_id})")
+
+            except Exception as e:
+                logger.warning(f"  Failed to disable output port {port_id}: {e}")
+
+        total_disabled = disabled_processors + disabled_input_ports + disabled_output_ports
+        logger.info(f"✓ Disabled {disabled_processors} processor(s), {disabled_input_ports} input port(s), {disabled_output_ports} output port(s)")
+
+        return {
+            "status": "success",
+            "message": f"Process group disabled successfully ({total_disabled} components)",
+            "process_group_id": process_group_id,
+            "disabled_count": {
+                "processors": disabled_processors,
+                "input_ports": disabled_input_ports,
+                "output_ports": disabled_output_ports,
+                "total": total_disabled
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to disable process group: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to disable process group: {error_msg}",
+        )
+
+
 @router.delete("/{instance_id}/process-group/{process_group_id}")
 async def delete_process_group(
     instance_id: int,

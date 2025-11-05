@@ -225,16 +225,8 @@
             <tr v-for="flow in paginatedFlows" :key="flow.id">
               <td>{{ flow.id }}</td>
               <td v-for="col in visibleColumnsList" :key="col.key">
-                <code
-                  v-if="col.key === 'source' || col.key === 'destination'"
-                  :class="
-                    col.key === 'source' ? 'text-primary' : 'text-success'
-                  "
-                >
-                  {{ flow[col.key] }}
-                </code>
                 <span
-                  v-else-if="col.key === 'active'"
+                  v-if="col.key === 'active'"
                   class="status-badge"
                   :class="{ active: flow.active }"
                 >
@@ -420,24 +412,17 @@
                   />
                 </div>
 
-                <!-- Source URL, Connection Parameter, and Template in one row -->
-                <div class="col-md-4">
-                  <label class="form-label-compact">Source URL</label>
-                  <b-form-input
-                    v-model="selectedFlow.source"
-                    :disabled="isViewMode"
-                    size="sm"
-                  />
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label-compact">Connection Parameter</label>
-                  <b-form-input
+                <!-- Source Parameter Context and Template in one row -->
+                <div class="col-md-6">
+                  <label class="form-label-compact">Source Parameter Context</label>
+                  <b-form-select
                     v-model="selectedFlow.src_connection_param"
-                    :disabled="isViewMode"
+                    :options="sourceParameterContextOptions"
+                    :disabled="isViewMode || !sourceNiFiInstanceId"
                     size="sm"
                   />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label-compact">Template</label>
                   <b-form-select
                     v-model="selectedFlow.src_template_id"
@@ -504,24 +489,17 @@
                   />
                 </div>
 
-                <!-- Destination field -->
-                <div class="col-md-4">
-                  <label class="form-label-compact">Destination URL</label>
-                  <b-form-input
-                    v-model="selectedFlow.destination"
-                    :disabled="isViewMode"
-                    size="sm"
-                  />
-                </div>
-                <div class="col-md-4">
-                  <label class="form-label-compact">Connection Parameter</label>
-                  <b-form-input
+                <!-- Destination Parameter Context and Template -->
+                <div class="col-md-6">
+                  <label class="form-label-compact">Destination Parameter Context</label>
+                  <b-form-select
                     v-model="selectedFlow.dest_connection_param"
-                    :disabled="isViewMode"
+                    :options="destParameterContextOptions"
+                    :disabled="isViewMode || !destNiFiInstanceId"
                     size="sm"
                   />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label-compact">Template</label>
                   <b-form-select
                     v-model="selectedFlow.dest_template_id"
@@ -535,6 +513,24 @@
           </div>
 
           <!-- Other fields -->
+          <div class="col-md-6">
+            <label class="form-label-compact">Name</label>
+            <b-form-input
+              v-model="selectedFlow.name"
+              :disabled="isViewMode"
+              size="sm"
+              placeholder="Flow name"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-compact">Contact</label>
+            <b-form-input
+              v-model="selectedFlow.contact"
+              :disabled="isViewMode"
+              size="sm"
+              placeholder="Contact information"
+            />
+          </div>
           <div class="col-md-12">
             <label class="form-label-compact">Description</label>
             <b-form-textarea
@@ -857,7 +853,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { apiRequest } from "@/utils/api";
 
 interface TableColumn {
@@ -952,6 +948,12 @@ const deployingFlows = ref<Record<string, boolean>>({});
 const deploymentSettings = ref<any>(null);
 const nifiInstances = ref<any[]>([]);
 const processGroupPaths = ref<Record<string, any[]>>({});
+
+// Parameter context management
+const sourceNiFiInstanceId = ref<number | null>(null);
+const destNiFiInstanceId = ref<number | null>(null);
+const sourceParameterContextOptions = ref<Array<{ value: string; text: string }>>([]);
+const destParameterContextOptions = ref<Array<{ value: string; text: string }>>([]);
 
 // Conflict resolution
 const showConflictModal = ref(false);
@@ -1074,10 +1076,10 @@ const loadTableInfo = async () => {
       }
 
       // Add standard columns
-      cols.push({ key: "source", label: "Source" });
+      cols.push({ key: "name", label: "Name" });
+      cols.push({ key: "contact", label: "Contact" });
       cols.push({ key: "src_connection_param", label: "Src Connection Param" });
       cols.push({ key: "src_template_id", label: "Src Template" });
-      cols.push({ key: "destination", label: "Destination" });
       cols.push({
         key: "dest_connection_param",
         label: "Dest Connection Param",
@@ -1402,8 +1404,8 @@ const stopResize = () => {
 const handleAddFlow = () => {
   const newFlow: any = {
     id: 0,
-    source: "",
-    destination: "",
+    name: "",
+    contact: "",
     src_connection_param: "",
     dest_connection_param: "",
     src_template_id: null,
@@ -1424,16 +1426,24 @@ const handleAddFlow = () => {
   showModal.value = true;
 };
 
-const handleEdit = (flow: any) => {
+const handleEdit = async (flow: any) => {
   selectedFlow.value = { ...flow };
   isViewMode.value = false;
   showModal.value = true;
+
+  // Load parameter contexts after setting the flow
+  await updateSourceParameterContexts();
+  await updateDestParameterContexts();
 };
 
-const handleView = (flow: any) => {
+const handleView = async (flow: any) => {
   selectedFlow.value = { ...flow };
   isViewMode.value = true;
   showModal.value = true;
+
+  // Load parameter contexts after setting the flow
+  await updateSourceParameterContexts();
+  await updateDestParameterContexts();
 };
 
 const handleRemove = async (flow: any) => {
@@ -1468,6 +1478,133 @@ const handleCopy = async (flow: any) => {
   } catch (error: any) {
     console.error("Error copying flow:", error);
     alert("Error: " + (error.message || "Failed to copy flow"));
+  }
+};
+
+// Parameter context functions
+const findNiFiInstanceByHierarchyValue = (hierarchyValue: string, hierarchyAttr: string): number | null => {
+  if (!hierarchyValue || !hierarchyAttr || !nifiInstances.value || nifiInstances.value.length === 0) {
+    return null;
+  }
+
+  // Find the instance that matches BOTH the hierarchy attribute and value
+  const instance = nifiInstances.value.find(
+    (inst) =>
+      inst.hierarchy_attribute === hierarchyAttr &&
+      inst.hierarchy_value === hierarchyValue
+  );
+
+  return instance ? instance.id : null;
+};
+
+const loadParameterContexts = async (instanceId: number, isSource: boolean) => {
+  if (!instanceId) {
+    if (isSource) {
+      sourceParameterContextOptions.value = [{ value: "", text: "Select a parameter context..." }];
+    } else {
+      destParameterContextOptions.value = [{ value: "", text: "Select a parameter context..." }];
+    }
+    return;
+  }
+
+  try {
+    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-parameters`);
+
+    const options = [
+      { value: "", text: "Select a parameter context..." },
+      { value: "None", text: "None (no parameter context)" },
+      ...data.parameter_contexts.map((pc: any) => ({
+        value: pc.name,
+        text: pc.name,
+      })),
+    ];
+
+    if (isSource) {
+      sourceParameterContextOptions.value = options;
+    } else {
+      destParameterContextOptions.value = options;
+    }
+  } catch (error) {
+    console.error(`Error loading parameter contexts for instance ${instanceId}:`, error);
+    const fallbackOptions = [
+      { value: "", text: "Error loading parameter contexts" },
+      { value: "None", text: "None (no parameter context)" }
+    ];
+    if (isSource) {
+      sourceParameterContextOptions.value = fallbackOptions;
+    } else {
+      destParameterContextOptions.value = fallbackOptions;
+    }
+  }
+};
+
+const updateSourceParameterContexts = async () => {
+  if (!selectedFlow.value || !hierarchyColumns.value.length) return;
+
+  // Get the top hierarchy attribute (first in the list)
+  const topHierarchyColumn = hierarchyColumns.value[0];
+  const sourceHierarchyValue = selectedFlow.value[topHierarchyColumn.src_column];
+
+  if (!sourceHierarchyValue) {
+    sourceNiFiInstanceId.value = null;
+    sourceParameterContextOptions.value = [{ value: "", text: "Select source hierarchy value first" }];
+    return;
+  }
+
+  // Load NiFi instances if not already loaded
+  if (nifiInstances.value.length === 0) {
+    try {
+      const data = await apiRequest("/api/nifi-instances/");
+      nifiInstances.value = data;
+    } catch (error) {
+      console.error("Error loading NiFi instances:", error);
+      sourceParameterContextOptions.value = [{ value: "", text: "Error loading NiFi instances" }];
+      return;
+    }
+  }
+
+  const instanceId = findNiFiInstanceByHierarchyValue(sourceHierarchyValue, topHierarchyColumn.name);
+  sourceNiFiInstanceId.value = instanceId;
+
+  if (instanceId) {
+    await loadParameterContexts(instanceId, true);
+  } else {
+    sourceParameterContextOptions.value = [{ value: "", text: `No NiFi instance found for ${topHierarchyColumn.name}=${sourceHierarchyValue}` }];
+  }
+};
+
+const updateDestParameterContexts = async () => {
+  if (!selectedFlow.value || !hierarchyColumns.value.length) return;
+
+  // Get the top hierarchy attribute (first in the list)
+  const topHierarchyColumn = hierarchyColumns.value[0];
+  const destHierarchyValue = selectedFlow.value[topHierarchyColumn.dest_column];
+
+  if (!destHierarchyValue) {
+    destNiFiInstanceId.value = null;
+    destParameterContextOptions.value = [{ value: "", text: "Select destination hierarchy value first" }];
+    return;
+  }
+
+  // Load NiFi instances if not already loaded
+  if (nifiInstances.value.length === 0) {
+    try {
+      const data = await apiRequest("/api/nifi-instances/");
+      nifiInstances.value = data;
+    } catch (error) {
+      console.error("Error loading NiFi instances:", error);
+      destParameterContextOptions.value = [{ value: "", text: "Error loading NiFi instances" }];
+      return;
+    }
+  }
+
+  const instanceId = findNiFiInstanceByHierarchyValue(destHierarchyValue, topHierarchyColumn.name);
+  destNiFiInstanceId.value = instanceId;
+
+  if (instanceId) {
+    await loadParameterContexts(instanceId, false);
+  } else {
+    destParameterContextOptions.value = [{ value: "", text: `No NiFi instance found for ${topHierarchyColumn.name}=${destHierarchyValue}` }];
   }
 };
 
@@ -1525,6 +1662,7 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
     }
 
     // Deploy using parent_process_group_path (will auto-create missing groups)
+    // Use all deployment settings from database defaults
     const deploymentRequest = {
       template_id: templateId,
       parent_process_group_path: processGroupPath,
@@ -1533,6 +1671,8 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       x_position: 0,
       y_position: 0,
       stop_versioning_after_deploy: deploymentSettings.value?.global?.stop_versioning_after_deploy || false,
+      disable_after_deploy: deploymentSettings.value?.global?.disable_after_deploy || false,
+      create_parameter_context: deploymentSettings.value?.global?.create_parameter_context !== false, // default to true
     };
 
     try {
@@ -1924,8 +2064,8 @@ const handleModalOk = async () => {
 
     const payload = {
       hierarchy_values: hierarchyValues,
-      source: selectedFlow.value.source,
-      destination: selectedFlow.value.destination,
+      name: selectedFlow.value.name,
+      contact: selectedFlow.value.contact,
       src_connection_param: selectedFlow.value.src_connection_param,
       dest_connection_param: selectedFlow.value.dest_connection_param,
       src_template_id: selectedFlow.value.src_template_id,
@@ -1971,6 +2111,27 @@ const nextPage = () => {
     currentPage.value++;
   }
 };
+
+// Watch for changes in top hierarchy values to update parameter contexts
+watch(() => {
+  if (!selectedFlow.value || !hierarchyColumns.value.length) return null;
+  const topHierarchyColumn = hierarchyColumns.value[0];
+  return selectedFlow.value[topHierarchyColumn.src_column];
+}, async (newValue) => {
+  if (newValue) {
+    await updateSourceParameterContexts();
+  }
+});
+
+watch(() => {
+  if (!selectedFlow.value || !hierarchyColumns.value.length) return null;
+  const topHierarchyColumn = hierarchyColumns.value[0];
+  return selectedFlow.value[topHierarchyColumn.dest_column];
+}, async (newValue) => {
+  if (newValue) {
+    await updateDestParameterContexts();
+  }
+});
 
 onMounted(async () => {
   await loadTableInfo();

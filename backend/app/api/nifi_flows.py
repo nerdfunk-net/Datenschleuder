@@ -87,8 +87,8 @@ def create_nifi_flows_table(db: Session):
     # Add standard flow columns
     columns.extend(
         [
-            Column("source", String, nullable=False),
-            Column("destination", String, nullable=False),
+            Column("name", String, nullable=True),  # Flow name
+            Column("contact", String, nullable=True),  # Contact information
             Column("src_connection_param", String, nullable=False),
             Column("dest_connection_param", String, nullable=False),
             Column("src_template_id", Integer, nullable=True),  # FK to registry_flows
@@ -260,8 +260,8 @@ async def create_nifi_flow(
         # Add standard columns
         columns.extend(
             [
-                "source",
-                "destination",
+                "name",
+                "contact",
                 "src_connection_param",
                 "dest_connection_param",
                 "src_template_id",
@@ -273,8 +273,8 @@ async def create_nifi_flow(
         )
         values.extend(
             [
-                data.source,
-                data.destination,
+                data.name,
+                data.contact,
                 data.src_connection_param,
                 data.dest_connection_param,
                 data.src_template_id,
@@ -406,14 +406,14 @@ async def update_nifi_flow(
                         param_counter += 1
 
         # Update standard fields if provided
-        if data.source is not None:
-            update_parts.append(f"source = :param_{param_counter}")
-            values[f"param_{param_counter}"] = data.source
+        if data.name is not None:
+            update_parts.append(f"name = :param_{param_counter}")
+            values[f"param_{param_counter}"] = data.name
             param_counter += 1
 
-        if data.destination is not None:
-            update_parts.append(f"destination = :param_{param_counter}")
-            values[f"param_{param_counter}"] = data.destination
+        if data.contact is not None:
+            update_parts.append(f"contact = :param_{param_counter}")
+            values[f"param_{param_counter}"] = data.contact
             param_counter += 1
 
         if data.src_connection_param is not None:

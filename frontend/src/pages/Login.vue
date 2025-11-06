@@ -46,11 +46,59 @@
             Please enter your credentials to continue.
           </p>
           <div
+            v-if="!oidcEnabled"
             class="alert alert-info mt-3 text-start"
             style="font-size: 0.875rem"
           >
             <strong>Dev Mode:</strong> Use <code>admin</code> /
             <code>admin</code> to login
+          </div>
+        </div>
+
+        <!-- OIDC Providers Section -->
+        <div v-if="oidcEnabled && oidcProviders.length > 0" class="mb-4">
+          <div v-if="isLoadingProviders" class="text-center py-3">
+            <b-spinner small></b-spinner>
+            <span class="ms-2 text-secondary">Loading sign-in options...</span>
+          </div>
+
+          <div v-else>
+            <!-- OIDC Provider Buttons -->
+            <div
+              v-for="provider in oidcProviders"
+              :key="provider.provider_id"
+              class="mb-3"
+            >
+              <b-button
+                variant="outline-primary"
+                size="lg"
+                class="w-100 py-3 d-flex align-items-center justify-content-center"
+                @click="handleOIDCLogin(provider.provider_id)"
+                :disabled="isLoading"
+              >
+                <i
+                  :class="getProviderIcon(provider.icon)"
+                  class="me-2"
+                  style="font-size: 1.25rem"
+                ></i>
+                <span class="fw-medium">{{ provider.name }}</span>
+              </b-button>
+              <small
+                v-if="provider.description"
+                class="text-secondary d-block mt-1 ms-2"
+                >{{ provider.description }}</small
+              >
+            </div>
+
+            <!-- Divider -->
+            <div
+              v-if="allowTraditionalLogin"
+              class="d-flex align-items-center my-4"
+            >
+              <hr class="flex-grow-1" />
+              <span class="px-3 text-secondary small">OR</span>
+              <hr class="flex-grow-1" />
+            </div>
           </div>
         </div>
 
@@ -64,8 +112,11 @@
           {{ errorMessage }}
         </b-alert>
 
-        <!-- Login Form -->
-        <form @submit.prevent="handleLogin">
+        <!-- Traditional Login Form -->
+        <form
+          v-if="!oidcEnabled || allowTraditionalLogin"
+          @submit.prevent="handleLogin"
+        >
           <div class="mb-4">
             <label for="username" class="form-label text-dark fw-medium mb-2"
               >Username</label
@@ -135,9 +186,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { login } from "../utils/api";
+import api from "../utils/api";
 
 const router = useRouter();
 
@@ -146,6 +198,52 @@ const password = ref("");
 const rememberMe = ref(false);
 const errorMessage = ref("");
 const isLoading = ref(false);
+
+// OIDC state
+const oidcEnabled = ref(false);
+const oidcProviders = ref<
+  Array<{
+    provider_id: string;
+    name: string;
+    description: string;
+    icon: string;
+    display_order: number;
+  }>
+>([]);
+const allowTraditionalLogin = ref(true);
+const isLoadingProviders = ref(false);
+
+// Fetch OIDC providers on mount
+onMounted(async () => {
+  try {
+    isLoadingProviders.value = true;
+
+    // Check if OIDC is enabled
+    const enabledResponse = await api.get<{ enabled: boolean }>("/auth/oidc/enabled");
+    oidcEnabled.value = enabledResponse.enabled;
+
+    if (oidcEnabled.value) {
+      // Fetch provider list
+      const providersResponse = await api.get<{
+        providers: Array<{
+          provider_id: string;
+          name: string;
+          description: string;
+          icon: string;
+          display_order: number;
+        }>;
+        allow_traditional_login: boolean;
+      }>("/auth/oidc/providers");
+      oidcProviders.value = providersResponse.providers || [];
+      allowTraditionalLogin.value = providersResponse.allow_traditional_login ?? true;
+    }
+  } catch (error) {
+    console.error("Failed to fetch OIDC providers:", error);
+    // Silently fail - traditional login will still work
+  } finally {
+    isLoadingProviders.value = false;
+  }
+});
 
 const handleLogin = async () => {
   errorMessage.value = "";
@@ -170,6 +268,46 @@ const handleLogin = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+const handleOIDCLogin = async (providerId: string) => {
+  errorMessage.value = "";
+  isLoading.value = true;
+
+  try {
+    // Build redirect URI
+    const redirectUri = `${window.location.origin}/login/callback`;
+    const encodedUri = encodeURIComponent(redirectUri);
+
+    // Get authorization URL from backend
+    const response = await api.get<{
+      authorization_url: string;
+      state: string;
+      provider_id: string;
+    }>(`/auth/oidc/${providerId}/login?redirect_uri=${encodedUri}`);
+
+    // Store state in sessionStorage for validation in callback
+    sessionStorage.setItem("oidc_state", response.state);
+    sessionStorage.setItem("oidc_provider", providerId);
+
+    // Redirect to identity provider
+    window.location.href = response.authorization_url;
+  } catch (error: any) {
+    console.error("OIDC login error:", error);
+    errorMessage.value =
+      error.detail || "Failed to initiate SSO login. Please try again.";
+    isLoading.value = false;
+  }
+};
+
+const getProviderIcon = (icon: string) => {
+  const iconMap: Record<string, string> = {
+    building: "pe-7s-culture",
+    flask: "pe-7s-science",
+    users: "pe-7s-users",
+    shield: "pe-7s-shield",
+  };
+  return iconMap[icon] || "pe-7s-id";
 };
 </script>
 

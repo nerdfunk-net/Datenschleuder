@@ -16,6 +16,7 @@ from app.api.nifi_flows import router as nifi_flows_router
 from app.api.flow_views import router as flow_views_router
 from app.api.registry_flows import router as registry_flows_router
 from app.api.deploy import router as deploy_router
+from app.api.oidc import router as oidc_router
 from app.models.user import User
 
 # Configure logging
@@ -76,6 +77,7 @@ app.include_router(nifi_flows_router)
 app.include_router(flow_views_router)
 app.include_router(registry_flows_router)
 app.include_router(deploy_router, prefix="/api/deploy", tags=["deployment"])
+app.include_router(oidc_router)  # OIDC authentication
 
 
 @app.on_event("startup")

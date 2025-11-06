@@ -12,6 +12,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false },
   },
   {
+    path: "/login/callback",
+    name: "oidc-callback",
+    component: () => import("../pages/OIDCCallback.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
     path: "/",
     component: () => import("../Layout/DashboardLayout.vue"),
     meta: { requiresAuth: true },

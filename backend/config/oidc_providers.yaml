@@ -1,0 +1,129 @@
+# ============================================================================
+# OIDC Providers Configuration
+# ============================================================================
+# This file configures OpenID Connect (OIDC) Single Sign-On providers.
+#
+# Location: backend/config/oidc_providers.yaml
+# Format: YAML
+# ============================================================================
+
+# ============================================================================
+# PROVIDER DEFINITIONS
+# ============================================================================
+# Define one or more OIDC identity providers (Keycloak, Azure AD, Okta, etc.)
+
+providers:
+  
+  # ---------------------------------------------------------------------------
+  # Example 1: Corporate Keycloak Instance
+  # ---------------------------------------------------------------------------
+  corporate:
+    # Enable/disable this provider
+    enabled: true
+    
+    # Display Settings (shown on login page)
+    name: "Corporate SSO"
+    description: "Sign in with your company account"
+    icon: "building"        # Options: building, flask, users, shield, or leave empty
+    display_order: 1        # Lower numbers appear first
+    
+    # OpenID Connect Configuration
+    # For Keycloak: http(s)://{host}:{port}/realms/{realm}/.well-known/openid-configuration
+    discovery_url: "http://localhost:7080/realms/datenschleuder/.well-known/openid-configuration"
+    
+    # OAuth Client Credentials (from your OIDC provider)
+    client_id: "datenschleuder"
+    client_secret: "CH7BR2waXwfApVPjWE0bxBaMYFAxELnZ"
+    
+    # Optional: Override default redirect URI
+    # Default is automatically constructed from backend URL + /auth/oidc/callback
+    redirect_uri: "http://localhost:3000/login/callback"
+    
+    # OAuth Scopes to Request
+    scopes:
+      - openid
+      - profile
+      - email
+      - offline_access
+    
+    # Claim Mapping
+    # Map OIDC token claims to user attributes
+    claim_mappings:
+      username: "preferred_username"  # Claim to use as username (required)
+      email: "email"                   # Claim for email address
+      name: "name"                     # Claim for display name
+      groups: "groups"                 # Optional: for future role mapping
+    
+    # User Provisioning Settings
+    auto_provision: true            # Automatically create users on first login
+    default_role: "user"            # Role for new users: "user" or "admin"
+    username_prefix: ""             # Optional: prefix to avoid conflicts
+  
+  # ---------------------------------------------------------------------------
+  # Example 2: Development/Staging Environment
+  # ---------------------------------------------------------------------------
+  development:
+    enabled: false
+    name: "Development SSO"
+    description: "For testing and development"
+    icon: "flask"
+    display_order: 2
+    
+    discovery_url: "http://localhost:7080/realms/dev/.well-known/openid-configuration"
+    client_id: "datenschleuder-dev"
+    client_secret: "dev-secret-change-me"
+    redirect_uri: ""
+    
+    scopes:
+      - openid
+      - profile
+      - email
+    
+    claim_mappings:
+      username: "email"             # Use email as username for dev
+      email: "email"
+      name: "name"
+    
+    auto_provision: true
+    default_role: "admin"           # Dev users get admin access
+    username_prefix: "dev_"
+
+# ============================================================================
+# GLOBAL OIDC SETTINGS
+# ============================================================================
+global:
+  # Allow Traditional Login
+  # true: Show both SSO and username/password login
+  # false: Show only SSO provider buttons (SSO-only mode)
+  allow_traditional_login: true
+  
+  # Session Timeout (minutes)
+  # How long before OIDC user sessions expire
+  session_timeout: 480
+  
+  # Auto-redirect to OIDC
+  # If only one provider is enabled, automatically redirect to it
+  auto_redirect_single_provider: false
+
+# ============================================================================
+# CONFIGURATION NOTES
+# ============================================================================
+#
+# 1. PROVIDER SETUP:
+#    - Create a new OIDC client in your identity provider
+#    - Set client type to "confidential"
+#    - Add Valid Redirect URIs matching your deployment
+#    - Generate client_id and client_secret
+#
+# 2. DISCOVERY URL:
+#    - Must point to the OpenID Connect discovery document
+#    - Example: https://provider.com/.well-known/openid-configuration
+#
+# 3. CLAIM MAPPINGS:
+#    - Standard claims: sub, preferred_username, email, name
+#    - Custom claims depend on your provider configuration
+#
+# 4. SECURITY:
+#    - Keep client_secret secure
+#    - Use environment variables for sensitive values in production
+#    - Rotate secrets regularly

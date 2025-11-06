@@ -190,6 +190,14 @@ async def oidc_callback(
         # Provision or get user
         user = await oidc_service.provision_or_get_user(provider_id, user_data, db)
 
+        # Check if user is active
+        if not user.is_active:
+            logger.warning(f"Inactive user '{user.username}' attempted login via OIDC provider '{provider_id}'")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Your account is pending approval by an administrator. Please contact your system administrator.",
+            )
+
         # Create application JWT
         access_token = create_access_token(data={"sub": user.username})
 

@@ -53,9 +53,13 @@
             <div class="col-md-12">
               <hr class="my-4" />
               <h5 class="mb-3">Change Password</h5>
+              <b-alert v-if="isOIDCUser" variant="info" show>
+                <i class="pe-7s-info me-2"></i>
+                You are logged in via OIDC. Password changes must be made through your identity provider.
+              </b-alert>
             </div>
 
-            <div class="col-md-12">
+            <div v-if="!isOIDCUser" class="col-md-12">
               <label class="form-label">Current Password</label>
               <b-form-input
                 v-model="passwordForm.currentPassword"
@@ -63,7 +67,7 @@
               />
             </div>
 
-            <div class="col-md-6">
+            <div v-if="!isOIDCUser" class="col-md-6">
               <label class="form-label">New Password</label>
               <b-form-input
                 v-model="passwordForm.newPassword"
@@ -71,7 +75,7 @@
               />
             </div>
 
-            <div class="col-md-6">
+            <div v-if="!isOIDCUser" class="col-md-6">
               <label class="form-label">Confirm New Password</label>
               <b-form-input
                 v-model="passwordForm.confirmPassword"
@@ -137,14 +141,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+import api from "../../utils/api";
+
+interface UserProfile {
+  id: number;
+  username: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  is_oidc_user: boolean;
+  created_at: string;
+}
 
 const isSaving = ref(false);
+const isLoading = ref(false);
+const currentUser = ref<UserProfile | null>(null);
 const settings = ref({
   firstName: "",
   lastName: "",
   email: "",
-  username: "admin",
+  username: "",
   language: "en",
   timezone: "UTC",
   emailNotifications: true,
@@ -156,6 +172,8 @@ const passwordForm = ref({
   newPassword: "",
   confirmPassword: "",
 });
+
+const isOIDCUser = computed(() => currentUser.value?.is_oidc_user || false);
 
 const languageOptions = [
   { value: "en", text: "English" },
@@ -174,20 +192,26 @@ const timezoneOptions = [
 ];
 
 const loadSettings = async () => {
+  isLoading.value = true;
   try {
-    // TODO: Implement actual API call
-    const response = await fetch("/api/proxy/settings/profile");
-    if (response.ok) {
-      settings.value = await response.json();
-    }
+    const response = await api.get<UserProfile>("/api/users/me");
+    currentUser.value = response;
+    settings.value.username = response.username;
   } catch (error) {
-    console.error("Error loading settings:", error);
+    console.error("Error loading profile:", error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
 const handleSave = async () => {
   // Validate password change if attempted
   if (passwordForm.value.newPassword || passwordForm.value.confirmPassword) {
+    if (isOIDCUser.value) {
+      alert("OIDC users cannot change password. Please use your identity provider.");
+      return;
+    }
+
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
       alert("New passwords do not match");
       return;
@@ -196,23 +220,33 @@ const handleSave = async () => {
       alert("Please enter your current password");
       return;
     }
-  }
+    if (passwordForm.value.newPassword.length < 6) {
+      alert("New password must be at least 6 characters");
+      return;
+    }
 
-  isSaving.value = true;
-  try {
-    // TODO: Implement actual API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Save password change
+    isSaving.value = true;
+    try {
+      await api.post("/api/users/me/change-password", {
+        current_password: passwordForm.value.currentPassword,
+        new_password: passwordForm.value.newPassword,
+      });
+      alert("Password changed successfully!");
+      passwordForm.value = {
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      };
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      alert(error.detail || "Error changing password");
+    } finally {
+      isSaving.value = false;
+    }
+  } else {
+    // TODO: Save other profile settings when implemented
     alert("Profile settings saved successfully!");
-    passwordForm.value = {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    };
-  } catch (error) {
-    console.error("Error saving settings:", error);
-    alert("Error saving settings");
-  } finally {
-    isSaving.value = false;
   }
 };
 

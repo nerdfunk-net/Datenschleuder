@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, validator
 
 from app.core.database import get_db
-from app.core.security import verify_token
+from app.core.security import verify_token, require_admin, get_current_user
 from app.models.setting import Setting, NifiSettings, RegistrySettings
+from app.models.user import User
 from app.services.encryption_service import encryption_service
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
@@ -76,7 +77,7 @@ def upsert_setting(
 
 @router.get("/nifi")
 async def get_nifi_settings(
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get NiFi connection settings"""
@@ -107,7 +108,7 @@ async def get_nifi_settings(
 @router.post("/nifi")
 async def save_nifi_settings(
     settings: NifiSettings,
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Save NiFi connection settings"""
@@ -130,7 +131,7 @@ async def save_nifi_settings(
 
 @router.get("/registry")
 async def get_registry_settings(
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get NiFi Registry settings"""
@@ -161,7 +162,7 @@ async def get_registry_settings(
 @router.post("/registry")
 async def save_registry_settings(
     settings: RegistrySettings,
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Save NiFi Registry settings"""
@@ -184,7 +185,7 @@ async def save_registry_settings(
 
 @router.get("/hierarchy")
 async def get_data_format_settings(
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get hierarchical data format settings"""
@@ -207,7 +208,7 @@ async def get_data_format_settings(
 @router.post("/hierarchy")
 async def save_data_format_settings(
     settings: HierarchySettings,
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Save hierarchical data format settings"""
@@ -241,7 +242,7 @@ async def save_data_format_settings(
 @router.get("/hierarchy/values/{attribute_name}")
 async def get_attribute_values(
     attribute_name: str,
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get all values for a specific attribute"""
@@ -259,7 +260,7 @@ async def get_attribute_values(
 @router.post("/hierarchy/values")
 async def save_attribute_values(
     data: dict,
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Save/replace all values for a specific attribute"""
@@ -294,7 +295,7 @@ async def save_attribute_values(
 @router.delete("/hierarchy/values/{attribute_name}")
 async def delete_attribute_values(
     attribute_name: str,
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Delete all values for a specific attribute"""
@@ -313,7 +314,7 @@ async def delete_attribute_values(
 
 @router.get("/deploy")
 async def get_deployment_settings(
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Get deployment settings (both global and per-instance paths)"""
@@ -338,7 +339,7 @@ async def get_deployment_settings(
 @router.post("/deploy")
 async def save_deployment_settings(
     data: dict,
-    token_data: dict = Depends(verify_token),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Save deployment settings"""

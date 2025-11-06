@@ -5,7 +5,7 @@
       <p class="text-muted">
         Manage multiple NiFi instances, one for each top hierarchy value
       </p>
-      <b-button variant="primary" @click="showAddModal">
+      <b-button v-if="isAdmin" variant="primary" @click="showAddModal">
         + Add NiFi Instance
       </b-button>
     </div>
@@ -20,8 +20,8 @@
     <div v-else-if="instances.length === 0" class="empty-state">
       <i class="pe-7s-server" style="font-size: 4rem; color: #6c757d"></i>
       <h4 class="mt-3">No NiFi Instances</h4>
-      <p class="text-muted">Add your first NiFi instance to get started</p>
-      <b-button variant="primary" @click="showAddModal">
+      <p class="text-muted">{{ isAdmin ? 'Add your first NiFi instance to get started' : 'No NiFi instances configured yet' }}</p>
+      <b-button v-if="isAdmin" variant="primary" @click="showAddModal">
         + Add NiFi Instance
       </b-button>
     </div>
@@ -33,11 +33,11 @@
         :key="instance.id"
         class="instance-card"
       >
-        <div class="card-header-custom">
+                  <div class="card-header-custom">
           <div class="instance-badge">
             {{ instance.hierarchy_attribute }}={{ instance.hierarchy_value }}
           </div>
-          <div class="card-actions">
+          <div v-if="isAdmin" class="card-actions">
             <b-button
               variant="link"
               size="sm"
@@ -49,7 +49,7 @@
             <b-button
               variant="link"
               size="sm"
-              @click="editInstance(instance)"
+              @click="showEditModal(instance)"
               title="Edit"
             >
               <i class="pe-7s-pen"></i>
@@ -57,8 +57,8 @@
             <b-button
               variant="link"
               size="sm"
-              class="delete-btn"
-              @click="deleteInstance(instance.id)"
+              class="text-danger"
+              @click="confirmDelete(instance)"
               title="Delete"
             >
               <i class="pe-7s-trash"></i>
@@ -221,6 +221,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { apiRequest } from "@/utils/api";
+import { useAuth } from "@/composables/useAuth";
+
+const { isAdmin } = useAuth();
 
 interface NiFiInstance {
   id: number;

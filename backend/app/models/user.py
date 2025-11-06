@@ -18,6 +18,7 @@ class User(Base):
     )  # SHA256 hash (one-way, for login only)
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
+    is_oidc_user = Column(Boolean, default=False)  # Flag for OIDC-provisioned users
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -41,10 +42,26 @@ class UserResponse(UserBase):
     id: int
     is_active: bool
     is_superuser: bool
+    is_oidc_user: bool
     created_at: datetime
 
     class Config:
         from_attributes = True
+
+
+class UserUpdate(BaseModel):
+    """User update schema"""
+
+    password: str | None = None
+    is_active: bool | None = None
+    is_superuser: bool | None = None
+
+
+class PasswordChange(BaseModel):
+    """Password change schema"""
+
+    current_password: str
+    new_password: str
 
 
 class Token(BaseModel):

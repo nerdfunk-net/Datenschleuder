@@ -37,6 +37,7 @@
                           placeholder="Name (e.g., CN)"
                           @input="validateUniqueName(index)"
                           :class="{ 'is-invalid': attr.nameError }"
+                          :disabled="!isAdmin"
                         />
                         <div
                           v-if="attr.nameError"
@@ -49,6 +50,7 @@
                         <b-form-input
                           v-model="attr.label"
                           placeholder="Label (e.g., Common Name)"
+                          :disabled="!isAdmin"
                         />
                       </div>
                       <div class="col-md-2 d-flex gap-1">
@@ -61,6 +63,7 @@
                           <i class="pe-7s-look"></i>
                         </b-button>
                         <b-button
+                          v-if="isAdmin"
                           variant="outline-primary"
                           size="sm"
                           @click="editAttribute(index)"
@@ -69,6 +72,7 @@
                           <i class="pe-7s-pen"></i>
                         </b-button>
                         <b-button
+                          v-if="isAdmin"
                           variant="outline-danger"
                           size="sm"
                           @click="removeAttribute(index)"
@@ -83,6 +87,7 @@
 
                   <div class="hierarchy-actions">
                     <b-button
+                      v-if="isAdmin"
                       variant="link"
                       size="sm"
                       @click="moveUp(index)"
@@ -92,6 +97,7 @@
                       ▲
                     </b-button>
                     <b-button
+                      v-if="isAdmin"
                       variant="link"
                       size="sm"
                       @click="moveDown(index)"
@@ -106,6 +112,7 @@
 
               <!-- Add Attribute Button -->
               <b-button
+                v-if="isAdmin"
                 variant="outline-primary"
                 size="sm"
                 class="mt-3"
@@ -129,12 +136,14 @@
 
           <div class="card-footer">
             <b-button
+              v-if="isAdmin"
               type="button"
               variant="outline-secondary"
               @click="handleReset"
               >Reset</b-button
             >
             <b-button
+              v-if="isAdmin"
               type="submit"
               variant="primary"
               class="ms-2"
@@ -218,6 +227,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { apiRequest } from "@/utils/api";
+import { useAuth } from "@/composables/useAuth";
+
+const { isAdmin } = useAuth();
 
 interface HierarchyAttribute {
   name: string;

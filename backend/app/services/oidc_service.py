@@ -423,8 +423,9 @@ class OIDCService:
         new_user = User(
             username=user_data.username,
             hashed_password=placeholder_password,  # Not used for OIDC auth
-            is_active=True,
+            is_active=False,  # New OIDC users must be approved by admin
             is_superuser=is_superuser,
+            is_oidc_user=True,  # Mark as OIDC user
         )
 
         db.add(new_user)
@@ -433,7 +434,7 @@ class OIDCService:
 
         logger.info(
             f"Auto-provisioned new user '{user_data.username}' from OIDC provider '{provider_id}' "
-            f"with role '{default_role}'"
+            f"with role '{default_role}' - PENDING ADMIN APPROVAL (is_active=False)"
         )
 
         return new_user

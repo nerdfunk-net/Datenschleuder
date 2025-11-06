@@ -3,6 +3,7 @@ import {
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
+import api from "@/utils/api";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -71,6 +72,12 @@ const routes: RouteRecordRaw[] = [
         name: "settings-profile",
         component: () => import("../pages/settings/Profile.vue"),
       },
+      {
+        path: "settings/users",
+        name: "settings-users",
+        component: () => import("../pages/settings/Users.vue"),
+        meta: { requiresAdmin: true },
+      },
     ],
   },
 ];
@@ -80,10 +87,11 @@ const router = createRouter({
   routes,
 });
 
-// Authentication guard
-router.beforeEach((to, from, next) => {
+// Authentication and authorization guard
+router.beforeEach(async (to, from, next) => {
   const isAuthenticated = localStorage.getItem("token");
   const requiresAuth = to.meta.requiresAuth !== false;
+  const requiresAdmin = to.meta.requiresAdmin === true;
 
   if (requiresAuth && !isAuthenticated) {
     // Redirect to login if not authenticated
@@ -91,6 +99,22 @@ router.beforeEach((to, from, next) => {
   } else if (to.name === "login" && isAuthenticated) {
     // Redirect to dashboard if already logged in
     next({ path: "/" });
+  } else if (requiresAdmin && isAuthenticated) {
+    // Check if user is admin for admin-only routes
+    try {
+      const user = await api.get("/api/users/me");
+      if (user.is_superuser) {
+        next();
+      } else {
+        // Non-admin trying to access admin page
+        next({ path: "/flows/manage" });
+      }
+    } catch (error) {
+      console.error("Failed to verify admin status:", error);
+      // If API call fails, redirect to login
+      localStorage.removeItem("token");
+      next({ name: "login" });
+    }
   } else {
     next();
   }

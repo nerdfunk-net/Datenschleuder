@@ -22,6 +22,7 @@
               <b-form-input
                 v-model="settings.global.process_group_name_template"
                 placeholder="{last_hierarchy_value}"
+                :disabled="!isAdmin"
               />
               <small class="form-text text-muted">
                 Default: {last_hierarchy_value} - Use the value of the last
@@ -31,7 +32,7 @@
 
             <!-- Disable After Deploy -->
             <div class="col-md-12">
-              <b-form-checkbox v-model="settings.global.disable_after_deploy">
+              <b-form-checkbox v-model="settings.global.disable_after_deploy" :disabled="!isAdmin">
                 Disable flow after deployment
               </b-form-checkbox>
               <small class="form-text text-muted d-block">
@@ -43,7 +44,7 @@
 
             <!-- Start After Deploy -->
             <div class="col-md-12">
-              <b-form-checkbox v-model="settings.global.start_after_deploy">
+              <b-form-checkbox v-model="settings.global.start_after_deploy" :disabled="!isAdmin">
                 Start flow after deployment
               </b-form-checkbox>
               <small class="form-text text-muted d-block">
@@ -54,7 +55,7 @@
 
             <!-- Stop Versioning After Deploy -->
             <div class="col-md-12">
-              <b-form-checkbox v-model="settings.global.stop_versioning_after_deploy">
+              <b-form-checkbox v-model="settings.global.stop_versioning_after_deploy" :disabled="!isAdmin">
                 Stop versioning after deployment
               </b-form-checkbox>
               <small class="form-text text-muted d-block">
@@ -107,9 +108,10 @@
                         updateSourcePath(instance.id, $event)
                       "
                       :options="getPathOptionsForInstance(instance.id)"
-                      :disabled="loadingPaths[instance.id]"
+                      :disabled="loadingPaths[instance.id] || !isAdmin"
                     />
                     <b-button
+                      v-if="isAdmin"
                       variant="outline-primary"
                       size="sm"
                       @click="loadPathsForInstance(instance.id)"
@@ -136,9 +138,10 @@
                       :model-value="getDestPath(instance.id)"
                       @update:model-value="updateDestPath(instance.id, $event)"
                       :options="getPathOptionsForInstance(instance.id)"
-                      :disabled="loadingPaths[instance.id]"
+                      :disabled="loadingPaths[instance.id] || !isAdmin"
                     />
                     <b-button
+                      v-if="isAdmin"
                       variant="outline-primary"
                       size="sm"
                       @click="loadPathsForInstance(instance.id)"
@@ -166,12 +169,14 @@
 
           <div class="card-footer">
             <b-button
+              v-if="isAdmin"
               type="button"
               variant="outline-secondary"
               @click="handleReset"
               >Reset</b-button
             >
             <b-button
+              v-if="isAdmin"
               type="submit"
               variant="primary"
               class="ms-2"
@@ -190,6 +195,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, reactive } from "vue";
 import { apiRequest } from "@/utils/api";
+import { useAuth } from "@/composables/useAuth";
+
+const { isAdmin } = useAuth();
 
 interface NiFiInstance {
   id: number;

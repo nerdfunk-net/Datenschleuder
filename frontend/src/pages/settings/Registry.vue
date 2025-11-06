@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="card-header">
         <h2 class="card-title">Registry Flows</h2>
-        <div class="header-actions">
+        <div v-if="isAdmin" class="header-actions">
           <b-button variant="outline-secondary" @click="showImportModal = true">
             <i class="pe-7s-upload"></i> Import Flow
           </b-button>
@@ -65,7 +65,7 @@
                 {{ flow.flow_description || "No description" }}
               </td>
               <td class="text-end">
-                <div class="btn-group" role="group">
+                <div v-if="isAdmin" class="btn-group" role="group">
                   <!-- Loading spinner while registry details are being fetched -->
                   <template v-if="!getRegistryDetails(flow)">
                     <b-button
@@ -125,6 +125,9 @@
                   >
                     <i class="pe-7s-trash"></i>
                   </b-button>
+                </div>
+                <div v-else class="text-muted small">
+                  <i class="pe-7s-lock"></i> Admin only
                 </div>
               </td>
             </tr>
@@ -372,6 +375,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { apiRequest } from "@/utils/api";
+import { useAuth } from "@/composables/useAuth";
+
+const { isAdmin } = useAuth();
 
 interface RegistryFlow {
   id: number;

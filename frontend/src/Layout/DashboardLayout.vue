@@ -135,6 +135,14 @@
             >
               <span>Profile</span>
             </router-link>
+            <router-link
+              v-if="isAdmin"
+              to="/settings/users"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
+              <span>Users</span>
+            </router-link>
           </div>
         </div>
       </nav>
@@ -158,6 +166,7 @@
             <span class="ds-user-badge">
               <i class="pe-7s-user"></i>
               {{ username }}
+              <span v-if="isAdmin" class="badge bg-danger ms-2">Admin</span>
             </span>
           </div>
         </div>
@@ -172,8 +181,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import api from "@/utils/api";
 
 const router = useRouter();
 const route = useRoute();
@@ -186,6 +196,20 @@ const menuState = ref({
 });
 
 const username = ref("Admin User");
+const isAdmin = ref(false);
+
+// Load current user info
+onMounted(async () => {
+  try {
+    const response = await api.get("/api/users/me");
+    username.value = response.username;
+    isAdmin.value = response.is_superuser;
+    console.log("Current user:", response);
+    console.log("Is admin:", response.is_superuser);
+  } catch (error) {
+    console.error("Failed to load user info:", error);
+  }
+});
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
@@ -198,6 +222,7 @@ const pageTitle = computed(() => {
     "/settings/hierarchy": "Hierarchy Settings",
     "/settings/deploy": "Deployment Settings",
     "/settings/profile": "Profile Settings",
+    "/settings/users": "User Management",
   };
   return titles[route.path] || "Dashboard";
 });

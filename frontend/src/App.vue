@@ -9,7 +9,11 @@
 </template>
 
 <script setup lang="ts">
-// Simplified App component for Vue 3
+import { useSessionTimeout } from './composables/useSessionTimeout';
+
+// Initialize session timeout monitoring
+// This will automatically track user activity and handle session expiration
+useSessionTimeout();
 </script>
 
 <style lang="scss">

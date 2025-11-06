@@ -155,11 +155,16 @@ async def oidc_callback(
             detail="OIDC authentication is not enabled",
         )
 
+    logger.info(f"[OIDC Debug] Callback received for provider '{provider_id}'")
+    logger.debug(f"[OIDC Debug] Authorization code length: {len(callback_data.code) if callback_data.code else 0}")
+    logger.debug(f"[OIDC Debug] State parameter: {callback_data.state}")
+
     try:
         # Validate state includes correct provider_id
         if callback_data.state:
             state_parts = callback_data.state.split(":", 1)
             if len(state_parts) != 2:
+                logger.error(f"[OIDC Debug] Invalid state format: {callback_data.state}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid state parameter",
@@ -167,48 +172,58 @@ async def oidc_callback(
 
             state_provider = state_parts[0]
             if state_provider != provider_id:
+                logger.error(f"[OIDC Debug] State provider mismatch: expected '{provider_id}', got '{state_provider}'")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="State provider mismatch",
                 )
+            
+            logger.debug(f"[OIDC Debug] State validation successful")
 
         # Exchange code for tokens
+        logger.debug(f"[OIDC Debug] Exchanging authorization code for tokens...")
         tokens = await oidc_service.exchange_code_for_tokens(provider_id, callback_data.code)
 
         # Verify ID token
         if "id_token" not in tokens:
+            logger.error(f"[OIDC Debug] No ID token in response from provider '{provider_id}'")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No ID token received from provider",
             )
 
+        logger.debug(f"[OIDC Debug] Verifying ID token...")
         claims = await oidc_service.verify_id_token(provider_id, tokens["id_token"])
 
         # Extract user data
+        logger.debug(f"[OIDC Debug] Extracting user data from claims...")
         user_data = oidc_service.extract_user_data(provider_id, claims)
 
         # Provision or get user
+        logger.debug(f"[OIDC Debug] Provisioning or retrieving user...")
         user = await oidc_service.provision_or_get_user(provider_id, user_data, db)
 
         # Check if user is active
         if not user.is_active:
-            logger.warning(f"Inactive user '{user.username}' attempted login via OIDC provider '{provider_id}'")
+            logger.warning(f"[OIDC Debug] Inactive user '{user.username}' attempted login via OIDC provider '{provider_id}'")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Your account is pending approval by an administrator. Please contact your system administrator.",
             )
 
         # Create application JWT
+        logger.debug(f"[OIDC Debug] Creating application access token...")
         access_token = create_access_token(data={"sub": user.username})
 
-        logger.info(f"User '{user.username}' authenticated via OIDC provider '{provider_id}'")
+        logger.info(f"[OIDC Debug] User '{user.username}' authenticated successfully via OIDC provider '{provider_id}'")
 
         return Token(access_token=access_token, token_type="bearer")
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"OIDC callback failed for provider '{provider_id}': {e}")
+        logger.error(f"[OIDC Debug] OIDC callback failed for provider '{provider_id}': {e}")
+        logger.error(f"[OIDC Debug] Exception type: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication failed with provider '{provider_id}'",

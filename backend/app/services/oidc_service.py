@@ -208,6 +208,11 @@ class OIDCService:
             "client_secret": client_secret,
         }
 
+        logger.debug(f"[OIDC Debug] Exchanging authorization code for provider '{provider_id}'")
+        logger.debug(f"[OIDC Debug] Token endpoint: {config.token_endpoint}")
+        logger.debug(f"[OIDC Debug] Client ID: {client_id}")
+        logger.debug(f"[OIDC Debug] Redirect URI: {redirect_uri}")
+
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -216,11 +221,32 @@ class OIDCService:
                     headers={"Content-Type": "application/x-www-form-urlencoded"},
                     timeout=10.0,
                 )
+                
+                logger.debug(f"[OIDC Debug] Token response status: {response.status_code}")
+                
                 response.raise_for_status()
-                return response.json()
+                token_response = response.json()
+                
+                # Log token response (mask sensitive data)
+                logger.debug(f"[OIDC Debug] Token response keys: {list(token_response.keys())}")
+                if 'access_token' in token_response:
+                    logger.debug(f"[OIDC Debug] Access token received (length: {len(token_response['access_token'])})")
+                if 'id_token' in token_response:
+                    logger.debug(f"[OIDC Debug] ID token received (length: {len(token_response['id_token'])})")
+                if 'token_type' in token_response:
+                    logger.debug(f"[OIDC Debug] Token type: {token_response['token_type']}")
+                if 'expires_in' in token_response:
+                    logger.debug(f"[OIDC Debug] Expires in: {token_response['expires_in']} seconds")
+                if 'scope' in token_response:
+                    logger.debug(f"[OIDC Debug] Scopes: {token_response['scope']}")
+                
+                return token_response
 
         except httpx.HTTPError as e:
-            logger.error(f"Token exchange failed for provider '{provider_id}': {e}")
+            logger.error(f"[OIDC Debug] Token exchange failed for provider '{provider_id}': {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                logger.error(f"[OIDC Debug] Error response status: {e.response.status_code}")
+                logger.error(f"[OIDC Debug] Error response body: {e.response.text}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Failed to exchange authorization code for tokens with provider '{provider_id}'",
@@ -289,10 +315,17 @@ class OIDCService:
 
         client_id = provider_config.get("client_id")
 
+        logger.debug(f"[OIDC Debug] Verifying ID token for provider '{provider_id}'")
+        logger.debug(f"[OIDC Debug] Issuer: {config.issuer}")
+        logger.debug(f"[OIDC Debug] Client ID (audience): {client_id}")
+
         try:
             # Decode header to get kid
             unverified_header = jwt.get_unverified_header(id_token)
             kid = unverified_header.get("kid")
+            
+            logger.debug(f"[OIDC Debug] ID token algorithm: {unverified_header.get('alg')}")
+            logger.debug(f"[OIDC Debug] ID token key ID (kid): {kid}")
 
             # Find matching key in JWKS
             key = None
@@ -302,10 +335,14 @@ class OIDCService:
                     break
 
             if not key:
+                logger.error(f"[OIDC Debug] No matching key found in JWKS for kid: {kid}")
+                logger.debug(f"[OIDC Debug] Available keys in JWKS: {[k.get('kid') for k in jwks.get('keys', [])]}")
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail=f"Unable to find matching signing key for provider '{provider_id}'",
                 )
+
+            logger.debug(f"[OIDC Debug] Found matching key in JWKS")
 
             # Verify and decode token
             claims = jwt.decode(
@@ -317,10 +354,17 @@ class OIDCService:
                 options={"verify_at_hash": False},  # Disable at_hash validation
             )
 
+            logger.debug(f"[OIDC Debug] ID token verified successfully")
+            logger.debug(f"[OIDC Debug] Token claims: {list(claims.keys())}")
+            logger.debug(f"[OIDC Debug] Subject (sub): {claims.get('sub')}")
+            logger.debug(f"[OIDC Debug] Issued at (iat): {claims.get('iat')}")
+            logger.debug(f"[OIDC Debug] Expires at (exp): {claims.get('exp')}")
+
             return claims
 
         except JWTError as e:
-            logger.error(f"ID token verification failed for provider '{provider_id}': {e}")
+            logger.error(f"[OIDC Debug] ID token verification failed for provider '{provider_id}': {e}")
+            logger.error(f"[OIDC Debug] Error type: {type(e).__name__}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Invalid ID token from provider '{provider_id}'",
@@ -351,7 +395,11 @@ class OIDCService:
         name_claim = claim_mappings.get("name", "name")
 
         # Log available claims for debugging
-        logger.debug(f"Available claims in ID token from '{provider_id}': {list(claims.keys())}")
+        logger.debug(f"[OIDC Debug] Available claims in ID token from '{provider_id}': {list(claims.keys())}")
+        logger.debug(f"[OIDC Debug] Claim mappings - username: {username_claim}, email: {email_claim}, name: {name_claim}")
+        logger.debug(f"[OIDC Debug] Extracted username: {claims.get(username_claim)}")
+        logger.debug(f"[OIDC Debug] Extracted email: {claims.get(email_claim)}")
+        logger.debug(f"[OIDC Debug] Extracted name: {claims.get(name_claim)}")
         logger.debug(f"Looking for username claim: '{username_claim}'")
 
         # Extract username (required)
@@ -389,6 +437,11 @@ class OIDCService:
         Returns:
             User object (existing or newly created)
         """
+        logger.debug(f"[OIDC Debug] Provisioning or retrieving user from provider '{provider_id}'")
+        logger.debug(f"[OIDC Debug] Username: {user_data.username}")
+        logger.debug(f"[OIDC Debug] Email: {user_data.email}")
+        logger.debug(f"[OIDC Debug] Subject (sub): {user_data.sub}")
+        
         provider_config = settings_manager.get_oidc_provider(provider_id)
         if not provider_config:
             raise HTTPException(
@@ -401,12 +454,16 @@ class OIDCService:
 
         if user:
             # User exists - optionally update email/name
-            logger.info(f"Existing user '{user_data.username}' logged in via OIDC provider '{provider_id}'")
+            logger.info(f"[OIDC Debug] Existing user '{user_data.username}' logged in via OIDC provider '{provider_id}'")
+            logger.debug(f"[OIDC Debug] User ID: {user.id}, is_active: {user.is_active}, is_superuser: {user.is_superuser}")
             return user
 
         # User doesn't exist - check if auto-provisioning is enabled
         auto_provision = provider_config.get("auto_provision", False)
+        logger.debug(f"[OIDC Debug] Auto-provisioning enabled: {auto_provision}")
+        
         if not auto_provision:
+            logger.warning(f"[OIDC Debug] User '{user_data.username}' not found and auto-provisioning is disabled")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"User '{user_data.username}' not found and auto-provisioning is disabled for provider '{provider_id}'",
@@ -415,6 +472,8 @@ class OIDCService:
         # Create new user
         default_role = provider_config.get("default_role", "user")
         is_superuser = default_role == "admin"
+
+        logger.debug(f"[OIDC Debug] Creating new user with role: {default_role} (is_superuser={is_superuser})")
 
         # OIDC users don't have passwords (set a placeholder hash)
         # They can only authenticate via OIDC
@@ -433,7 +492,7 @@ class OIDCService:
         db.refresh(new_user)
 
         logger.info(
-            f"Auto-provisioned new user '{user_data.username}' from OIDC provider '{provider_id}' "
+            f"[OIDC Debug] Auto-provisioned new user '{user_data.username}' (ID: {new_user.id}) from OIDC provider '{provider_id}' "
             f"with role '{default_role}' - PENDING ADMIN APPROVAL (is_active=False)"
         )
 

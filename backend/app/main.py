@@ -22,17 +22,19 @@ from app.models.user import User
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,  # Set root level to INFO
+    level=logging.DEBUG,  # Set root level to DEBUG to see detailed OIDC logs
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     force=True,  # Force reconfiguration even if logging was already set up
 )
 
 # Get the root logger
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 # Set specific loggers to appropriate levels
-logging.getLogger("app").setLevel(logging.INFO)  # All app modules
+logging.getLogger("app").setLevel(logging.DEBUG)  # All app modules - show debug logs
+logging.getLogger("app.services.oidc_service").setLevel(logging.DEBUG)  # OIDC service debug
+logging.getLogger("app.api.oidc").setLevel(logging.DEBUG)  # OIDC API debug
 logging.getLogger("app.services.nifi_deployment_service").setLevel(logging.INFO)
 logging.getLogger("app.api.deploy").setLevel(logging.INFO)
 logging.getLogger("app.api.nifi").setLevel(logging.INFO)

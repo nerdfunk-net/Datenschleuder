@@ -171,6 +171,8 @@ async def deploy_flow(
     logger.info(f"Parent PG Path: {deployment.parent_process_group_path}")
     logger.info(f"Process Group Name: {deployment.process_group_name}")
     logger.info(f"Hierarchy Attribute (from request): {deployment.hierarchy_attribute}")
+    logger.info(f"Parameter Context Name: {deployment.parameter_context_name}")
+    logger.info(f"Parameter Context ID: {deployment.parameter_context_id}")
     logger.info(f"Stop Versioning After Deploy: {deployment.stop_versioning_after_deploy}")
     logger.info(f"Disable After Deploy: {deployment.disable_after_deploy}")
     logger.info(f"Start After Deploy: {deployment.start_after_deploy}")
@@ -299,8 +301,12 @@ async def deploy_flow(
         deployed_version = service.extract_deployed_version(deployed_pg)
 
         # Step 8: Assign parameter context if specified
-        if pg_id and deployment.parameter_context_id:
-            logger.info(f"Assigning parameter context {deployment.parameter_context_id} to process group {pg_id}")
+        # Priority: parameter_context_name (lookup by name) > parameter_context_id (direct ID)
+        if pg_id and deployment.parameter_context_name:
+            logger.info(f"Assigning parameter context by name: '{deployment.parameter_context_name}'")
+            service.assign_parameter_context(pg_id, deployment.parameter_context_name)
+        elif pg_id and deployment.parameter_context_id:
+            logger.info(f"Assigning parameter context by ID: {deployment.parameter_context_id}")
             try:
                 from nipyapi import parameters
 

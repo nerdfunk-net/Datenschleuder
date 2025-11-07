@@ -34,6 +34,7 @@ export interface DeploymentConfig {
   templateId: number | null
   templateName: string | null
   processGroupName: string
+  parameterContextName: string | null
 }
 
 export interface DeploymentSettings {

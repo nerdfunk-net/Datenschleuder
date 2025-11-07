@@ -870,6 +870,15 @@ class NiFiDeploymentService:
             logger.info(f"    Connection name: '{child_pg_name}'")
             logger.info(f"    Relationship: '{child_pg_name}'")
             
+            # Restart the RouteOnAttribute processor if it was stopped for configuration
+            if needs_update and current_state == "RUNNING":
+                logger.info(f"  Restarting RouteOnAttribute processor...")
+                try:
+                    canvas.schedule_processor(route_processor, scheduled=True)
+                    logger.info(f"  ✓ RouteOnAttribute processor restarted")
+                except Exception as restart_error:
+                    logger.warning(f"  Could not restart processor: {restart_error}")
+            
         except Exception as connect_error:
             logger.error(f"⚠ ERROR: Could not auto-connect input ports: {connect_error}")
             logger.error(f"  Error type: {type(connect_error).__name__}")
@@ -1257,3 +1266,90 @@ class NiFiDeploymentService:
             logger.error(f"  Traceback: {traceback.format_exc()}")
             # Don't raise - this is a non-critical operation
             logger.warning(f"  Warning: Could not disable process group: {e}")
+
+    def assign_parameter_context(
+        self, pg_id: str, parameter_context_name: Optional[str]
+    ) -> None:
+        """
+        Assign parameter context to a process group by looking up the context ID by name.
+
+        Args:
+            pg_id: Process group ID to assign parameter context to
+            parameter_context_name: Name of the parameter context to assign (will be looked up)
+        """
+        if not parameter_context_name:
+            logger.info("No parameter context specified, skipping assignment")
+            return
+
+        try:
+            logger.info("=" * 60)
+            logger.info(f"ASSIGN PARAMETER CONTEXT: Starting assignment process")
+            logger.info(f"  Process group ID: {pg_id}")
+            logger.info(f"  Parameter context name: {parameter_context_name}")
+            logger.info("=" * 60)
+
+            # Step 1: Look up parameter context ID by name
+            logger.info(f"  Step 1: Looking up parameter context ID for name '{parameter_context_name}'...")
+            
+            import nipyapi
+            param_context = nipyapi.parameters.get_parameter_context(
+                identifier=parameter_context_name,
+                identifier_type="name",
+                greedy=True
+            )
+
+            if not param_context:
+                logger.warning(f"  ✗ Parameter context '{parameter_context_name}' not found, skipping assignment")
+                return
+
+            param_context_id = param_context.id if hasattr(param_context, 'id') else None
+            if not param_context_id:
+                logger.warning(f"  ✗ Could not extract ID from parameter context, skipping assignment")
+                return
+
+            logger.info(f"  ✓ Found parameter context ID: {param_context_id}")
+
+            # Step 2: Get current process group configuration
+            logger.info(f"  Step 2: Getting current process group configuration...")
+            pg_api = ProcessGroupsApi()
+            pg = pg_api.get_process_group(id=pg_id)
+
+            if not pg:
+                logger.error(f"  ✗ Process group {pg_id} not found")
+                return
+
+            logger.info(f"  ✓ Retrieved process group configuration")
+
+            # Step 3: Update process group with parameter context
+            logger.info(f"  Step 3: Assigning parameter context to process group...")
+            
+            # Build the update request body for NiFi API
+            # We need to update the component with the parameter context reference
+            body = {
+                "revision": {
+                    "version": pg.revision.version if hasattr(pg.revision, 'version') else 0,
+                },
+                "component": {
+                    "id": pg_id,
+                    "parameterContext": {
+                        "id": param_context_id
+                    }
+                }
+            }
+
+            logger.debug(f"  Update body: {body}")
+
+            # Use the ProcessGroupsApi to update the process group directly
+            updated_pg = pg_api.update_process_group(id=pg_id, body=body)
+
+            logger.info(f"  ✓ Parameter context '{parameter_context_name}' (ID: {param_context_id}) assigned successfully")
+            logger.info("=" * 60)
+            logger.info("ASSIGN PARAMETER CONTEXT: Completed assignment process")
+            logger.info("=" * 60)
+
+        except Exception as e:
+            logger.error(f"  ✗ Failed to assign parameter context: {e}")
+            import traceback
+            logger.error(f"  Traceback: {traceback.format_exc()}")
+            # Don't raise - this is a non-critical operation
+            logger.warning(f"  Warning: Could not assign parameter context: {e}")

@@ -1712,6 +1712,9 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       ? hierarchyConfig.value[hierarchyConfig.value.length - 1].name 
       : null;
 
+    // Get parameter context name for this deployment
+    const parameterContextName = target === "source" ? flow.src_connection_param : flow.dest_connection_param;
+
     // Deploy using parent_process_group_path (will auto-create missing groups)
     // Use all deployment settings from database defaults
     const deploymentRequest: any = {
@@ -1724,6 +1727,7 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       stop_versioning_after_deploy: deploymentSettings.value?.global?.stop_versioning_after_deploy || false,
       disable_after_deploy: deploymentSettings.value?.global?.disable_after_deploy || false,
       start_after_deploy: deploymentSettings.value?.global?.start_after_deploy || false,
+      parameter_context_name: parameterContextName,
     };
 
     // Add hierarchy attribute if available

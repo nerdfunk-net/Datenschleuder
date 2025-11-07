@@ -12,6 +12,7 @@ export interface DeploymentRequest {
   disable_after_deploy: boolean
   start_after_deploy: boolean
   hierarchy_attribute?: string
+  parameter_context_name?: string | null
 }
 
 export interface DeploymentResult {
@@ -150,7 +151,8 @@ export function buildDeploymentRequest(
     y_position: 0,
     stop_versioning_after_deploy: settings.global.stop_versioning_after_deploy,
     disable_after_deploy: settings.global.disable_after_deploy,
-    start_after_deploy: settings.global.start_after_deploy
+    start_after_deploy: settings.global.start_after_deploy,
+    parameter_context_name: config.parameterContextName
   }
 
   if (hierarchyAttribute) {

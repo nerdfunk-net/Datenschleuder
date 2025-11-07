@@ -86,6 +86,7 @@ export function useDeploymentOperations(
 
     const templateId = target === 'source' ? flow.src_template_id : flow.dest_template_id
     const templateName = flowUtils.getTemplateName(templateId, registryFlows.value)
+    const parameterContextName = target === 'source' ? flow.src_connection_param : flow.dest_connection_param
 
     const config: DeploymentConfig = {
       key: `${flow.id}-${target}`,
@@ -104,7 +105,8 @@ export function useDeploymentOperations(
         target,
         hierarchyConfig.value,
         deploymentSettings.value?.global?.process_group_name_template || '{last_hierarchy_value}'
-      )
+      ),
+      parameterContextName
     }
 
     // Load paths for this instance

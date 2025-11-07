@@ -25,29 +25,38 @@ router = APIRouter(tags=["nifi-instances"])
 )
 async def get_parameter_contexts(
     instance_id: int,
+    search: str = None,
+    identifier_type: str = "name",
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
-    """Get list of parameter contexts configured in NiFi instance"""
+    """
+    Get list of parameter contexts configured in NiFi instance.
+    
+    Args:
+        instance_id: The NiFi instance ID
+        search: Optional parameter to search for a specific context by name or ID
+        identifier_type: Type of identifier for search - 'name' or 'id' (default: 'name')
+    """
     instance = get_instance_or_404(db, instance_id)
 
     try:
-        from nipyapi.nifi import FlowApi
-
         # Configure nipyapi with authentication
         setup_nifi_connection(instance)
 
-        # Get parameter contexts using the FlowApi
-        flow_api = FlowApi()
-        param_contexts_entity = flow_api.get_parameter_contexts()
-
-        # Convert to our response model
         contexts_list = []
-        if (
-            hasattr(param_contexts_entity, "parameter_contexts")
-            and param_contexts_entity.parameter_contexts
-        ):
-            for context in param_contexts_entity.parameter_contexts:
+
+        # If search parameter is provided, use nipyapi.parameters.get_parameter_context
+        if search:
+            import nipyapi
+
+            context = nipyapi.parameters.get_parameter_context(
+                identifier=search,
+                identifier_type=identifier_type,
+                greedy=True
+            )
+
+            if context:
                 # Extract parameters
                 parameters = []
                 if hasattr(context, "component") and hasattr(
@@ -129,6 +138,102 @@ async def get_parameter_contexts(
                     else None,
                 )
                 contexts_list.append(context_data)
+
+        else:
+            # No search parameter - list all parameter contexts
+            from nipyapi.nifi import FlowApi
+
+            # Get parameter contexts using the FlowApi
+            flow_api = FlowApi()
+            param_contexts_entity = flow_api.get_parameter_contexts()
+
+            # Convert to our response model
+            if (
+                hasattr(param_contexts_entity, "parameter_contexts")
+                and param_contexts_entity.parameter_contexts
+            ):
+                for context in param_contexts_entity.parameter_contexts:
+                    # Extract parameters
+                    parameters = []
+                    if hasattr(context, "component") and hasattr(
+                        context.component, "parameters"
+                    ):
+                        for param in context.component.parameters:
+                            param_data = ParameterEntity(
+                                name=param.parameter.name
+                                if hasattr(param, "parameter")
+                                and hasattr(param.parameter, "name")
+                                else "Unknown",
+                                description=param.parameter.description
+                                if hasattr(param, "parameter")
+                                and hasattr(param.parameter, "description")
+                                else None,
+                                sensitive=param.parameter.sensitive
+                                if hasattr(param, "parameter")
+                                and hasattr(param.parameter, "sensitive")
+                                else False,
+                                value=param.parameter.value
+                                if hasattr(param, "parameter")
+                                and hasattr(param.parameter, "value")
+                                and not param.parameter.sensitive
+                                else None,
+                                provided=param.parameter.provided
+                                if hasattr(param, "parameter")
+                                and hasattr(param.parameter, "provided")
+                                else False,
+                                referenced_attributes=param.parameter.referenced_attributes
+                                if hasattr(param, "parameter")
+                                and hasattr(param.parameter, "referenced_attributes")
+                                else None,
+                                parameter_context_id=context.id
+                                if hasattr(context, "id")
+                                else None,
+                            )
+                            parameters.append(param_data)
+
+                    # Extract bound process groups
+                    bound_groups = []
+                    if hasattr(context, "component") and hasattr(
+                        context.component, "bound_process_groups"
+                    ):
+                        for pg in context.component.bound_process_groups:
+                            if hasattr(pg, "to_dict"):
+                                bound_groups.append(pg.to_dict())
+
+                    # Extract inherited parameter contexts
+                    inherited_contexts = []
+                    if hasattr(context, "component") and hasattr(
+                        context.component, "inherited_parameter_contexts"
+                    ):
+                        for ipc in context.component.inherited_parameter_contexts:
+                            if hasattr(ipc, "id"):
+                                inherited_contexts.append(ipc.id)
+
+                    context_data = ParameterContext(
+                        id=context.id if hasattr(context, "id") else "Unknown",
+                        name=context.component.name
+                        if hasattr(context, "component")
+                        and hasattr(context.component, "name")
+                        else "Unknown",
+                        description=context.component.description
+                        if hasattr(context, "component")
+                        and hasattr(context.component, "description")
+                        else None,
+                        parameters=parameters,
+                        bound_process_groups=bound_groups if bound_groups else None,
+                        inherited_parameter_contexts=inherited_contexts
+                        if inherited_contexts
+                        else None,
+                        component_revision=context.revision.to_dict()
+                        if hasattr(context, "revision")
+                        and hasattr(context.revision, "to_dict")
+                        else None,
+                        permissions=context.permissions.to_dict()
+                        if hasattr(context, "permissions")
+                        and hasattr(context.permissions, "to_dict")
+                        else None,
+                    )
+                    contexts_list.append(context_data)
 
         return ParameterContextListResponse(
             status="success",

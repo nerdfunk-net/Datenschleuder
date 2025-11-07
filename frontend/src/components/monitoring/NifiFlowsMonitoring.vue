@@ -18,6 +18,15 @@
     <div v-if="!loading && !error && flows.length > 0" class="flows-container">
       <!-- Action Bar -->
       <div class="action-bar mb-4">
+        <div class="filter-section">
+          <input
+            type="text"
+            class="form-control filter-input"
+            v-model="searchFilter"
+            placeholder="Filter by flow name..."
+            @input="highlightedFlowId = null"
+          />
+        </div>
         <button 
           class="btn btn-primary"
           @click="showCheckAllModal = true"
@@ -66,54 +75,125 @@
 
       <!-- Flow Widgets Grid -->
       <div class="flows-grid">
-        <div 
-          v-for="flow in flows" 
-          :key="flow.id"
-          class="flow-widget"
-          :class="getStatusClass(flow)"
-          @click="viewFlowDetails(flow)"
-        >
-          <div class="flow-widget-header">
-            <div class="flow-widget-title">{{ getFlowDisplayName(flow) }}</div>
-            <div class="flow-widget-actions">
-              <button 
-                class="btn-info-icon"
-                @click.stop="viewProcessGroupDetails(flow)"
-                :disabled="!flowStatuses[flow.id]"
-                title="View details"
-              >
-                <i class="pe-7s-info"></i>
-              </button>
-              <div class="flow-widget-status-icon">
-                <i v-if="getFlowStatus(flow) === 'healthy'" class="pe-7s-check"></i>
-                <i v-else-if="getFlowStatus(flow) === 'unhealthy'" class="pe-7s-close"></i>
-                <i v-else-if="getFlowStatus(flow) === 'warning'" class="pe-7s-attention"></i>
-                <i v-else class="pe-7s-help1"></i>
+        <template v-for="flow in filteredFlows" :key="flow.id">
+          <!-- Source Widget -->
+          <div 
+            class="flow-widget"
+            :class="[
+              getStatusClass(flow, 'source'),
+              { 'highlighted': highlightedFlowId === flow.id }
+            ]"
+            @click="handleFlowClick(flow, 'source')"
+          >
+            <div class="flow-widget-header">
+              <div class="flow-widget-title-container">
+                <span class="flow-type-badge source-badge">Source</span>
+                <div class="flow-widget-title">{{ getFlowDisplayName(flow, 'source') }}</div>
+              </div>
+              <div class="flow-widget-actions">
+                <button 
+                  class="btn-info-icon"
+                  @click.stop="viewProcessGroupDetails(flow, 'source')"
+                  :disabled="!getFlowItemStatus(flow, 'source')"
+                  title="View details"
+                >
+                  <i class="pe-7s-info"></i>
+                </button>
+                <div class="flow-widget-status-icon">
+                  <i v-if="getFlowStatus(flow, 'source') === 'healthy'" class="pe-7s-check"></i>
+                  <i v-else-if="getFlowStatus(flow, 'source') === 'unhealthy'" class="pe-7s-close"></i>
+                  <i v-else-if="getFlowStatus(flow, 'source') === 'warning'" class="pe-7s-attention"></i>
+                  <i v-else class="pe-7s-help1"></i>
+                </div>
               </div>
             </div>
+            <div class="flow-widget-body">
+              <div class="flow-widget-info">
+                <span class="info-label">Flow ID:</span>
+                <span class="info-value">#{{ flow.id }}</span>
+              </div>
+              <div class="flow-widget-info">
+                <span class="info-label">Registry:</span>
+                <span class="info-value">{{ flow.registry_name }}</span>
+              </div>
+              <div class="flow-widget-info">
+                <span class="info-label">Version:</span>
+                <span class="info-value">v{{ flow.version }}</span>
+              </div>
+              <div class="flow-widget-info" v-if="flow.src_connection_param">
+                <span class="info-label">Connection:</span>
+                <span class="info-value">{{ flow.src_connection_param }}</span>
+              </div>
+            </div>
+            <div class="flow-widget-footer">
+              <span 
+                class="status-text clickable"
+                @click="handleStatusClick(flow, 'source', $event)"
+              >
+                {{ getStatusText(flow, 'source') }}
+              </span>
+            </div>
           </div>
-          <div class="flow-widget-body">
-            <div class="flow-widget-info">
-              <span class="info-label">Registry:</span>
-              <span class="info-value">{{ flow.registry_name }}</span>
+
+          <!-- Destination Widget -->
+          <div 
+            class="flow-widget"
+            :class="[
+              getStatusClass(flow, 'destination'),
+              { 'highlighted': highlightedFlowId === flow.id }
+            ]"
+            @click="handleFlowClick(flow, 'destination')"
+          >
+            <div class="flow-widget-header">
+              <div class="flow-widget-title-container">
+                <span class="flow-type-badge dest-badge">Destination</span>
+                <div class="flow-widget-title">{{ getFlowDisplayName(flow, 'destination') }}</div>
+              </div>
+              <div class="flow-widget-actions">
+                <button 
+                  class="btn-info-icon"
+                  @click.stop="viewProcessGroupDetails(flow, 'destination')"
+                  :disabled="!getFlowItemStatus(flow, 'destination')"
+                  title="View details"
+                >
+                  <i class="pe-7s-info"></i>
+                </button>
+                <div class="flow-widget-status-icon">
+                  <i v-if="getFlowStatus(flow, 'destination') === 'healthy'" class="pe-7s-check"></i>
+                  <i v-else-if="getFlowStatus(flow, 'destination') === 'unhealthy'" class="pe-7s-close"></i>
+                  <i v-else-if="getFlowStatus(flow, 'destination') === 'warning'" class="pe-7s-attention"></i>
+                  <i v-else class="pe-7s-help1"></i>
+                </div>
+              </div>
             </div>
-            <div class="flow-widget-info">
-              <span class="info-label">Version:</span>
-              <span class="info-value">v{{ flow.version }}</span>
+            <div class="flow-widget-body">
+              <div class="flow-widget-info">
+                <span class="info-label">Flow ID:</span>
+                <span class="info-value">#{{ flow.id }}</span>
+              </div>
+              <div class="flow-widget-info">
+                <span class="info-label">Registry:</span>
+                <span class="info-value">{{ flow.registry_name }}</span>
+              </div>
+              <div class="flow-widget-info">
+                <span class="info-label">Version:</span>
+                <span class="info-value">v{{ flow.version }}</span>
+              </div>
+              <div class="flow-widget-info" v-if="flow.dest_connection_param">
+                <span class="info-label">Connection:</span>
+                <span class="info-value">{{ flow.dest_connection_param }}</span>
+              </div>
             </div>
-            <div class="flow-widget-info" v-if="flow.src_connection_param">
-              <span class="info-label">Source:</span>
-              <span class="info-value">{{ flow.src_connection_param }}</span>
-            </div>
-            <div class="flow-widget-info" v-if="flow.dest_connection_param">
-              <span class="info-label">Dest:</span>
-              <span class="info-value">{{ flow.dest_connection_param }}</span>
+            <div class="flow-widget-footer">
+              <span 
+                class="status-text clickable"
+                @click="handleStatusClick(flow, 'destination', $event)"
+              >
+                {{ getStatusText(flow, 'destination') }}
+              </span>
             </div>
           </div>
-          <div class="flow-widget-footer">
-            <span class="status-text">{{ getStatusText(flow) }}</span>
-          </div>
-        </div>
+        </template>
       </div>
     </div>
 
@@ -128,7 +208,10 @@
         <div class="modal-content modern-modal">
           <div class="modal-header gradient-header">
             <h5 class="modal-title text-white">
-              <i class="pe-7s-network"></i> Flow Details: {{ getFlowDisplayName(selectedFlow) }}
+              <i class="pe-7s-network"></i> Flow Details: {{ getFlowDisplayName(selectedFlow, selectedFlowType || 'destination') }}
+              <span class="flow-type-badge-modal" :class="selectedFlowType === 'source' ? 'source-badge' : 'dest-badge'">
+                {{ selectedFlowType === 'source' ? 'Source' : 'Destination' }}
+              </span>
             </h5>
             <button
               type="button"
@@ -168,12 +251,12 @@
                     <span 
                       class="badge"
                       :class="{
-                        'bg-success': getFlowStatus(selectedFlow) === 'healthy',
-                        'bg-danger': getFlowStatus(selectedFlow) === 'unhealthy',
-                        'bg-secondary': getFlowStatus(selectedFlow) === 'unknown'
+                        'bg-success': getFlowStatus(selectedFlow, selectedFlowType || 'destination') === 'healthy',
+                        'bg-danger': getFlowStatus(selectedFlow, selectedFlowType || 'destination') === 'unhealthy',
+                        'bg-secondary': getFlowStatus(selectedFlow, selectedFlowType || 'destination') === 'unknown'
                       }"
                     >
-                      {{ getStatusText(selectedFlow) }}
+                      {{ getStatusText(selectedFlow, selectedFlowType || 'destination') }}
                     </span>
                   </span>
                 </div>
@@ -307,7 +390,7 @@
             <!-- Status Summary -->
             <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed">
               <h6 class="section-title">
-                <i class="pe-7s-graph2"></i> Status Summary
+                <i class="pe-7s-graph2"></i> Processor Status
               </h6>
               <div class="row g-3">
                 <div class="col-md-3">
@@ -337,46 +420,190 @@
               </div>
             </div>
 
+            <!-- Ports Summary -->
+            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed">
+              <h6 class="section-title">
+                <i class="pe-7s-share"></i> Ports
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <div class="metric-card">
+                    <div class="metric-label">Input Ports</div>
+                    <div class="metric-value">{{ selectedPGData.data?.input_port_count || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="metric-card">
+                    <div class="metric-label">Output Ports</div>
+                    <div class="metric-value">{{ selectedPGData.data?.output_port_count || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="metric-card">
+                    <div class="metric-label">Local Input</div>
+                    <div class="metric-value">{{ selectedPGData.data?.local_input_port_count || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="metric-card">
+                    <div class="metric-label">Local Output</div>
+                    <div class="metric-value">{{ selectedPGData.data?.local_output_port_count || 0 }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Aggregate Snapshot -->
             <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
               <h6 class="section-title">
-                <i class="pe-7s-graph1"></i> Flow Metrics
+                <i class="pe-7s-graph1"></i> Performance Metrics
               </h6>
               <div class="row g-3">
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Queued</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.queued }}</div>
+                    <div class="metric-label">Active Threads</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.active_thread_count || 0 }}</div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
+                    <div class="metric-label">Queued FlowFiles</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_queued || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Queued (5 min)</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.queued || '0' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Throughput -->
+            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
+              <h6 class="section-title">
+                <i class="pe-7s-graph2"></i> Throughput (5 min average)
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="metric-card">
                     <div class="metric-label">Input</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.input }}</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.input || '0' }}</div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
                     <div class="metric-label">Output</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.output }}</div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="metric-card">
-                    <div class="metric-label">Active Threads</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.active_thread_count }}</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.output || '0' }}</div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
                     <div class="metric-label">Read</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.read }}</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.read || '0' }}</div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
                     <div class="metric-label">Written</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.written }}</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.written || '0' }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Transferred</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.transferred || '0' }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Received</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.received || '0' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Data Volumes -->
+            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
+              <h6 class="section-title">
+                <i class="pe-7s-server"></i> Data Volumes
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Bytes In</div>
+                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_in) }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Bytes Out</div>
+                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_out) }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Bytes Queued</div>
+                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_queued) }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Bytes Read</div>
+                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_read) }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Bytes Written</div>
+                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_written) }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">Bytes Transferred</div>
+                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_transferred) }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FlowFile Counts -->
+            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
+              <h6 class="section-title">
+                <i class="pe-7s-albums"></i> FlowFile Statistics
+              </h6>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">FlowFiles In</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_in || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">FlowFiles Out</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_out || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">FlowFiles Transferred</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_transferred || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">FlowFiles Received</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_received || 0 }}</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="metric-card">
+                    <div class="metric-label">FlowFiles Sent</div>
+                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_sent || 0 }}</div>
                   </div>
                 </div>
               </div>
@@ -464,9 +691,15 @@ const checking = ref(false);
 const instances = ref<NiFiInstance[]>([]);
 const loadingInstances = ref(false);
 const selectedPGData = ref<ProcessGroupStatus | null>(null);
+const selectedFlowType = ref<'source' | 'destination' | null>(null);
 
-// Flow statuses now store real status data
-const flowStatuses = ref<Record<number, ProcessGroupStatus>>({});
+// Flow statuses now store source and destination separately
+// Key format: "flowId_source" or "flowId_destination"
+const flowStatuses = ref<Record<string, ProcessGroupStatus>>({});
+
+// Filter and highlight
+const searchFilter = ref<string>('');
+const highlightedFlowId = ref<number | null>(null);
 
 onMounted(async () => {
   await loadFlows();
@@ -543,8 +776,6 @@ const checkAllFlows = async (instanceId: number) => {
       pathToIdMap.set(pathString, pg.id);
     });
     
-    console.log('Path to ID mapping:', Object.fromEntries(pathToIdMap));
-    
     // Step 3: Check deployment paths for this instance
     const instanceDeploymentPath = deploymentPaths[instanceId.toString()];
     if (!instanceDeploymentPath) {
@@ -552,80 +783,100 @@ const checkAllFlows = async (instanceId: number) => {
       return;
     }
     
-    const destBasePath = instanceDeploymentPath.dest_path.path; // e.g., "NiFi Flow/To net1"
-    
-    // Step 4: Check each flow
+    // Step 4: Check each flow - both source AND destination
     for (const flow of flows.value) {
-      try {
-        // Build expected path for this flow
-        // Path format: {dest_base_path}/{dest_hierarchy_values}
-        // Example: "NiFi Flow/To net1/o1/ou1/srvlx007"
-        
-        const hierarchyParts: string[] = [];
-        
-        // Add hierarchy values in order (o, ou, cn, etc.)
-        for (const hierarchyAttr of hierarchyConfig) {
-          const attrKey = `dest_${hierarchyAttr.name.replace('datenschleuder_', '')}`;
-          const attrValue = flow[attrKey];
-          if (attrValue) {
-            hierarchyParts.push(attrValue);
-          }
-        }
-        
-        // Build full expected path
-        const expectedPath = `${destBasePath}/${hierarchyParts.join('/')}`;
-        console.log(`Flow ${flow.id} (${flow.name}): Expected path = "${expectedPath}"`);
-        
-        // Find matching process group ID
-        const processGroupId = pathToIdMap.get(expectedPath);
-        
-        if (!processGroupId) {
-          // Flow not deployed
-          flowStatuses.value[flow.id] = {
-            status: 'not_deployed',
-            instance_id: instanceId,
-            process_group_id: '',
-            detail: 'not_deployed',
-            data: {
-              not_deployed: true,
-              message: 'Flow not found / Not deployed',
-              expected_path: expectedPath
-            }
-          } as ProcessGroupStatus;
-          console.warn(`Flow ${flow.id} not found at expected path: ${expectedPath}`);
-          continue;
-        }
-        
-        // Get the process group status using the ID
-        const response = await apiRequest<ProcessGroupStatus>(
-          `/api/nifi-instances/${instanceId}/process-group/${processGroupId}/status`
-        );
-        
-        flowStatuses.value[flow.id] = response;
-      } catch (err: any) {
-        // Handle errors
-        if (err.status === 404 || err.message?.includes('404')) {
-          flowStatuses.value[flow.id] = {
-            status: 'not_deployed',
-            instance_id: instanceId,
-            process_group_id: '',
-            detail: 'not_deployed',
-            data: {
-              not_deployed: true,
-              message: 'Flow not found / Not deployed'
-            }
-          } as ProcessGroupStatus;
-          console.warn(`Flow ${flow.id} not found in NiFi instance ${instanceId}`);
-        } else {
-          console.error(`Failed to check flow ${flow.id}:`, err);
-        }
-      }
+      // Check SOURCE
+      await checkFlowPart(flow, 'source', instanceId, instanceDeploymentPath.source_path.path, hierarchyConfig, pathToIdMap);
+      
+      // Check DESTINATION
+      await checkFlowPart(flow, 'destination', instanceId, instanceDeploymentPath.dest_path.path, hierarchyConfig, pathToIdMap);
     }
   } catch (err: any) {
     console.error('Failed to check flows:', err);
     error.value = `Failed to check flows: ${err.message || 'Unknown error'}`;
   } finally {
     checking.value = false;
+  }
+};
+
+const checkFlowPart = async (
+  flow: Flow,
+  flowType: 'source' | 'destination',
+  instanceId: number,
+  basePath: string,
+  hierarchyConfig: Array<{ name: string; order: number }>,
+  pathToIdMap: Map<string, string>
+) => {
+  try {
+    // Build expected path for this flow part
+    const prefix = flowType === 'source' ? 'src_' : 'dest_';
+    const hierarchyParts: string[] = [];
+    
+    // Add hierarchy values in order (o, ou, cn, etc.)
+    // SKIP the first level (dc) as it's already in the deployment path
+    for (let i = 1; i < hierarchyConfig.length; i++) {
+      const hierarchyAttr = hierarchyConfig[i];
+      // The attribute key in the flow object includes the full hierarchy name
+      // e.g., "src_datenschleuder_dc", "dest_datenschleuder_o"
+      const attrKey = `${prefix}${hierarchyAttr.name}`;
+      const attrValue = flow[attrKey];
+      if (attrValue) {
+        hierarchyParts.push(attrValue);
+      }
+    }
+    
+    // Build full expected path - only add slash and hierarchy if we have parts
+    let expectedPath = basePath;
+    if (hierarchyParts.length > 0) {
+      expectedPath = `${basePath}/${hierarchyParts.join('/')}`;
+    }
+    
+    // Find matching process group ID
+    const processGroupId = pathToIdMap.get(expectedPath);
+    
+    const flowKey = getFlowItemKey(flow.id, flowType);
+    
+    if (!processGroupId) {
+      // Flow not deployed
+      flowStatuses.value[flowKey] = {
+        status: 'not_deployed',
+        instance_id: instanceId,
+        process_group_id: '',
+        detail: 'not_deployed',
+        data: {
+          not_deployed: true,
+          message: 'Flow not found / Not deployed',
+          expected_path: expectedPath
+        }
+      } as ProcessGroupStatus;
+      console.warn(`Flow ${flow.id} ${flowType} not found at expected path: ${expectedPath}`);
+      return;
+    }
+    
+    // Get the process group status using the ID
+    const response = await apiRequest<ProcessGroupStatus>(
+      `/api/nifi-instances/${instanceId}/process-group/${processGroupId}/status`
+    );
+    
+    flowStatuses.value[flowKey] = response;
+  } catch (err: any) {
+    // Handle errors
+    const flowKey = getFlowItemKey(flow.id, flowType);
+    if (err.status === 404 || err.message?.includes('404')) {
+      flowStatuses.value[flowKey] = {
+        status: 'not_deployed',
+        instance_id: instanceId,
+        process_group_id: '',
+        detail: 'not_deployed',
+        data: {
+          not_deployed: true,
+          message: 'Flow not found / Not deployed'
+        }
+      } as ProcessGroupStatus;
+      console.warn(`Flow ${flow.id} ${flowType} not found in NiFi instance ${instanceId}`);
+    } else {
+      console.error(`Failed to check flow ${flow.id} ${flowType}:`, err);
+    }
   }
 };
 
@@ -660,6 +911,37 @@ const determineFlowStatus = (statusData: ProcessGroupStatus): 'healthy' | 'unhea
 };
 
 // Computed properties
+const filteredFlows = computed(() => {
+  if (!searchFilter.value.trim()) {
+    return flows.value;
+  }
+  
+  const search = searchFilter.value.toLowerCase();
+  return flows.value.filter(flow => {
+    // Check flow name
+    const flowName = (flow.name || '').toLowerCase();
+    if (flowName.includes(search)) {
+      return true;
+    }
+    
+    // Check all hierarchy attributes (src_ and dest_)
+    for (const key in flow) {
+      if ((key.startsWith('src_') || key.startsWith('dest_')) && 
+          key !== 'src_connection_param' && 
+          key !== 'dest_connection_param' &&
+          key !== 'src_template_id' && 
+          key !== 'dest_template_id') {
+        const value = String(flow[key] || '').toLowerCase();
+        if (value.includes(search)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  });
+});
+
 const healthyFlowsCount = computed(() => {
   return Object.values(flowStatuses.value).filter(status => 
     determineFlowStatus(status) === 'healthy'
@@ -673,11 +955,21 @@ const unhealthyFlowsCount = computed(() => {
 });
 
 const unknownStatusFlowsCount = computed(() => {
-  return flows.value.length - Object.keys(flowStatuses.value).length;
+  // Total items = flows * 2 (source + destination)
+  const totalItems = flows.value.length * 2;
+  return totalItems - Object.keys(flowStatuses.value).length;
 });
 
 // Helper functions
-const getFlowDisplayName = (flow: Flow): string => {
+const getFlowItemKey = (flowId: number, flowType: 'source' | 'destination'): string => {
+  return `${flowId}_${flowType}`;
+};
+
+const getFlowItemStatus = (flow: Flow, flowType: 'source' | 'destination'): ProcessGroupStatus | undefined => {
+  return flowStatuses.value[getFlowItemKey(flow.id, flowType)];
+};
+
+const getFlowDisplayName = (flow: Flow, flowType: 'source' | 'destination'): string => {
   // Safety check
   if (!flow) {
     return 'Unnamed Flow';
@@ -686,61 +978,41 @@ const getFlowDisplayName = (flow: Flow): string => {
   // Get flow name from database (the 'name' field)
   const flowName = flow.name || 'Unnamed';
   
-  // Build shortened path display: flow_name → path_last_part/hierarchy_parts
-  // Example: "flow_srvlx007 → To net1/ou1/srvlx007"
+  // Get hierarchy prefix based on flow type
+  const prefix = flowType === 'source' ? 'src_' : 'dest_';
   
-  // Get destination hierarchy values
+  // Build path display from hierarchy values
   const hierarchyParts: string[] = [];
-  const destHierarchyKeys = Object.keys(flow)
-    .filter(key => key.startsWith('dest_') && 
-            key !== 'dest_connection_param' && 
-            key !== 'dest_template_id')
+  const hierarchyKeys = Object.keys(flow)
+    .filter(key => key.startsWith(prefix) && 
+            key !== `${prefix}connection_param` && 
+            key !== `${prefix}template_id`)
     .sort();
   
-  for (const key of destHierarchyKeys) {
+  for (const key of hierarchyKeys) {
     const value = flow[key];
     if (value) {
       hierarchyParts.push(value);
     }
   }
   
-  // If we have hierarchy parts, show shortened format
+  // Build display name
   if (hierarchyParts.length > 0) {
-    // Extract last part of deployment path (e.g., "To net1" from "NiFi Flow/To net1")
-    // We'll get this from the status data if available, otherwise just show hierarchy
-    const statusData = flowStatuses.value[flow.id];
-    let pathDisplay = '';
-    
-    if (statusData?.data?.expected_path) {
-      // Extract deployment direction from expected path
-      // e.g., "NiFi Flow/To net1/o1/ou1/srvlx007" -> "To net1"
-      const pathParts = statusData.data.expected_path.split('/');
-      if (pathParts.length >= 2) {
-        pathDisplay = pathParts[1]; // Get "To net1" part
-      }
-    }
-    
-    // Build display: "flow_name → PathPart/hierarchy"
-    const hierarchyDisplay = hierarchyParts.join('/');
-    if (pathDisplay) {
-      return `${flowName} → ${pathDisplay}/${hierarchyDisplay}`;
-    } else {
-      return `${flowName} → ${hierarchyDisplay}`;
-    }
+    return `${flowName} / ${hierarchyParts.join('/')}`;
   }
   
   // Fallback to just flow name
   return flowName;
 };
 
-const getFlowStatus = (flow: Flow): 'healthy' | 'unhealthy' | 'warning' | 'unknown' => {
-  const statusData = flowStatuses.value[flow.id];
+const getFlowStatus = (flow: Flow, flowType: 'source' | 'destination'): 'healthy' | 'unhealthy' | 'warning' | 'unknown' => {
+  const statusData = getFlowItemStatus(flow, flowType);
   if (!statusData) return 'unknown';
   return determineFlowStatus(statusData);
 };
 
-const getStatusClass = (flow: Flow): string => {
-  const status = getFlowStatus(flow);
+const getStatusClass = (flow: Flow, flowType: 'source' | 'destination'): string => {
+  const status = getFlowStatus(flow, flowType);
   switch (status) {
     case 'healthy':
       return 'status-healthy';
@@ -753,15 +1025,15 @@ const getStatusClass = (flow: Flow): string => {
   }
 };
 
-const getStatusText = (flow: Flow): string => {
-  const statusData = flowStatuses.value[flow.id];
+const getStatusText = (flow: Flow, flowType: 'source' | 'destination'): string => {
+  const statusData = getFlowItemStatus(flow, flowType);
   
   // Check for not deployed status
   if (statusData?.data?.not_deployed) {
     return 'Not Deployed';
   }
   
-  const status = getFlowStatus(flow);
+  const status = getFlowStatus(flow, flowType);
   switch (status) {
     case 'healthy':
       return 'Healthy';
@@ -774,23 +1046,52 @@ const getStatusText = (flow: Flow): string => {
   }
 };
 
-const viewFlowDetails = (flow: Flow) => {
+const viewFlowDetails = (flow: Flow, flowType: 'source' | 'destination') => {
   selectedFlow.value = flow;
+  selectedFlowType.value = flowType;
   showDetailsModal.value = true;
 };
 
-const viewProcessGroupDetails = (flow: Flow) => {
-  const statusData = flowStatuses.value[flow.id];
+const viewProcessGroupDetails = (flow: Flow, flowType: 'source' | 'destination') => {
+  const statusData = getFlowItemStatus(flow, flowType);
   if (statusData) {
     selectedPGData.value = statusData;
+    selectedFlowType.value = flowType;
     showPGDetailsModal.value = true;
   }
+};
+
+const handleFlowClick = (flow: Flow, flowType: 'source' | 'destination') => {
+  // Toggle highlight: if already highlighted, remove it; otherwise highlight this flow
+  if (highlightedFlowId.value === flow.id) {
+    highlightedFlowId.value = null;
+  } else {
+    highlightedFlowId.value = flow.id;
+  }
+};
+
+const handleStatusClick = (flow: Flow, flowType: 'source' | 'destination', event: MouseEvent) => {
+  // Stop propagation to prevent card click handler
+  event.stopPropagation();
+  
+  // Open the process group details modal (NiFi status data)
+  viewProcessGroupDetails(flow, flowType);
 };
 
 const formatDateLong = (dateString: string): string => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleString();
+};
+
+const formatBytes = (bytes: number | undefined): string => {
+  if (bytes === undefined || bytes === null || bytes === 0) return '0 B';
+  
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 </script>
 
@@ -801,8 +1102,27 @@ const formatDateLong = (dateString: string): string => {
 
 .action-bar {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  
+  .filter-section {
+    flex: 1;
+    max-width: 400px;
+  }
+  
+  .filter-input {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+    
+    &:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+      outline: none;
+    }
+  }
   
   .btn {
     display: flex;
@@ -893,6 +1213,12 @@ const formatDateLong = (dateString: string): string => {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
+  &.highlighted {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
+    transform: scale(1.02);
+    z-index: 10;
+  }
+  
   &.status-unknown {
     background-color: #e9ecef;
     border: 1px solid #dee2e6;
@@ -937,6 +1263,43 @@ const formatDateLong = (dateString: string): string => {
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.flow-widget-title-container {
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+.flow-type-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.source-badge {
+  background-color: #3498db;
+  color: white;
+}
+
+.dest-badge {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.flow-type-badge-modal {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  margin-left: 0.5rem;
 }
 
 .flow-widget-actions {
@@ -1017,6 +1380,20 @@ const formatDateLong = (dateString: string): string => {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: #495057;
+    
+    &.clickable {
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      display: inline-block;
+      
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: #667eea;
+        transform: scale(1.05);
+      }
+    }
   }
 }
 

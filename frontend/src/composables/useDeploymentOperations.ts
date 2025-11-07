@@ -1,0 +1,324 @@
+import { ref } from 'vue'
+import * as deploymentService from '@/services/deploymentService'
+import * as processGroupUtils from '@/utils/processGroupUtils'
+import * as flowUtils from '@/utils/flowUtils'
+import type {
+  Flow,
+  HierarchyAttribute,
+  DeploymentConfig,
+  DeploymentSettings,
+  ProcessGroupPath
+} from './useDeploymentWizard'
+
+/**
+ * Composable for deployment operations (preparing configs, deploying flows)
+ */
+export function useDeploymentOperations(
+  selectedFlows: any,
+  deploymentTargets: any,
+  hierarchyConfig: any,
+  nifiInstances: any,
+  registryFlows: any,
+  processGroupPaths: any,
+  deploymentSettings: any,
+  deploymentConfigs: any,
+  isLoadingPaths: any,
+  isDeploying: any,
+  conflictInfo: any,
+  currentConflictDeployment: any,
+  showConflictModal: any,
+  deploymentResults: any,
+  showResultsModal: any
+) {
+  /**
+   * Prepare deployment configurations for selected flows
+   */
+  const prepareDeploymentConfigs = async (flows: Flow[]) => {
+    deploymentConfigs.value = []
+    isLoadingPaths.value = true
+
+    try {
+      // Build deployment configs based on selected flows and targets
+      for (const flowId of selectedFlows.value) {
+        const flow = flows.find((f: Flow) => f.id === flowId)
+        if (!flow) continue
+
+        const target = deploymentTargets.value[flowId]
+        const flowName = flowUtils.getFlowName(flow, hierarchyConfig.value)
+
+        // Process source deployment
+        if (target === 'source' || target === 'both') {
+          await createDeploymentConfig(flow, flowName, 'source', flows)
+        }
+
+        // Process destination deployment
+        if (target === 'destination' || target === 'both') {
+          await createDeploymentConfig(flow, flowName, 'destination', flows)
+        }
+      }
+    } catch (error) {
+      console.error('Error preparing deployment configs:', error)
+    } finally {
+      isLoadingPaths.value = false
+    }
+  }
+
+  /**
+   * Create a single deployment configuration
+   */
+  const createDeploymentConfig = async (
+    flow: Flow,
+    flowName: string,
+    target: 'source' | 'destination',
+    flows: Flow[]
+  ) => {
+    const hierarchyValue = flowUtils.getTopHierarchyValue(
+      flow,
+      target,
+      hierarchyConfig.value
+    )
+
+    const instanceId = await flowUtils.getInstanceIdForHierarchyValue(
+      hierarchyValue,
+      hierarchyConfig.value[0]?.name || 'DC',
+      nifiInstances.value
+    )
+
+    const templateId = target === 'source' ? flow.src_template_id : flow.dest_template_id
+    const templateName = flowUtils.getTemplateName(templateId, registryFlows.value)
+
+    const config: DeploymentConfig = {
+      key: `${flow.id}-${target}`,
+      flowId: flow.id,
+      flowName,
+      target,
+      hierarchyValue,
+      instanceId,
+      availablePaths: [],
+      selectedProcessGroupId: '',
+      suggestedPath: processGroupUtils.getSuggestedPath(flow, target, hierarchyConfig.value),
+      templateId,
+      templateName,
+      processGroupName: processGroupUtils.generateProcessGroupName(
+        flow,
+        target,
+        hierarchyConfig.value,
+        deploymentSettings.value?.global?.process_group_name_template || '{last_hierarchy_value}'
+      )
+    }
+
+    // Load paths for this instance
+    if (instanceId) {
+      const cacheKey = hierarchyValue
+      const rawPaths = await loadProcessGroupPaths(instanceId, cacheKey)
+      config.availablePaths = rawPaths
+
+      // Auto-select process group based on deployment settings
+      const selectedPgId = processGroupUtils.autoSelectProcessGroup(
+        flow,
+        target,
+        instanceId,
+        processGroupPaths.value[cacheKey] || [],
+        deploymentSettings.value,
+        hierarchyConfig.value
+      )
+      if (selectedPgId) {
+        config.selectedProcessGroupId = selectedPgId
+      }
+    }
+
+    deploymentConfigs.value.push(config)
+  }
+
+  /**
+   * Load process group paths with caching
+   */
+  const loadProcessGroupPaths = async (
+    instanceId: number,
+    cacheKey: string
+  ): Promise<Array<{ id: string; pathDisplay: string }>> => {
+    // Check cache first
+    if (processGroupPaths.value[cacheKey]) {
+      return processGroupUtils.formatPathsForDisplay(processGroupPaths.value[cacheKey])
+    }
+
+    try {
+      const data = await deploymentService.loadProcessGroupPaths(instanceId)
+
+      if (data.status === 'success' && data.process_groups) {
+        processGroupPaths.value[cacheKey] = data.process_groups
+        return processGroupUtils.formatPathsForDisplay(data.process_groups)
+      }
+
+      return []
+    } catch (error) {
+      console.error('Error loading process group paths:', error)
+      return processGroupUtils.getMockPaths()
+    }
+  }
+
+  /**
+   * Deploy all configured flows
+   */
+  const deployFlows = async () => {
+    isDeploying.value = true
+
+    try {
+      console.log('Deploying flows with configs:', deploymentConfigs.value)
+
+      const results = []
+      let successCount = 0
+      let failCount = 0
+
+      // Deploy each configuration
+      for (const config of deploymentConfigs.value) {
+        try {
+          console.log(
+            `Deploying ${config.flowName} to ${config.target} (${config.hierarchyValue})...`
+          )
+
+          if (!config.instanceId) {
+            throw new Error(`No NiFi instance found for ${config.hierarchyValue}`)
+          }
+
+          if (!config.selectedProcessGroupId) {
+            throw new Error('No process group selected')
+          }
+
+          // Calculate hierarchy attribute
+          const instanceKey = `${config.target}_${config.instanceId}`
+          const hierarchyAttribute = processGroupUtils.getHierarchyAttributeForProcessGroup(
+            config.selectedProcessGroupId,
+            instanceKey,
+            config.instanceId,
+            config.target,
+            processGroupPaths.value,
+            deploymentSettings.value,
+            hierarchyConfig.value
+          )
+
+          // Build deployment request
+          const deploymentRequest = deploymentService.buildDeploymentRequest(
+            config,
+            deploymentSettings.value,
+            hierarchyAttribute || undefined
+          )
+
+          console.log('Deployment request:', deploymentRequest)
+
+          // Call deployment API
+          try {
+            const result = await deploymentService.deployFlow(
+              config.instanceId,
+              deploymentRequest
+            )
+
+            console.log('Deployment result:', result)
+
+            if (result.status === 'success') {
+              successCount++
+              results.push({
+                config,
+                success: true,
+                message: result.message,
+                processGroupId: result.process_group_id,
+                processGroupName: result.process_group_name
+              })
+            } else {
+              failCount++
+              results.push({
+                config,
+                success: false,
+                message: result.message || 'Deployment failed'
+              })
+            }
+          } catch (apiError: any) {
+            // Check if it's a 409 Conflict (process group already exists)
+            if (apiError.status === 409 && apiError.detail) {
+              console.log('Conflict detected:', apiError.detail)
+
+              // Store conflict info and current deployment config
+              conflictInfo.value = apiError.detail
+              currentConflictDeployment.value = { config, deploymentRequest }
+
+              // Show conflict modal and wait for user decision
+              showConflictModal.value = true
+              isDeploying.value = false
+
+              // Stop the deployment loop
+              return
+            }
+
+            // For other errors, add to results
+            throw apiError
+          }
+        } catch (error: any) {
+          failCount++
+          console.error(`Deployment failed for ${config.flowName}:`, error)
+
+          const errorMessage = extractErrorMessage(error)
+
+          results.push({
+            config,
+            success: false,
+            message: errorMessage
+          })
+        }
+      }
+
+      // Update deployment results
+      deploymentResults.value = {
+        successCount,
+        failCount,
+        total: deploymentConfigs.value.length,
+        successful: results.filter((r) => r.success),
+        failed: results.filter((r) => !r.success)
+      }
+
+      // Show results modal
+      showResultsModal.value = true
+    } catch (error) {
+      console.error('Deployment process failed:', error)
+      alert('Deployment process failed. Check console for details.')
+    } finally {
+      isDeploying.value = false
+    }
+  }
+
+  /**
+   * Extract error message from various error structures
+   */
+  const extractErrorMessage = (error: any): string => {
+    if (!error) return 'Unknown error'
+    if (typeof error === 'string') return error
+
+    // Check common error message paths
+    if (error.detail?.message) return error.detail.message
+    if (error.detail?.error) return error.detail.error
+    if (error.message) return error.message
+    if (error.error) return error.error
+    if (error.statusText) return error.statusText
+
+    // If detail is an object, try to stringify it nicely
+    if (error.detail && typeof error.detail === 'object') {
+      try {
+        return JSON.stringify(error.detail, null, 2)
+      } catch {
+        return 'Complex error - see console'
+      }
+    }
+
+    // Last resort
+    try {
+      return JSON.stringify(error, null, 2)
+    } catch {
+      return 'Error converting error to string'
+    }
+  }
+
+  return {
+    prepareDeploymentConfigs,
+    deployFlows,
+    loadProcessGroupPaths
+  }
+}

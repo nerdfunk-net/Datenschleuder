@@ -508,6 +508,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useDeploymentWizard } from "@/composables/useDeploymentWizard";
+import { useDeploymentOperations } from "@/composables/useDeploymentOperations";
 import * as deploymentService from "@/services/deploymentService";
 import * as processGroupUtils from "@/utils/processGroupUtils";
 import * as flowUtils from "@/utils/flowUtils";
@@ -554,6 +555,26 @@ const {
   setDeploymentTarget,
 } = useDeploymentWizard();
 
+// Use deployment operations composable
+const { prepareDeploymentConfigs, deployFlows, loadProcessGroupPaths } =
+  useDeploymentOperations(
+    selectedFlows,
+    deploymentTargets,
+    hierarchyConfig,
+    nifiInstances,
+    registryFlows,
+    processGroupPaths,
+    deploymentSettings,
+    deploymentConfigs,
+    isLoadingPaths,
+    isDeploying,
+    conflictInfo,
+    currentConflictDeployment,
+    showConflictModal,
+    deploymentResults,
+    showResultsModal
+  );
+
 // Wrapper methods that use utilities
 const getFlowName = (flow: Flow) => {
   return flowUtils.getFlowName(flow, hierarchyConfig.value);
@@ -566,169 +587,18 @@ const getTopHierarchyValue = (flow: Flow, side: "source" | "destination") => {
 const goToNextStep = async () => {
   if (currentStep.value === 1) {
     // Moving to step 3: prepare deployment configs and load process groups
-    await prepareDeploymentConfigs();
+    await prepareDeploymentConfigs(flows.value);
   }
-  currentStep.value++;
+  wizardGoToNextStep();
 };
 
-const goToPreviousStep = () => {
-  currentStep.value--;
-};
-
-const prepareDeploymentConfigs = async () => {
-  deploymentConfigs.value = [];
-  isLoadingPaths.value = true;
-
-  try {
-    // Build deployment configs based on selected flows and targets
-    for (const flowId of selectedFlows.value) {
-      const flow = flows.value.find((f) => f.id === flowId);
-      if (!flow) continue;
-
-      const target = deploymentTargets.value[flowId];
-      const flowName = getFlowName(flow);
-
-      if (target === "source" || target === "both") {
-        const hierarchyValue = getTopHierarchyValue(flow, "source");
-        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue);
-        const templateId = flow.src_template_id || null;
-        const templateName = getTemplateName(templateId);
-
-        const config: DeploymentConfig = {
-          key: `${flowId}-source`,
-          flowId,
-          flowName,
-          target: "source",
-          hierarchyValue,
-          instanceId,
-          availablePaths: [],
-          selectedProcessGroupId: "",
-          suggestedPath: getSuggestedPath(flow, "source"),
-          templateId,
-          templateName,
-          processGroupName: generateProcessGroupName(flow, "source"),
-        };
-
-        // Load paths for this instance
-        if (instanceId) {
-          const rawPaths = await loadProcessGroupPaths(
-            instanceId,
-            hierarchyValue,
-          );
-          config.availablePaths = rawPaths;
-
-          // Auto-select process group based on deployment settings
-          const selectedPgId = autoSelectProcessGroup(
-            flow,
-            "source",
-            instanceId,
-            processGroupPaths.value[hierarchyValue] || [],
-          );
-          if (selectedPgId) {
-            config.selectedProcessGroupId = selectedPgId;
-          }
-        }
-
-        deploymentConfigs.value.push(config);
-      }
-
-      if (target === "destination" || target === "both") {
-        const hierarchyValue = getTopHierarchyValue(flow, "destination");
-        const instanceId = await getInstanceIdForHierarchyValue(hierarchyValue);
-        const templateId = flow.dest_template_id || null;
-        const templateName = getTemplateName(templateId);
-
-        const config: DeploymentConfig = {
-          key: `${flowId}-destination`,
-          flowId,
-          flowName,
-          target: "destination",
-          hierarchyValue,
-          instanceId,
-          availablePaths: [],
-          selectedProcessGroupId: "",
-          suggestedPath: getSuggestedPath(flow, "destination"),
-          templateId,
-          templateName,
-          processGroupName: generateProcessGroupName(flow, "destination"),
-        };
-
-        // Load paths for this instance
-        if (instanceId) {
-          const rawPaths = await loadProcessGroupPaths(
-            instanceId,
-            hierarchyValue,
-          );
-          config.availablePaths = rawPaths;
-
-          // Auto-select process group based on deployment settings
-          const selectedPgId = autoSelectProcessGroup(
-            flow,
-            "destination",
-            instanceId,
-            processGroupPaths.value[hierarchyValue] || [],
-          );
-          if (selectedPgId) {
-            config.selectedProcessGroupId = selectedPgId;
-          }
-        }
-
-        deploymentConfigs.value.push(config);
-      }
-    }
-  } catch (error) {
-    console.error("Error preparing deployment configs:", error);
-  } finally {
-    isLoadingPaths.value = false;
-  }
-};
-
-// Utility wrapper functions
+// Utility wrapper functions (keep these lightweight wrappers)
 const getSuggestedPath = (flow: Flow, side: "source" | "destination") => {
   return processGroupUtils.getSuggestedPath(flow, side, hierarchyConfig.value);
 };
 
 const getTemplateName = (templateId: number | null): string | null => {
   return flowUtils.getTemplateName(templateId, registryFlows.value);
-};
-
-const getInstanceIdForHierarchyValue = async (
-  hierarchyValue: string,
-): Promise<number | null> => {
-  // Ensure we have loaded NiFi instances
-  if (nifiInstances.value.length === 0) {
-    await loadNiFiInstances();
-  }
-
-  return flowUtils.getInstanceIdForHierarchyValue(
-    hierarchyValue,
-    topHierarchyName.value,
-    nifiInstances.value
-  );
-};
-
-const loadProcessGroupPaths = async (
-  instanceId: number,
-  cacheKey: string,
-): Promise<Array<{ id: string; pathDisplay: string }>> => {
-  // Check cache first
-  if (processGroupPaths.value[cacheKey]) {
-    return processGroupUtils.formatPathsForDisplay(processGroupPaths.value[cacheKey]);
-  }
-
-  try {
-    const data = await deploymentService.loadProcessGroupPaths(instanceId);
-
-    if (data.status === "success" && data.process_groups) {
-      processGroupPaths.value[cacheKey] = data.process_groups;
-      return processGroupUtils.formatPathsForDisplay(data.process_groups);
-    }
-
-    return [];
-  } catch (error) {
-    console.error("Error loading process group paths:", error);
-    return processGroupUtils.getMockPaths();
-  }
 };
 
 const updateProcessGroupSelection = (deployment: DeploymentConfig) => {
@@ -742,317 +612,42 @@ const getSelectedPathDisplay = (deployment: DeploymentConfig) => {
   return processGroupUtils.getSelectedPathDisplay(deployment);
 };
 
-const generateProcessGroupName = (
-  flow: Flow,
-  target: "source" | "destination",
-): string => {
-  const template =
-    deploymentSettings.value?.global?.process_group_name_template ||
-    "{last_hierarchy_value}";
-
-  return processGroupUtils.generateProcessGroupName(
-    flow,
-    target,
-    hierarchyConfig.value,
-    template
-  );
-};
-
-const autoSelectProcessGroup = (
-  flow: Flow,
-  target: "source" | "destination",
-  instanceId: number,
-  availablePaths: ProcessGroupPath[],
-): string | null => {
-  return processGroupUtils.autoSelectProcessGroup(
-    flow,
-    target,
-    instanceId,
-    availablePaths,
-    deploymentSettings.value,
-    hierarchyConfig.value
-  );
-};
-
-const getHierarchyAttributeForProcessGroup = (
-  processGroupId: string,
-  instanceKey: string,
-  instanceId: number,
-  target: "source" | "destination",
-): string | null => {
-  return processGroupUtils.getHierarchyAttributeForProcessGroup(
-    processGroupId,
-    instanceKey,
-    instanceId,
-    target,
-    processGroupPaths.value,
-    deploymentSettings.value,
-    hierarchyConfig.value
-  );
-};
-
-const deployFlows = async () => {
-  isDeploying.value = true;
-
-  try {
-    console.log("Deploying flows with configs:", deploymentConfigs.value);
-
-    const results = [];
-    let successCount = 0;
-    let failCount = 0;
-
-    // Deploy each configuration
-    for (const config of deploymentConfigs.value) {
-      try {
-        console.log(
-          `Deploying ${config.flowName} to ${config.target} (${config.hierarchyValue})...`,
-        );
-
-        if (!config.instanceId) {
-          throw new Error(
-            `No NiFi instance found for ${config.hierarchyValue}`,
-          );
-        }
-
-        if (!config.selectedProcessGroupId) {
-          throw new Error("No process group selected");
-        }
-
-        // Calculate hierarchy attribute based on selected process group path
-        // accounting for configured deployment paths
-        const instanceKey = `${config.target}_${config.instanceId}`;
-        const hierarchyAttribute = getHierarchyAttributeForProcessGroup(
-          config.selectedProcessGroupId,
-          instanceKey,
-          config.instanceId,
-          config.target,
-        );
-
-        // Prepare deployment request using the settings from step 4
-        const deploymentRequest: any = {
-          template_id: config.templateId,
-          parent_process_group_id: config.selectedProcessGroupId,
-          process_group_name: config.processGroupName,
-          version: null, // Use latest version
-          x_position: 0,
-          y_position: 0,
-          stop_versioning_after_deploy: deploymentSettings.value.global.stop_versioning_after_deploy,
-          disable_after_deploy: deploymentSettings.value.global.disable_after_deploy,
-          start_after_deploy: deploymentSettings.value.global.start_after_deploy,
-        };
-
-        // Add hierarchy attribute if calculated
-        if (hierarchyAttribute) {
-          deploymentRequest.hierarchy_attribute = hierarchyAttribute;
-        }
-
-        console.log("Deployment request:", deploymentRequest);
-
-        // Call deployment API
-        try {
-          const result = await apiRequest(
-            `/api/deploy/${config.instanceId}/flow`,
-            {
-              method: "POST",
-              body: JSON.stringify(deploymentRequest),
-            },
-          );
-
-          console.log("Deployment result:", result);
-
-          if (result.status === "success") {
-            successCount++;
-            results.push({
-              config,
-              success: true,
-              message: result.message,
-              processGroupId: result.process_group_id,
-              processGroupName: result.process_group_name,
-            });
-          } else {
-            failCount++;
-            results.push({
-              config,
-              success: false,
-              message: result.message || "Deployment failed",
-            });
-          }
-        } catch (apiError: any) {
-          // Check if it's a 409 Conflict (process group already exists)
-          if (apiError.status === 409 && apiError.detail) {
-            console.log("Conflict detected:", apiError.detail);
-
-            // Store conflict info and current deployment config
-            conflictInfo.value = apiError.detail;
-            currentConflictDeployment.value = { config, deploymentRequest };
-
-            // Show conflict modal and wait for user decision
-            showConflictModal.value = true;
-            isDeploying.value = false;
-
-            // Stop the deployment loop - user needs to make a decision
-            // Don't show summary - modal is shown instead
-            return;
-          }
-
-          // For other errors, add to results
-          throw apiError;
-        }
-      } catch (error: any) {
-        failCount++;
-        console.error(`Deployment failed for ${config.flowName}:`, error);
-        console.log("DEBUG - Error object:", JSON.parse(JSON.stringify(error)));
-
-        // Extract error message properly - handle all possible error structures
-        let errorMessage = "Deployment failed";
-
-        // Try different paths to get the error message
-        const extractMessage = (obj: any): string => {
-          if (!obj) return "Unknown error";
-          if (typeof obj === "string") return obj;
-
-          // Check common error message paths
-          if (obj.detail?.message) return obj.detail.message;
-          if (obj.detail?.error) return obj.detail.error;
-          if (obj.message) return obj.message;
-          if (obj.error) return obj.error;
-          if (obj.statusText) return obj.statusText;
-
-          // If detail is an object, try to stringify it nicely
-          if (obj.detail && typeof obj.detail === "object") {
-            try {
-              return JSON.stringify(obj.detail, null, 2);
-            } catch {
-              return "Complex error - see console";
-            }
-          }
-
-          // Last resort - stringify the whole thing
-          try {
-            return JSON.stringify(obj, null, 2);
-          } catch {
-            return "Error details unavailable";
-          }
-        };
-
-        errorMessage = extractMessage(error);
-
-        console.log("DEBUG - Extracted message:", errorMessage);
-
-        results.push({
-          config,
-          success: false,
-          message: errorMessage,
-        });
-      }
-    }
-
-    // Show results only if we completed the loop (no conflict modal shown)
-    if (!showConflictModal.value) {
-      console.log("Deployment results:", results);
-
-      // Populate results modal data
-      deploymentResults.value = {
-        successCount,
-        failCount,
-        total: successCount + failCount,
-        successful: results.filter((r) => r.success),
-        failed: results.filter((r) => !r.success),
-      };
-
-      // Show results modal
-      showResultsModal.value = true;
-    }
-  } catch (error: any) {
-    console.error("Deployment error:", error);
-    alert("Deployment failed: " + (error.message || error));
-  } finally {
-    isDeploying.value = false;
-  }
-};
-
-const handleConflictResolution = async (resolution: string) => {
+// Conflict resolution handler (uses the composable)
+const handleConflictResolution = async (resolution: 'deploy_anyway' | 'delete_and_deploy' | 'update_version') => {
   conflictResolution.value = resolution;
   isResolvingConflict.value = true;
 
   try {
+    const { handleConflictResolution: resolveConflict } = await import('@/composables/useConflictResolution');
     const { config, deploymentRequest } = currentConflictDeployment.value;
-    const existingPgId = conflictInfo.value.existing_process_group.id;
 
-    if (resolution === "deploy_anyway") {
-      // Deploy anyway - just clear the process_group_name to let NiFi use default name
-      const modifiedRequest = {
-        ...deploymentRequest,
-        process_group_name: null,
-      };
+    const result = await resolveConflict(
+      resolution,
+      config,
+      deploymentRequest,
+      conflictInfo.value
+    );
 
-      const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
-        method: "POST",
-        body: JSON.stringify(modifiedRequest),
-      });
-
-      if (result.status === "success") {
-        alert(
-          `✓ Successfully deployed!\nProcess Group: ${result.process_group_name}`,
-        );
-        showConflictModal.value = false;
-        conflictInfo.value = null;
-        currentConflictDeployment.value = null;
-      }
-    } else if (resolution === "delete_and_deploy") {
-      // Delete existing process group first
-      await apiRequest(
-        `/api/nifi-instances/${config.instanceId}/process-group/${existingPgId}`,
-        {
-          method: "DELETE",
-        },
-      );
-
-      // Then deploy new one
-      const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
-        method: "POST",
-        body: JSON.stringify(deploymentRequest),
-      });
-
-      if (result.status === "success") {
-        alert(
-          `✓ Successfully deployed after deleting old process group!\nProcess Group: ${result.process_group_name}`,
-        );
-        showConflictModal.value = false;
-        conflictInfo.value = null;
-        currentConflictDeployment.value = null;
-      }
-    } else if (resolution === "update_version") {
-      // Update existing process group to new version
-      const updateRequest = {
-        version: deploymentRequest.version,
-      };
-
-      const result = await apiRequest(
-        `/api/nifi-instances/${config.instanceId}/process-group/${existingPgId}/update-version`,
-        {
-          method: "POST",
-          body: JSON.stringify(updateRequest),
-        },
-      );
-
-      if (result.status === "success") {
-        alert(`✓ Successfully updated process group to new version!`);
-        showConflictModal.value = false;
-        conflictInfo.value = null;
-        currentConflictDeployment.value = null;
-      }
+    if (result.success) {
+      alert(`✓ ${result.message}`);
+      showConflictModal.value = false;
+      conflictInfo.value = null;
+      currentConflictDeployment.value = null;
+    } else {
+      alert(`✗ ${result.message}`);
     }
   } catch (error: any) {
-    console.error("Conflict resolution failed:", error);
+    console.error('Conflict resolution failed:', error);
     alert(
-      `✗ Failed to ${resolution.replace("_", " ")}: ${error.message || error.detail || "Unknown error"}`,
+      `✗ Failed to ${resolution.replace('_', ' ')}: ${error.message || error.detail || 'Unknown error'}`
     );
   } finally {
     isResolvingConflict.value = false;
-    conflictResolution.value = "";
+    conflictResolution.value = '';
   }
 };
+
+// Note: deployFlows is provided by useDeploymentOperations composable
 
 const closeResultsAndReset = () => {
   showResultsModal.value = false;
@@ -1076,9 +671,9 @@ const closeResultsAndReset = () => {
 const loadFlows = async () => {
   isLoading.value = true;
   try {
-    const data = await apiRequest("/api/nifi-flows/");
-    if (data.flows) {
-      flows.value = data.flows;
+    const flows_data = await deploymentService.loadFlows();
+    if (flows_data) {
+      flows.value = flows_data;
     }
   } catch (error) {
     console.error("Error loading flows:", error);
@@ -1089,11 +684,9 @@ const loadFlows = async () => {
 
 const loadHierarchyConfig = async () => {
   try {
-    const data = await apiRequest("/api/settings/hierarchy");
-    if (data.hierarchy) {
-      hierarchyConfig.value = data.hierarchy.sort(
-        (a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order,
-      );
+    const hierarchy = await deploymentService.loadHierarchyConfig();
+    if (hierarchy) {
+      hierarchyConfig.value = hierarchy;
 
       // Build visible columns from hierarchy
       visibleColumns.value = hierarchyConfig.value.map((attr) => ({
@@ -1108,11 +701,8 @@ const loadHierarchyConfig = async () => {
 
 const loadNiFiInstances = async () => {
   try {
-    const instances = await apiRequest("/api/nifi-instances/");
-    if (instances && Array.isArray(instances)) {
-      nifiInstances.value = instances;
-      console.log(`Loaded ${instances.length} NiFi instances`);
-    }
+    const instances = await deploymentService.loadNiFiInstances();
+    nifiInstances.value = instances;
   } catch (error) {
     console.error("Error loading NiFi instances:", error);
   }
@@ -1120,11 +710,8 @@ const loadNiFiInstances = async () => {
 
 const loadRegistryFlows = async () => {
   try {
-    const flows = await apiRequest("/api/registry-flows/");
-    if (flows && Array.isArray(flows)) {
-      registryFlows.value = flows;
-      console.log(`Loaded ${flows.length} registry flows`);
-    }
+    const registry_flows = await deploymentService.loadRegistryFlows();
+    registryFlows.value = registry_flows;
   } catch (error) {
     console.error("Error loading registry flows:", error);
   }
@@ -1132,28 +719,8 @@ const loadRegistryFlows = async () => {
 
 const loadDeploymentSettings = async () => {
   try {
-    const data = await apiRequest("/api/settings/deploy");
-
-    // Convert string keys to numbers since JSON serialization converts numeric keys to strings
-    const paths: {
-      [key: number]: { source_path?: string; dest_path?: string };
-    } = {};
-    if (data.paths) {
-      Object.keys(data.paths).forEach((key) => {
-        const numKey = parseInt(key, 10);
-        paths[numKey] = data.paths[key];
-      });
-    }
-
-    deploymentSettings.value = {
-      global: {
-        process_group_name_template: data.global?.process_group_name_template || "{last_hierarchy_value}",
-        disable_after_deploy: data.global?.disable_after_deploy || false,
-        stop_versioning_after_deploy: data.global?.stop_versioning_after_deploy || false,
-        start_after_deploy: data.global?.start_after_deploy || false,
-      },
-      paths: paths,
-    };
+    const settings = await deploymentService.loadDeploymentSettings();
+    deploymentSettings.value = settings;
   } catch (error) {
     console.error("Error loading deployment settings:", error);
   }
@@ -1167,6 +734,7 @@ onMounted(async () => {
   await loadFlows();
 });
 </script>
+
 
 <style scoped lang="scss">
 .flows-deploy {

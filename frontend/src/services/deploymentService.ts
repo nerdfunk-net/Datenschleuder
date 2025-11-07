@@ -67,47 +67,69 @@ export async function loadProcessGroupPaths(instanceId: number) {
  * Load NiFi instances
  */
 export async function loadNiFiInstances() {
-  const response = await apiRequest('/api/nifi-instances')
-  return response.instances || []
+  const instances = await apiRequest('/api/nifi-instances/')
+  if (instances && Array.isArray(instances)) {
+    console.log(`Loaded ${instances.length} NiFi instances`)
+    return instances
+  }
+  return []
 }
 
 /**
  * Load registry flows (templates)
  */
 export async function loadRegistryFlows() {
-  const response = await apiRequest('/api/registry-flows')
-  return response.flows || []
+  const flows = await apiRequest('/api/registry-flows/')
+  if (flows && Array.isArray(flows)) {
+    console.log(`Loaded ${flows.length} registry flows`)
+    return flows
+  }
+  return []
 }
 
 /**
  * Load flows for deployment
  */
 export async function loadFlows() {
-  const response = await apiRequest('/api/flows')
-  return response.flows || []
+  const data = await apiRequest('/api/nifi-flows/')
+  return data.flows || []
 }
 
 /**
  * Load hierarchy configuration
  */
 export async function loadHierarchyConfig() {
-  const response = await apiRequest('/api/hierarchy-config')
-  return response.hierarchy_config || []
+  const data = await apiRequest('/api/settings/hierarchy')
+  if (data.hierarchy) {
+    return data.hierarchy.sort((a: any, b: any) => a.order - b.order)
+  }
+  return []
 }
 
 /**
  * Load deployment settings
  */
 export async function loadDeploymentSettings() {
-  const response = await apiRequest('/api/deployment-settings')
-  return response.settings || {
+  const data = await apiRequest('/api/settings/deploy')
+
+  // Convert string keys to numbers since JSON serialization converts numeric keys to strings
+  const paths: { [key: number]: { source_path?: string; dest_path?: string } } = {}
+  if (data.paths) {
+    Object.keys(data.paths).forEach((key) => {
+      const numKey = parseInt(key, 10)
+      paths[numKey] = data.paths[key]
+    })
+  }
+
+  return {
     global: {
-      process_group_name_template: '{last_hierarchy_value}',
-      disable_after_deploy: false,
-      stop_versioning_after_deploy: false,
-      start_after_deploy: false
+      process_group_name_template:
+        data.global?.process_group_name_template || '{last_hierarchy_value}',
+      disable_after_deploy: data.global?.disable_after_deploy || false,
+      stop_versioning_after_deploy: data.global?.stop_versioning_after_deploy || false,
+      start_after_deploy: data.global?.start_after_deploy || false
     },
-    paths: {}
+    paths: paths
   }
 }
 

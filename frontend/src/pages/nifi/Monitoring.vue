@@ -64,13 +64,13 @@ const activeTab = ref<'instances' | 'flows'>('instances');
 
 <style scoped lang="scss">
 .monitoring-page {
-  padding: 2rem;
+  padding: 0.5rem 2rem 2rem;
   max-width: 1400px;
   margin: 0 auto;
 }
 
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .page-title {

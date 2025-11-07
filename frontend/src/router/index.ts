@@ -28,14 +28,19 @@ const routes: RouteRecordRaw[] = [
         redirect: "/flows/manage",
       },
       {
-        path: "nifi/install",
-        name: "nifi-install",
-        component: () => import("../pages/nifi/Install.vue"),
+        path: "nifi/monitoring",
+        name: "nifi-monitoring",
+        component: () => import("../pages/nifi/Monitoring.vue"),
       },
       {
         path: "nifi/parameter",
         name: "nifi-parameter",
         component: () => import("../pages/settings/Parameter.vue"),
+      },
+      {
+        path: "nifi/install",
+        name: "nifi-install",
+        component: () => import("../pages/nifi/Install.vue"),
       },
       {
         path: "flows/manage",

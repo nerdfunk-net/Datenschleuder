@@ -12,6 +12,7 @@ from app.api.credentials import router as credentials_router
 from app.api.settings import router as settings_router
 from app.api.nifi import router as nifi_router
 from app.api.nifi_install import router as nifi_install_router
+from app.api.nifi_monitoring import router as nifi_monitoring_router
 from app.api.nifi_flows import router as nifi_flows_router
 from app.api.flow_views import router as flow_views_router
 from app.api.registry_flows import router as registry_flows_router
@@ -76,6 +77,7 @@ app.include_router(credentials_router)
 app.include_router(settings_router)
 app.include_router(nifi_router)
 app.include_router(nifi_install_router)
+app.include_router(nifi_monitoring_router)
 app.include_router(nifi_flows_router)
 app.include_router(flow_views_router)
 app.include_router(registry_flows_router)

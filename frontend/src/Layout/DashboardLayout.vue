@@ -67,11 +67,11 @@
             class="ds-nav-submenu"
           >
             <router-link
-              to="/nifi/install"
+              to="/nifi/monitoring"
               class="ds-nav-subitem"
               active-class="ds-active"
             >
-              <span>Install</span>
+              <span>Monitoring</span>
             </router-link>
             <router-link
               to="/nifi/parameter"
@@ -79,6 +79,13 @@
               active-class="ds-active"
             >
               <span>Parameter</span>
+            </router-link>
+            <router-link
+              to="/nifi/install"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
+              <span>Install</span>
             </router-link>
           </div>
         </div>
@@ -213,8 +220,9 @@ onMounted(async () => {
 
 const pageTitle = computed(() => {
   const titles: Record<string, string> = {
-    "/nifi/install": "NiFi Installation",
+    "/nifi/monitoring": "NiFi Monitoring",
     "/nifi/parameter": "Parameter Contexts",
+    "/nifi/install": "NiFi Installation",
     "/flows/manage": "Manage Flows",
     "/flows/deploy": "Deploy Flows",
     "/settings/nifi": "NiFi Settings",

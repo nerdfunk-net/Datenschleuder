@@ -5,22 +5,86 @@
       <div class="card-header">
         <h2 class="card-title">Flow Management</h2>
         <div class="header-actions">
-          <b-button
+          <!-- Columns Dropdown -->
+          <b-dropdown 
             variant="light"
             size="sm"
-            @click="showColumnToggle = !showColumnToggle"
-            class="me-2"
+            class="me-2 columns-dropdown"
+            menu-class="columns-dropdown-menu"
+            no-caret
           >
-            <i class="pe-7s-config"></i> Columns
-          </b-button>
-          <b-button
+            <template #button-content>
+              <i class="pe-7s-config"></i> Columns <i class="pe-7s-angle-down"></i>
+            </template>
+            <b-dropdown-item-button @click="deselectAllColumns">
+              <i class="pe-7s-close-circle"></i> Deselect All
+            </b-dropdown-item-button>
+            <b-dropdown-divider />
+            <div class="column-dropdown-form" @click.stop>
+              <b-form-checkbox
+                v-for="col in allAvailableColumns"
+                :key="col.key"
+                v-model="visibleColumns[col.key]"
+                @change="onColumnToggle"
+                class="column-checkbox-compact"
+              >
+                {{ col.label }}
+              </b-form-checkbox>
+            </div>
+          </b-dropdown>
+          
+          <!-- Views Dropdown -->
+          <b-dropdown 
             variant="light"
             size="sm"
-            @click="showViewManager = !showViewManager"
-            class="me-2"
+            class="me-2 views-dropdown"
           >
-            <i class="pe-7s-photo-gallery"></i> Views
-          </b-button>
+            <template #button-content>
+              <i class="pe-7s-photo-gallery"></i> Views
+            </template>
+            <b-dropdown-item-button 
+              @click="handleSaveView(false)"
+              :disabled="currentLoadedViewId === null"
+            >
+              <i class="pe-7s-disk"></i> Save
+            </b-dropdown-item-button>
+            <b-dropdown-item-button @click="handleSaveView(true)">
+              <i class="pe-7s-copy-file"></i> Save as New
+            </b-dropdown-item-button>
+            <b-dropdown-item-button 
+              @click="handleSetAsDefault"
+              :disabled="currentLoadedViewId === null"
+            >
+              <i class="pe-7s-star"></i> Set as Default
+            </b-dropdown-item-button>
+            <b-dropdown-divider v-if="savedViews.length > 0" />
+            <b-dropdown-header v-if="savedViews.length > 0" class="views-header">
+              Saved Views
+            </b-dropdown-header>
+            <div class="saved-views-list">
+              <div
+                v-for="view in savedViews"
+                :key="view.id"
+                @click="loadView(view, true)"
+                class="view-item-custom"
+              >
+                <span class="view-name">
+                  <i class="pe-7s-star" v-if="view.is_default"></i>
+                  {{ view.name }}
+                </span>
+                <b-button
+                  size="sm"
+                  variant="link"
+                  class="text-danger p-0 delete-btn"
+                  @click.stop="deleteView(view.id)"
+                  title="Delete"
+                >
+                  <i class="pe-7s-trash"></i>
+                </b-button>
+              </div>
+            </div>
+          </b-dropdown>
+          
           <b-button
             variant="success"
             @click="handleAddFlow"
@@ -43,114 +107,6 @@
           >
           first.
         </p>
-      </div>
-
-      <!-- Column Toggle Panel -->
-      <div v-if="showColumnToggle && tableExists" class="column-toggle-panel">
-        <div class="panel-header">
-          <h6 class="mb-0">Show/Hide Columns</h6>
-          <b-button size="sm" variant="link" @click="showColumnToggle = false">
-            <i class="pe-7s-close"></i>
-          </b-button>
-        </div>
-        <div class="panel-body">
-          <div class="row g-2">
-            <div
-              class="col-md-3"
-              v-for="col in allAvailableColumns"
-              :key="col.key"
-            >
-              <b-form-checkbox
-                v-model="visibleColumns[col.key]"
-                @change="onColumnToggle"
-              >
-                {{ col.label }}
-              </b-form-checkbox>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- View Manager Panel -->
-      <div v-if="showViewManager && tableExists" class="view-manager-panel">
-        <div class="panel-header">
-          <h6 class="mb-0">Manage Views</h6>
-          <b-button size="sm" variant="link" @click="showViewManager = false">
-            <i class="pe-7s-close"></i>
-          </b-button>
-        </div>
-        <div class="panel-body">
-          <div class="view-actions mb-3">
-            <b-button
-              size="sm"
-              variant="primary"
-              @click="handleSaveView(false)"
-              :disabled="currentLoadedViewId === null"
-              title="Overwrite the currently loaded view"
-            >
-              <i class="pe-7s-diskette"></i> Save
-            </b-button>
-            <b-button
-              size="sm"
-              variant="success"
-              @click="handleSaveView(true)"
-              class="ms-2"
-            >
-              <i class="pe-7s-plus"></i> Save as New
-            </b-button>
-          </div>
-          <div class="view-list">
-            <div
-              v-if="savedViews.length === 0"
-              class="text-muted text-center py-3"
-            >
-              No saved views yet
-            </div>
-            <div v-for="view in savedViews" :key="view.id" class="view-item">
-              <div class="view-info">
-                <div class="view-name">
-                  {{ view.name }}
-                  <span v-if="view.is_default" class="badge bg-primary ms-2"
-                    >Default</span
-                  >
-                </div>
-                <div class="view-description">
-                  {{ view.description || "No description" }}
-                </div>
-                <div class="view-columns-count">
-                  {{ view.visible_columns.length }} columns
-                </div>
-              </div>
-              <div class="view-actions-btn">
-                <b-button
-                  size="sm"
-                  variant="outline-primary"
-                  @click="loadView(view)"
-                  title="Load View"
-                >
-                  <i class="pe-7s-look"></i>
-                </b-button>
-                <b-button
-                  size="sm"
-                  variant="outline-info"
-                  @click="setDefaultView(view.id)"
-                  title="Set as Default"
-                  :disabled="view.is_default"
-                >
-                  <i class="pe-7s-star"></i>
-                </b-button>
-                <b-button
-                  size="sm"
-                  variant="outline-danger"
-                  @click="deleteView(view.id)"
-                  title="Delete"
-                >
-                  <i class="pe-7s-trash"></i>
-                </b-button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Filters (Dynamic based on visible columns) -->
@@ -577,7 +533,11 @@
         <b-form-input
           v-model="newViewName"
           placeholder="e.g., Source View, Destination View"
+          :state="viewNameValidation"
         />
+        <b-form-invalid-feedback :state="viewNameValidation">
+          A view with this name already exists
+        </b-form-invalid-feedback>
       </div>
       <div class="form-group mb-3" v-else>
         <label class="form-label">View Name</label>
@@ -608,7 +568,7 @@
           variant="primary"
           @click="saveView"
           size="sm"
-          :disabled="isSaveAsNew && !newViewName.trim()"
+          :disabled="!isValidViewName"
         >
           {{ isSaveAsNew ? "Save as New" : "Update" }}
         </b-button>
@@ -920,7 +880,6 @@ const registryFlows = ref<RegistryFlow[]>([]);
 // Column visibility
 const visibleColumns = ref<Record<string, boolean>>({});
 const allAvailableColumns = ref<ColumnDefinition[]>([]);
-const showColumnToggle = ref(false);
 const columnOrder = ref<string[]>([]); // Store the order of column keys
 
 // Drag and drop state
@@ -934,7 +893,6 @@ const resizeStartWidth = ref(0);
 const isResizing = ref(false);
 
 // View management
-const showViewManager = ref(false);
 const savedViews = ref<FlowView[]>([]);
 const showSaveViewModal = ref(false);
 const newViewName = ref("");
@@ -942,6 +900,7 @@ const newViewDescription = ref("");
 const newViewIsDefault = ref(false);
 const currentLoadedViewId = ref<number | null>(null);
 const isSaveAsNew = ref(false);
+
 
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
@@ -1064,6 +1023,28 @@ const paginatedFlows = computed(() => {
   return filteredFlows.value.slice(start, end);
 });
 
+const viewNameValidation = computed(() => {
+  if (!isSaveAsNew.value || !newViewName.value.trim()) {
+    return null;
+  }
+  
+  const isDuplicate = savedViews.value.some(
+    (view) => view.name.toLowerCase() === newViewName.value.trim().toLowerCase()
+  );
+  
+  return !isDuplicate;
+});
+
+const isValidViewName = computed(() => {
+  if (!isSaveAsNew.value) {
+    // For updates, always valid as we don't change the name
+    return true;
+  }
+  
+  // For new views, check if name is not empty and not a duplicate
+  return newViewName.value.trim() !== '' && viewNameValidation.value !== false;
+});
+
 const loadTableInfo = async () => {
   try {
     const data: TableInfo = await apiRequest("/api/nifi-flows/table-info");
@@ -1096,12 +1077,14 @@ const loadTableInfo = async () => {
       cols.push({ key: "description", label: "Description" });
 
       allAvailableColumns.value = cols;
+      console.log('[INIT] Total columns:', cols.length);
 
-      // Initialize all as visible by default
+      // Initialize all columns as hidden and filters as empty
       for (const col of cols) {
-        visibleColumns.value[col.key] = true;
+        visibleColumns.value[col.key] = false;
         filters.value[col.key] = "";
       }
+      console.log('[INIT] All columns set to hidden');
 
       // Load hierarchy values for each attribute
       await loadHierarchyValues();
@@ -1111,11 +1094,19 @@ const loadTableInfo = async () => {
 
       // Load saved views
       await loadViews();
+      console.log('[INIT] Loaded views:', savedViews.value.length);
+      console.log('[INIT] All views:', savedViews.value.map(v => ({ name: v.name, id: v.id, is_default: v.is_default })));
 
-      // Load default view if exists
+      // Load default view if exists, otherwise show all columns
       const defaultView = savedViews.value.find((v) => v.is_default);
+      
       if (defaultView) {
         loadView(defaultView, false);
+      } else {
+        // No default view - show all columns
+        for (const col of cols) {
+          visibleColumns.value[col.key] = true;
+        }
       }
     }
   } catch (error) {
@@ -1224,10 +1215,18 @@ const saveView = async () => {
     // Get visible columns in their current order
     let visibleCols: string[];
     if (columnOrder.value.length > 0) {
-      // Use the ordered list
+      // Start with ordered columns that are visible
       visibleCols = columnOrder.value.filter(
         (key) => visibleColumns.value[key],
       );
+      
+      // Add any newly checked columns that aren't in columnOrder yet
+      const orderedSet = new Set(columnOrder.value);
+      const newlyVisible = allAvailableColumns.value
+        .filter((col) => visibleColumns.value[col.key] && !orderedSet.has(col.key))
+        .map((col) => col.key);
+      
+      visibleCols = [...visibleCols, ...newlyVisible];
     } else {
       // Fallback to unordered list
       visibleCols = allAvailableColumns.value
@@ -1277,14 +1276,26 @@ const saveView = async () => {
 };
 
 const loadView = (view: FlowView, showMessage: boolean = true) => {
+  // Get all valid column keys
+  const validKeys = new Set(allAvailableColumns.value.map(col => col.key));
+  
+  // Check for invalid columns in the view
+  const invalidColumns = view.visible_columns.filter(key => !validKeys.has(key));
+  if (invalidColumns.length > 0) {
+    console.warn('Warning: View contains invalid column keys:', invalidColumns);
+    console.warn('This view may have been created with old column definitions. Consider recreating the view.');
+  }
+  
   // Reset all columns to hidden
   for (const col of allAvailableColumns.value) {
     visibleColumns.value[col.key] = false;
   }
 
-  // Show only columns in the view
+  // Show only columns in the view that are valid
   for (const colKey of view.visible_columns) {
-    visibleColumns.value[colKey] = true;
+    if (validKeys.has(colKey)) {
+      visibleColumns.value[colKey] = true;
+    }
   }
 
   // Set the column order from the view (the order in visible_columns array defines the order)
@@ -1331,6 +1342,21 @@ const deleteView = async (viewId: number) => {
     console.error("Error deleting view:", error);
     alert("Error: " + (error.message || "Failed to delete view"));
   }
+};
+
+const handleSetAsDefault = async () => {
+  if (currentLoadedViewId.value === null) {
+    alert("No view is currently loaded");
+    return;
+  }
+  await setDefaultView(currentLoadedViewId.value);
+};
+
+const deselectAllColumns = () => {
+  for (const col of allAvailableColumns.value) {
+    visibleColumns.value[col.key] = false;
+  }
+  onColumnToggle();
 };
 
 const onColumnToggle = () => {
@@ -2772,6 +2798,178 @@ onMounted(async () => {
     color: #dc3545;
     font-size: 14px;
     line-height: 1.6;
+  }
+}
+
+// Dropdown Styles
+.columns-dropdown-menu {
+  min-width: 500px !important;
+  width: 500px !important;
+}
+
+.columns-dropdown {
+  :deep(.dropdown-menu) {
+    min-width: 500px !important;
+    width: 500px !important;
+  }
+}
+
+.column-dropdown-form {
+  padding: 0.5rem 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  width: 100%;
+  min-width: 500px;
+}
+
+.column-checkbox-compact {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  :deep(.form-check-input) {
+    margin-top: 0.15em;
+  }
+
+  :deep(.form-check-label) {
+    padding-left: 0.25rem;
+  }
+}
+
+.column-checkbox-item {
+  padding: 0 !important;
+
+  label {
+    margin: 0;
+    padding: 0.5rem 1rem;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+}
+
+.saved-views-list {
+  padding: 0;
+  margin: 0;
+}
+
+.view-item-custom {
+  padding: 0.35rem 1rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .view-name {
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+    text-align: left;
+  }
+
+  .delete-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+
+  &:hover .delete-btn {
+    opacity: 1;
+  }
+}
+
+.view-item {
+  padding: 0.15rem 1rem;
+  font-size: 0.875rem;
+  text-align: left;
+
+  .view-item-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .view-name {
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+    text-align: left;
+  }
+
+  .delete-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+  }
+
+  &:hover .delete-btn {
+    opacity: 1;
+  }
+}
+
+.views-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6c757d;
+  padding: 0.5rem 1rem 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0;
+}
+</style>
+
+<style lang="scss">
+// Global styles for dropdown menu (unscoped to avoid specificity issues)
+.columns-dropdown-menu {
+  min-width: 300px !important;
+  width: 300px !important;
+}
+
+.views-dropdown {
+  .dropdown-header {
+    border-bottom: none !important;
+  }
+
+  .dropdown-menu {
+    .dropdown-item {
+      border: none !important;
+      border-top: none !important;
+      border-bottom: none !important;
+    }
+  }
+
+  .dropdown-item.view-item {
+    padding: 0.15rem 1rem !important;
+    text-align: left !important;
+    display: block !important;
+    border: none !important;
+    margin: 0 !important;
+  }
+
+  .dropdown-item.view-item::before,
+  .dropdown-item.view-item::after {
+    display: none !important;
+  }
+
+  .dropdown-item + .dropdown-item {
+    border-top: none !important;
+    margin-top: 0 !important;
   }
 }
 </style>

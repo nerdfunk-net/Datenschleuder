@@ -1,0 +1,78 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: datenschleuder-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${NOC_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${NOC_PASSWORD:-postgres}
+      POSTGRES_DB: ${NOC_DATABASE_NAME:-datenschleuder}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${NOC_DATABASE_PORT:-5432}:5432"
+    networks:
+      - datenschleuder-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${NOC_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Datenschleuder Application (All-in-One: Backend + Frontend)
+  datenschleuder:
+    image: datenschleuder:all-in-one
+    container_name: datenschleuder-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database Configuration
+      NOC_DATABASE: postgres
+      NOC_USERNAME: ${NOC_USERNAME:-postgres}
+      NOC_PASSWORD: ${NOC_PASSWORD:-postgres}
+      NOC_DATABASE_PORT: 5432
+      NOC_DATABASE_NAME: ${NOC_DATABASE_NAME:-datenschleuder}
+      NOC_DATABASE_SSL: ${NOC_DATABASE_SSL:-false}
+      
+      # JWT Configuration
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-this-in-production}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      
+      # Default Admin Credentials
+      DEFAULT_ADMIN_USERNAME: ${DEFAULT_ADMIN_USERNAME:-admin}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin}
+      
+      # Application Environment
+      ENVIRONMENT: production
+      DOCKER_BUILD: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - datenschleuder-data:/app/data
+      - ./oidc_providers.yaml:/app/config/oidc_providers.yaml:ro
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+      - "${BACKEND_PORT:-8000}:8000"
+    networks:
+      - datenschleuder-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 && curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  datenschleuder-network:
+    driver: bridge
+    name: datenschleuder-network
+
+volumes:
+  postgres-data:
+    name: datenschleuder-postgres-data
+  datenschleuder-data:
+    name: datenschleuder-app-data

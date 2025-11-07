@@ -12,6 +12,12 @@ This directory contains all files needed to build and deploy Datenschleuder in c
 - **`prepare-all-in-one.sh`** - Build the all-in-one image with all dependencies (run with internet access)
 - **`deploy-all-in-one.sh`** - Deploy the all-in-one image in air-gapped environment
 - **`validate-all-in-one.sh`** - Validate deployment and check service health
+- **`quick-start.sh`** - Quick start with Docker Compose (includes database)
+
+### Orchestration
+- **`docker-compose.yaml`** - Complete stack with PostgreSQL database
+- **`.env.example`** - Example environment configuration file
+- **`oidc_providers.yaml.example`** - Example OIDC/SSO configuration
 
 ### Runtime Configuration
 - **`supervisord.conf`** - Supervisor configuration for managing backend and frontend services
@@ -21,8 +27,38 @@ This directory contains all files needed to build and deploy Datenschleuder in c
 
 ### Documentation
 - **`README-ALL-IN-ONE.md`** - Complete guide for air-gap deployment
+- **`DOCKER-COMPOSE.md`** - Docker Compose deployment guide
+- **`OIDC-CONFIGURATION.md`** - OIDC/SSO configuration guide
+- **`AIRGAP-DEPENDENCIES.md`** - External dependencies documentation
 
-## 🚀 Quick Start - Air-Gapped Deployment
+## 🚀 Quick Start Options
+
+### Option 1: Docker Compose (Recommended for Development/Testing)
+
+Includes application + PostgreSQL database:
+
+```bash
+cd docker
+./quick-start.sh
+```
+
+Or manually:
+```bash
+cd docker
+cp .env.example .env
+# Edit .env with your configuration
+docker-compose up -d
+```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
+
+See [DOCKER-COMPOSE.md](./DOCKER-COMPOSE.md) for detailed instructions.
+
+### Option 2: Standalone Air-Gapped Deployment
+
+For production air-gapped environments:
 
 ### Step 1: Build (Internet-Connected Machine)
 ```bash

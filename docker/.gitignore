@@ -3,5 +3,9 @@ airgap-artifacts/
 *.tar
 *.tar.gz
 
+# Ignore environment files (contain secrets)
+.env
+oidc_providers.yaml
+
 # Ignore temporary build files
 *.log

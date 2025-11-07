@@ -3,7 +3,7 @@
 # ============================================================================
 # This file configures OpenID Connect (OIDC) Single Sign-On providers.
 #
-# Location: backend/config/oidc_providers.yaml
+# Location: config/oidc_providers.yaml (root workspace folder)
 # Format: YAML
 # ============================================================================
 

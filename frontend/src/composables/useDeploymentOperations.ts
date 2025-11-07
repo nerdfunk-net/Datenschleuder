@@ -159,6 +159,7 @@ export function useDeploymentOperations(
 
   /**
    * Deploy all configured flows
+   * IMPORTANT: For flows with both source and destination, deploy destination first!
    */
   const deployFlows = async () => {
     isDeploying.value = true
@@ -170,9 +171,43 @@ export function useDeploymentOperations(
       let successCount = 0
       let failCount = 0
 
-      // Deploy each configuration
-      for (const config of deploymentConfigs.value) {
+      // Track failed destination deployments to skip corresponding sources
+      const failedDestinations = new Set<number>()
+
+      // Sort deployments: destinations first, then sources
+      // This ensures receiving end is ready before sending starts
+      const sortedConfigs = [...deploymentConfigs.value].sort((a, b) => {
+        // Group by flowId first to keep related deployments together
+        if (a.flowId !== b.flowId) {
+          return a.flowId - b.flowId
+        }
+        // Within same flow: destination (0) before source (1)
+        const targetOrder: Record<'source' | 'destination', number> = { destination: 0, source: 1 }
+        const aTarget = a.target as 'source' | 'destination'
+        const bTarget = b.target as 'source' | 'destination'
+        return targetOrder[aTarget] - targetOrder[bTarget]
+      })
+
+      console.log('Deployment order (destination → source):',
+        sortedConfigs.map(c => `${c.flowName} (${c.target})`).join(' → '))
+
+      // Deploy each configuration in sorted order
+      for (const config of sortedConfigs) {
         try {
+          // Skip source deployment if corresponding destination failed
+          if (config.target === 'source' && failedDestinations.has(config.flowId)) {
+            console.warn(
+              `⚠️  Skipping source deployment for ${config.flowName} because destination deployment failed`
+            )
+            failCount++
+            results.push({
+              config,
+              success: false,
+              message: 'Skipped: Destination deployment failed. Cannot deploy source without working destination.'
+            })
+            continue
+          }
+
           console.log(
             `Deploying ${config.flowName} to ${config.target} (${config.hierarchyValue})...`
           )
@@ -224,6 +259,7 @@ export function useDeploymentOperations(
                 processGroupId: result.process_group_id,
                 processGroupName: result.process_group_name
               })
+              console.log(`✅ Successfully deployed ${config.flowName} (${config.target})`)
             } else {
               failCount++
               results.push({
@@ -231,6 +267,11 @@ export function useDeploymentOperations(
                 success: false,
                 message: result.message || 'Deployment failed'
               })
+              // Track failed destination to skip source
+              if (config.target === 'destination') {
+                failedDestinations.add(config.flowId)
+                console.error(`❌ Destination deployment failed for ${config.flowName} - will skip source deployment`)
+              }
             }
           } catch (apiError: any) {
             // Check if it's a 409 Conflict (process group already exists)
@@ -263,6 +304,12 @@ export function useDeploymentOperations(
             success: false,
             message: errorMessage
           })
+
+          // Track failed destination to skip source
+          if (config.target === 'destination') {
+            failedDestinations.add(config.flowId)
+            console.error(`❌ Destination deployment failed for ${config.flowName} - will skip source deployment`)
+          }
         }
       }
 

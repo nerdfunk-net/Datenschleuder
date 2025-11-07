@@ -36,7 +36,7 @@ You need an OpenID Connect provider. Example with Keycloak:
 
 ### 3. Update Configuration
 
-Edit `backend/config/oidc_providers.yaml`:
+Edit `config/oidc_providers.yaml`:
 
 ```yaml
 providers:
@@ -82,7 +82,7 @@ npm run dev
 ## Files Changed
 
 **Backend (7 new files):**
-- `backend/config/oidc_providers.yaml` - Configuration
+- `config/oidc_providers.yaml` - Configuration
 - `backend/app/core/settings_manager.py` - Settings manager
 - `backend/app/services/oidc_service.py` - OIDC service
 - `backend/app/models/oidc.py` - Pydantic models

@@ -18,15 +18,16 @@ class SettingsManager:
     def __init__(self, config_path: Optional[str] = None):
         """
         Initialize settings manager.
-        
+
         Args:
             config_path: Path to oidc_providers.yaml. If None, uses default location.
         """
         if config_path is None:
-            # Default: backend/config/oidc_providers.yaml
+            # Default: config/oidc_providers.yaml (root workspace folder)
             backend_dir = Path(__file__).parent.parent.parent
-            config_path = backend_dir / "config" / "oidc_providers.yaml"
-        
+            workspace_root = backend_dir.parent  # Go up one more level from backend/
+            config_path = workspace_root / "config" / "oidc_providers.yaml"
+
         self.config_path = Path(config_path)
         self._config: Optional[Dict[str, Any]] = None
         self._load_config()

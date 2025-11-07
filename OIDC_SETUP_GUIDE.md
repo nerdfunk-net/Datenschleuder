@@ -8,7 +8,7 @@ Datenschleuder now supports OpenID Connect (OIDC) Single Sign-On authentication 
 
 ### Backend Components
 
-1. **Configuration System** (`backend/config/oidc_providers.yaml`)
+1. **Configuration System** (`config/oidc_providers.yaml`)
    - YAML-based provider configuration
    - Supports multiple identity providers
    - Per-provider settings (client credentials, scopes, claim mappings)
@@ -78,7 +78,7 @@ Datenschleuder now supports OpenID Connect (OIDC) Single Sign-On authentication 
 
 1. **Edit OIDC Configuration**
 
-   Open `backend/config/oidc_providers.yaml`:
+   Open `config/oidc_providers.yaml`:
 
    ```yaml
    providers:

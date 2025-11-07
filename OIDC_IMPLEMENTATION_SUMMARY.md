@@ -15,7 +15,7 @@ Successfully implemented complete OpenID Connect (OIDC) multi-provider authentic
 ### ✅ Phase 1: Configuration System
 
 **Files Created:**
-- `backend/config/oidc_providers.yaml` - YAML-based provider configuration
+- `config/oidc_providers.yaml` - YAML-based provider configuration
 - `backend/app/core/settings_manager.py` - Settings Manager singleton
 
 **Features:**
@@ -252,7 +252,7 @@ Store Token → Dashboard
 ## Files Created/Modified
 
 ### Backend (9 files)
-- ✅ `backend/config/oidc_providers.yaml` - Provider configuration
+- ✅ `config/oidc_providers.yaml` - Provider configuration
 - ✅ `backend/app/core/settings_manager.py` - Settings manager
 - ✅ `backend/app/services/oidc_service.py` - OIDC service
 - ✅ `backend/app/models/oidc.py` - Pydantic models

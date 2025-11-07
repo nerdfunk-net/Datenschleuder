@@ -490,6 +490,7 @@
     <ConflictResolutionModal
       v-model:show="showConflictModal"
       :conflict-info="conflictInfo"
+      :deployment-config="currentConflictDeployment?.config"
       :is-resolving="isResolvingConflict"
       @resolve="handleConflictResolution"
       @cancel="showConflictModal = false"

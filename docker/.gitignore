@@ -1,0 +1,7 @@
+# Ignore airgap artifacts (large tar files)
+airgap-artifacts/
+*.tar
+*.tar.gz
+
+# Ignore temporary build files
+*.log

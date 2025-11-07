@@ -19,6 +19,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@fontsource/roboto": "^5.2.8",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^7.0.0",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
@@ -73,9 +74,18 @@
       "autoprefixer": {}
     }
   },
-  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"],
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
   "lint-staged": {
-    "*.{js,ts,vue}": ["prettier --write", "eslint --fix"],
-    "*.{json,css,scss,md}": ["prettier --write"]
+    "*.{js,ts,vue}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,scss,md}": [
+      "prettier --write"
+    ]
   }
 }

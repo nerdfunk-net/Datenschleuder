@@ -49,7 +49,7 @@
             <b-button
               variant="link"
               size="sm"
-              @click="showEditModal(instance)"
+              @click="editInstance(instance)"
               title="Edit"
             >
               <i class="pe-7s-pen"></i>
@@ -58,7 +58,7 @@
               variant="link"
               size="sm"
               class="text-danger"
-              @click="confirmDelete(instance)"
+              @click="deleteInstance(instance.id)"
               title="Delete"
             >
               <i class="pe-7s-trash"></i>

@@ -2,6 +2,14 @@ import { createApp } from "vue";
 import router from "./router";
 import pinia from "./stores";
 
+// Import Roboto font locally for air-gapped environments
+import "@fontsource/roboto/100.css";
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+import "@fontsource/roboto/900.css";
+
 // Import the original base.scss which includes all theme styling
 import "./assets/base.scss";
 

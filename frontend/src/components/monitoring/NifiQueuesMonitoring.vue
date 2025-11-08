@@ -100,8 +100,28 @@
                 <th>Destination</th>
                 <th>Destination Type</th>
                 <th class="text-end">Queued</th>
-                <th class="text-end">FlowFiles In</th>
-                <th class="text-end">FlowFiles Out</th>
+                <th class="text-end sortable" @click="toggleSort('flowFilesIn')">
+                  FlowFiles In
+                  <i
+                    class="sort-icon"
+                    :class="{
+                      'pe-7s-angle-up': sortField === 'flowFilesIn' && sortDirection === 'asc',
+                      'pe-7s-angle-down': sortField === 'flowFilesIn' && sortDirection === 'desc',
+                      'pe-7s-left-right': sortField !== 'flowFilesIn'
+                    }"
+                  ></i>
+                </th>
+                <th class="text-end sortable" @click="toggleSort('flowFilesOut')">
+                  FlowFiles Out
+                  <i
+                    class="sort-icon"
+                    :class="{
+                      'pe-7s-angle-up': sortField === 'flowFilesOut' && sortDirection === 'asc',
+                      'pe-7s-angle-down': sortField === 'flowFilesOut' && sortDirection === 'desc',
+                      'pe-7s-left-right': sortField !== 'flowFilesOut'
+                    }"
+                  ></i>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -230,6 +250,8 @@ const loading = ref(false);
 const checking = ref(false);
 const error = ref<string | null>(null);
 const hasChecked = ref(false);
+const sortField = ref<'flowFilesIn' | 'flowFilesOut' | null>(null);
+const sortDirection = ref<'asc' | 'desc'>('desc');
 
 // Load instances on mount
 onMounted(async () => {
@@ -297,21 +319,60 @@ const hasQueue = (connection: Connection): boolean => {
   return match ? parseInt(match[1], 10) > 0 : false;
 };
 
-// Computed: Sorted connections (queued first)
+// Toggle sort field and direction
+const toggleSort = (field: 'flowFilesIn' | 'flowFilesOut') => {
+  if (sortField.value === field) {
+    // Toggle direction if same field
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+  } else {
+    // Set new field with descending by default
+    sortField.value = field;
+    sortDirection.value = 'desc';
+  }
+};
+
+// Computed: Sorted connections
 const sortedConnections = computed(() => {
-  return [...connections.value].sort((a, b) => {
-    const aQueued = hasQueue(a);
-    const bQueued = hasQueue(b);
+  let sorted = [...connections.value];
 
-    // Sort queued connections first
-    if (aQueued && !bQueued) return -1;
-    if (!aQueued && bQueued) return 1;
+  // Apply custom sorting if a sort field is selected
+  if (sortField.value) {
+    sorted.sort((a, b) => {
+      let aValue = 0;
+      let bValue = 0;
 
-    // Then by name
-    const aName = a.name || '';
-    const bName = b.name || '';
-    return aName.localeCompare(bName);
-  });
+      if (sortField.value === 'flowFilesIn') {
+        aValue = a.status?.aggregate_snapshot?.flow_files_in || 0;
+        bValue = b.status?.aggregate_snapshot?.flow_files_in || 0;
+      } else if (sortField.value === 'flowFilesOut') {
+        aValue = a.status?.aggregate_snapshot?.flow_files_out || 0;
+        bValue = b.status?.aggregate_snapshot?.flow_files_out || 0;
+      }
+
+      if (sortDirection.value === 'asc') {
+        return aValue - bValue;
+      } else {
+        return bValue - aValue;
+      }
+    });
+  } else {
+    // Default sorting: queued first, then by name
+    sorted.sort((a, b) => {
+      const aQueued = hasQueue(a);
+      const bQueued = hasQueue(b);
+
+      // Sort queued connections first
+      if (aQueued && !bQueued) return -1;
+      if (!aQueued && bQueued) return 1;
+
+      // Then by name
+      const aName = a.name || '';
+      const bName = b.name || '';
+      return aName.localeCompare(bName);
+    });
+  }
+
+  return sorted;
 });
 
 // Computed: Count of connections with queued items
@@ -484,6 +545,27 @@ const getNiFiUrl = (connection: Connection): string | null => {
       font-weight: 600;
       padding: 1rem;
       vertical-align: middle;
+
+      &.sortable {
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sort-icon {
+          margin-left: 0.5rem;
+          font-size: 0.875rem;
+          opacity: 0.7;
+          transition: opacity 0.2s ease;
+        }
+
+        &:hover .sort-icon {
+          opacity: 1;
+        }
+      }
     }
   }
 

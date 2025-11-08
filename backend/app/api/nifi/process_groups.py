@@ -1802,6 +1802,287 @@ async def get_process_group_input_ports(
         )
 
 
+@router.get("/{instance_id}/list-all-by-kind")
+async def list_all_by_kind(
+    instance_id: int,
+    kind: str,
+    pg_id: str = 'root',
+    descendants: bool = True,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    List all components of a specific kind on a NiFi instance.
+
+    Args:
+        instance_id: NiFi instance ID
+        kind: Component kind to list (e.g., 'processors', 'input_ports', 'output_ports',
+              'process_groups', 'connections', 'funnels', 'labels', 'controller_services')
+        pg_id: Process group ID to search within (default: 'root')
+        descendants: Whether to include descendants (default: True)
+        token_data: Authentication token data
+        db: Database session
+
+    Returns:
+        List of all components of the specified kind
+    """
+    try:
+        # Get NiFi instance
+        instance = get_instance_or_404(db, instance_id)
+
+        logger.info(
+            f"Listing all components of kind '{kind}' on instance {instance_id} "
+            f"(pg_id={pg_id}, descendants={descendants})"
+        )
+
+        # Configure NiFi connection
+        setup_nifi_connection(instance)
+
+        # Get all components by kind using nipyapi
+        from nipyapi import canvas
+
+        components_list = canvas.list_all_by_kind(
+            kind=kind,
+            pg_id=pg_id,
+            descendants=descendants
+        )
+
+        # Convert to response format
+        components_info = []
+        if components_list:
+            for component in components_list:
+                component_data = {}
+
+                # Extract common fields
+                if hasattr(component, 'id'):
+                    component_data['id'] = component.id
+
+                if hasattr(component, 'component'):
+                    comp = component.component
+                    component_data['name'] = comp.name if hasattr(comp, 'name') else None
+                    component_data['parent_group_id'] = comp.parent_group_id if hasattr(comp, 'parent_group_id') else None
+                    component_data['type'] = comp.type if hasattr(comp, 'type') else None
+                    component_data['comments'] = comp.comments if hasattr(comp, 'comments') else None
+
+                    # For processors, include state
+                    if kind == 'processors' or kind == 'processor':
+                        component_data['state'] = comp.state if hasattr(comp, 'state') else None
+
+                    # For ports, include state
+                    if kind in ['input_ports', 'output_ports', 'input_port', 'output_port']:
+                        component_data['state'] = comp.state if hasattr(comp, 'state') else None
+
+                    # For process groups, include version control info
+                    if kind in ['process_groups', 'process_group']:
+                        if hasattr(comp, 'version_control_information') and comp.version_control_information:
+                            vci = comp.version_control_information
+                            component_data['version_control_information'] = {
+                                'registry_id': vci.registry_id if hasattr(vci, 'registry_id') else None,
+                                'bucket_id': vci.bucket_id if hasattr(vci, 'bucket_id') else None,
+                                'flow_id': vci.flow_id if hasattr(vci, 'flow_id') else None,
+                                'version': vci.version if hasattr(vci, 'version') else None,
+                                'state': vci.state if hasattr(vci, 'state') else None,
+                            }
+
+                    # For connections, include source and destination
+                    if kind in ['connections', 'connection']:
+                        if hasattr(comp, 'source'):
+                            source = comp.source
+                            component_data['source'] = {
+                                'id': source.id if hasattr(source, 'id') else None,
+                                'name': source.name if hasattr(source, 'name') else None,
+                                'type': source.type if hasattr(source, 'type') else None,
+                                'group_id': source.group_id if hasattr(source, 'group_id') else None,
+                            }
+                        if hasattr(comp, 'destination'):
+                            dest = comp.destination
+                            component_data['destination'] = {
+                                'id': dest.id if hasattr(dest, 'id') else None,
+                                'name': dest.name if hasattr(dest, 'name') else None,
+                                'type': dest.type if hasattr(dest, 'type') else None,
+                                'group_id': dest.group_id if hasattr(dest, 'group_id') else None,
+                            }
+
+                # Include status if available
+                if hasattr(component, 'status'):
+                    status = component.status
+                    component_data['status'] = {}
+                    if hasattr(status, 'run_status'):
+                        component_data['status']['run_status'] = status.run_status
+                    if hasattr(status, 'aggregate_snapshot'):
+                        snapshot = status.aggregate_snapshot
+                        component_data['status']['aggregate_snapshot'] = {
+                            'active_thread_count': snapshot.active_thread_count if hasattr(snapshot, 'active_thread_count') else None,
+                            'bytes_in': snapshot.bytes_in if hasattr(snapshot, 'bytes_in') else None,
+                            'bytes_out': snapshot.bytes_out if hasattr(snapshot, 'bytes_out') else None,
+                            'flow_files_in': snapshot.flow_files_in if hasattr(snapshot, 'flow_files_in') else None,
+                            'flow_files_out': snapshot.flow_files_out if hasattr(snapshot, 'flow_files_out') else None,
+                            'queued': snapshot.queued if hasattr(snapshot, 'queued') else None,
+                        }
+
+                components_info.append(component_data)
+
+        logger.info(f"✓ Found {len(components_info)} component(s) of kind '{kind}'")
+
+        return {
+            'status': 'success',
+            'kind': kind,
+            'pg_id': pg_id,
+            'descendants': descendants,
+            'components': components_info,
+            'count': len(components_info),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to list components by kind: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to list components by kind: {error_msg}",
+        )
+
+
+@router.get("/{instance_id}/component-connection")
+async def get_component_connections(
+    instance_id: int,
+    component_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Get all connections for a specific component (processor, port, etc).
+
+    Args:
+        instance_id: NiFi instance ID
+        component_id: Component ID to get connections for
+        token_data: Authentication token data
+        db: Database session
+
+    Returns:
+        List of connections associated with the component
+    """
+    try:
+        # Get NiFi instance
+        instance = get_instance_or_404(db, instance_id)
+
+        logger.info(
+            f"Getting connections for component {component_id} "
+            f"on instance {instance_id}"
+        )
+
+        # Configure NiFi connection
+        setup_nifi_connection(instance)
+
+        # Get the component first
+        from nipyapi import canvas
+        from nipyapi.nifi import ProcessorsApi, InputPortsApi, OutputPortsApi
+
+        # Try to get the component (could be processor, input port, or output port)
+        component = None
+        component_type = None
+
+        # Try processor first
+        try:
+            processors_api = ProcessorsApi()
+            component = processors_api.get_processor(component_id)
+            component_type = 'PROCESSOR'
+            logger.info(f"  Found processor: {component.component.name if hasattr(component, 'component') else component_id}")
+        except Exception:
+            pass
+
+        # Try input port
+        if not component:
+            try:
+                input_ports_api = InputPortsApi()
+                component = input_ports_api.get_input_port(component_id)
+                component_type = 'INPUT_PORT'
+                logger.info(f"  Found input port: {component.component.name if hasattr(component, 'component') else component_id}")
+            except Exception:
+                pass
+
+        # Try output port
+        if not component:
+            try:
+                output_ports_api = OutputPortsApi()
+                component = output_ports_api.get_output_port(component_id)
+                component_type = 'OUTPUT_PORT'
+                logger.info(f"  Found output port: {component.component.name if hasattr(component, 'component') else component_id}")
+            except Exception:
+                pass
+
+        if not component:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Component with ID {component_id} not found"
+            )
+
+        # Get connections for the component
+        connections_list = canvas.get_component_connections(component)
+
+        # Convert to response format
+        connections_info = []
+        if connections_list:
+            for conn in connections_list:
+                source_info = None
+                dest_info = None
+
+                # Extract source information
+                if hasattr(conn, 'component') and hasattr(conn.component, 'source'):
+                    source = conn.component.source
+                    source_info = {
+                        'id': source.id if hasattr(source, 'id') else None,
+                        'name': source.name if hasattr(source, 'name') else None,
+                        'type': source.type if hasattr(source, 'type') else None,
+                        'group_id': source.group_id if hasattr(source, 'group_id') else None,
+                    }
+
+                # Extract destination information
+                if hasattr(conn, 'component') and hasattr(conn.component, 'destination'):
+                    dest = conn.component.destination
+                    dest_info = {
+                        'id': dest.id if hasattr(dest, 'id') else None,
+                        'name': dest.name if hasattr(dest, 'name') else None,
+                        'type': dest.type if hasattr(dest, 'type') else None,
+                        'group_id': dest.group_id if hasattr(dest, 'group_id') else None,
+                    }
+
+                connection_data = {
+                    'id': conn.id if hasattr(conn, 'id') else None,
+                    'name': conn.component.name if hasattr(conn, 'component') and hasattr(conn.component, 'name') else None,
+                    'parent_group_id': conn.component.parent_group_id if hasattr(conn, 'component') and hasattr(conn.component, 'parent_group_id') else None,
+                    'source': source_info,
+                    'destination': dest_info,
+                    'selected_relationships': conn.component.selected_relationships if hasattr(conn, 'component') and hasattr(conn.component, 'selected_relationships') else None,
+                }
+                connections_info.append(connection_data)
+
+        logger.info(f"✓ Found {len(connections_info)} connection(s) for component")
+
+        return {
+            'status': 'success',
+            'component_id': component_id,
+            'component_type': component_type,
+            'connections': connections_info,
+            'count': len(connections_info),
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to get component connections: {error_msg}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get component connections: {error_msg}",
+        )
+
+
 @router.get("/{instance_id}/process-group/{process_group_id}/all-connections")
 async def get_all_connections(
     instance_id: int,

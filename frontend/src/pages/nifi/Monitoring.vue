@@ -29,6 +29,17 @@
           <i class="pe-7s-network"></i> NiFi Flows
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          :class="{ active: activeTab === 'queues' }"
+          @click="activeTab = 'queues'"
+          type="button"
+          role="tab"
+        >
+          <i class="pe-7s-albums"></i> NiFi Queues
+        </button>
+      </li>
     </ul>
 
     <!-- Tab Content -->
@@ -49,6 +60,14 @@
       >
         <NifiFlowsMonitoring />
       </div>
+      <div
+        v-show="activeTab === 'queues'"
+        class="tab-pane fade"
+        :class="{ 'show active': activeTab === 'queues' }"
+        role="tabpanel"
+      >
+        <NifiQueuesMonitoring />
+      </div>
     </div>
   </div>
 </template>
@@ -57,9 +76,10 @@
 import { ref } from 'vue';
 import NifiInstancesMonitoring from '@/components/monitoring/NifiInstancesMonitoring.vue';
 import NifiFlowsMonitoring from '@/components/monitoring/NifiFlowsMonitoring.vue';
+import NifiQueuesMonitoring from '@/components/monitoring/NifiQueuesMonitoring.vue';
 
 // State
-const activeTab = ref<'instances' | 'flows'>('instances');
+const activeTab = ref<'instances' | 'flows' | 'queues'>('instances');
 </script>
 
 <style scoped lang="scss">

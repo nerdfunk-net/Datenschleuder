@@ -252,8 +252,11 @@ const handleLogin = async () => {
   try {
     const data = await login(username.value, password.value);
 
-    // Store access token
+    // Store access token and refresh token
     localStorage.setItem("token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
+    }
     if (rememberMe.value) {
       localStorage.setItem("rememberMe", "true");
     }

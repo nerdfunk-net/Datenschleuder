@@ -4,21 +4,56 @@ import { useNotificationsStore } from '@/stores/notifications';
 
 /**
  * Session timeout configuration (in milliseconds)
- * Default: 30 minutes of inactivity
+ * Note: Access tokens expire after 30 minutes on the backend
+ * We'll refresh them automatically on user activity
  */
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
-const WARNING_TIME = 5 * 60 * 1000; // Show warning 5 minutes before timeout
+const TOKEN_REFRESH_INTERVAL = 25 * 60 * 1000; // Refresh token every 25 minutes (5 min before expiry)
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes of inactivity
+const WARNING_TIME = 5 * 60 * 1000; // Show warning 5 minutes before inactivity timeout
+
+/**
+ * Refresh the access token using the refresh token
+ */
+async function refreshToken(): Promise<void> {
+  const refreshToken = localStorage.getItem('refresh_token');
+
+  if (!refreshToken) {
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:8000/api/auth/refresh', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.access_token);
+      if (data.refresh_token) {
+        localStorage.setItem('refresh_token', data.refresh_token);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to refresh token:', error);
+  }
+}
 
 /**
  * Composable for managing session timeout based on user activity
- * Automatically redirects to login when session expires due to inactivity
+ * Automatically refreshes tokens on activity and redirects to login on inactivity
  */
 export function useSessionTimeout() {
   const router = useRouter();
   const notificationsStore = useNotificationsStore();
   const inactivityTimer = ref<number | null>(null);
   const warningTimer = ref<number | null>(null);
+  const tokenRefreshTimer = ref<number | null>(null);
   const isWarningShown = ref(false);
+  const lastActivityTime = ref<number>(Date.now());
 
   /**
    * Events that indicate user activity
@@ -44,6 +79,10 @@ export function useSessionTimeout() {
       window.clearTimeout(warningTimer.value);
       warningTimer.value = null;
     }
+    if (tokenRefreshTimer.value) {
+      window.clearTimeout(tokenRefreshTimer.value);
+      tokenRefreshTimer.value = null;
+    }
     isWarningShown.value = false;
   };
 
@@ -52,15 +91,16 @@ export function useSessionTimeout() {
    */
   const handleTimeout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('rememberMe');
     clearTimers();
-    
+
     // Show notification before redirect
     notificationsStore.warning('Your session has expired due to inactivity. Please login again.', {
       title: 'Session Expired',
       duration: 3000,
     });
-    
+
     // Small delay to show the notification
     setTimeout(() => {
       router.push({ name: 'login' });
@@ -86,14 +126,32 @@ export function useSessionTimeout() {
   const resetTimer = () => {
     // Only reset if user is authenticated
     const token = localStorage.getItem('token');
+    const refreshTokenValue = localStorage.getItem('refresh_token');
     if (!token) {
       return;
     }
 
+    const now = Date.now();
+    const timeSinceLastActivity = now - lastActivityTime.value;
+    lastActivityTime.value = now;
+
     // Clear existing timers
     clearTimers();
 
-    // Set warning timer (5 minutes before timeout)
+    // If user was active and it's been more than 25 minutes since last activity,
+    // refresh the access token proactively
+    if (refreshTokenValue && timeSinceLastActivity > TOKEN_REFRESH_INTERVAL) {
+      refreshToken();
+    }
+
+    // Set token refresh timer (25 minutes from now)
+    if (refreshTokenValue) {
+      tokenRefreshTimer.value = window.setTimeout(() => {
+        refreshToken();
+      }, TOKEN_REFRESH_INTERVAL);
+    }
+
+    // Set warning timer (5 minutes before inactivity timeout)
     warningTimer.value = window.setTimeout(() => {
       showWarning();
     }, INACTIVITY_TIMEOUT - WARNING_TIME);

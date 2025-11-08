@@ -1,7 +1,8 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.core.security import (
@@ -9,6 +10,10 @@ from app.core.security import (
     get_password_hash,
     create_access_token,
     verify_token,
+    create_refresh_token,
+    verify_refresh_token,
+    revoke_refresh_token,
+    revoke_all_user_tokens,
 )
 from app.core.config import settings
 from app.models.user import User, UserCreate, UserResponse, Token
@@ -49,7 +54,7 @@ def create_user(db: Session, user: UserCreate, is_superuser: bool = False) -> Us
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
-    """Login endpoint to obtain JWT token"""
+    """Login endpoint to obtain JWT token and refresh token"""
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -58,12 +63,20 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Create access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    # Create refresh token
+    refresh_token = create_refresh_token(user.id, db)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "refresh_token": refresh_token
+    }
 
 
 @router.get("/me", response_model=UserResponse)
@@ -93,3 +106,43 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
     db_user = create_user(db, user)
     return db_user
+
+
+class RefreshTokenRequest(BaseModel):
+    """Request schema for refresh token"""
+    refresh_token: str
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    request: RefreshTokenRequest,
+    db: Session = Depends(get_db)
+):
+    """Refresh access token using refresh token"""
+    # Verify refresh token and get user
+    user = verify_refresh_token(request.refresh_token, db)
+
+    # Create new access token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
+    # Return new access token with same refresh token
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "refresh_token": request.refresh_token
+    }
+
+
+@router.post("/logout")
+async def logout(
+    request: RefreshTokenRequest,
+    db: Session = Depends(get_db),
+    token_data: dict = Depends(verify_token)
+):
+    """Logout user by revoking refresh token"""
+    # Revoke the provided refresh token
+    revoke_refresh_token(request.refresh_token, db)
+    return {"message": "Successfully logged out"}

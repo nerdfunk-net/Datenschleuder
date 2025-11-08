@@ -112,17 +112,29 @@
                 <span class="info-label">Flow ID:</span>
                 <span class="info-value">#{{ flow.id }}</span>
               </div>
-              <div class="flow-widget-info">
-                <span class="info-label">Registry:</span>
-                <span class="info-value">{{ flow.registry_name }}</span>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+                <span class="info-label" title="running / stopped / invalid / disabled">Status:</span>
+                <span class="info-value">
+                  {{ getProcessorCounts(flow, 'source') }}
+                </span>
               </div>
-              <div class="flow-widget-info">
-                <span class="info-label">Version:</span>
-                <span class="info-value">v{{ flow.version }}</span>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+                <span class="info-label" title="flow_files_in (bytes_in) / flow_files_out (bytes_out) / flow_files_sent (bytes_sent)">I/O:</span>
+                <span class="info-value">
+                  {{ getFlowFileStats(flow, 'source') }}
+                </span>
               </div>
-              <div class="flow-widget-info" v-if="flow.src_connection_param">
-                <span class="info-label">Connection:</span>
-                <span class="info-value">{{ flow.src_connection_param }}</span>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+                <span class="info-label" title="queued / queued_count / queued_size">Queue:</span>
+                <span class="info-value">
+                  {{ getQueueStats(flow, 'source') }}
+                </span>
+              </div>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+                <span class="info-label" title="Number of error bulletins">Bulletins:</span>
+                <span class="info-value" :class="{ 'text-danger': getBulletinCount(flow, 'source') > 0 }">
+                  {{ getBulletinInfo(flow, 'source') }}
+                </span>
               </div>
             </div>
             <div class="flow-widget-footer">
@@ -171,17 +183,29 @@
                 <span class="info-label">Flow ID:</span>
                 <span class="info-value">#{{ flow.id }}</span>
               </div>
-              <div class="flow-widget-info">
-                <span class="info-label">Registry:</span>
-                <span class="info-value">{{ flow.registry_name }}</span>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+                <span class="info-label" title="running / stopped / invalid / disabled">Status:</span>
+                <span class="info-value">
+                  {{ getProcessorCounts(flow, 'destination') }}
+                </span>
               </div>
-              <div class="flow-widget-info">
-                <span class="info-label">Version:</span>
-                <span class="info-value">v{{ flow.version }}</span>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+                <span class="info-label" title="flow_files_in (bytes_in) / flow_files_out (bytes_out) / flow_files_sent (bytes_sent)">I/O:</span>
+                <span class="info-value">
+                  {{ getFlowFileStats(flow, 'destination') }}
+                </span>
               </div>
-              <div class="flow-widget-info" v-if="flow.dest_connection_param">
-                <span class="info-label">Connection:</span>
-                <span class="info-value">{{ flow.dest_connection_param }}</span>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+                <span class="info-label" title="queued / queued_count / queued_size">Queue:</span>
+                <span class="info-value">
+                  {{ getQueueStats(flow, 'destination') }}
+                </span>
+              </div>
+              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+                <span class="info-label" title="Number of error bulletins">Bulletins:</span>
+                <span class="info-value" :class="{ 'text-danger': getBulletinCount(flow, 'destination') > 0 }">
+                  {{ getBulletinInfo(flow, 'destination') }}
+                </span>
               </div>
             </div>
             <div class="flow-widget-footer">
@@ -882,30 +906,36 @@ const checkFlowPart = async (
 
 const determineFlowStatus = (statusData: ProcessGroupStatus): 'healthy' | 'unhealthy' | 'warning' | 'unknown' => {
   if (!statusData?.data) return 'unknown';
-  
+
   const data = statusData.data;
-  
+
   // Check if flow is not deployed
   if (data.not_deployed) {
     return 'unhealthy';
   }
-  
+
   const bulletins = data.bulletins || [];
   const stoppedCount = data.stopped_count || 0;
   const disabledCount = data.disabled_count || 0;
   const invalidCount = data.invalid_count || 0;
-  const queuedCount = data.status?.aggregate_snapshot?.queued_count || 0;
-  
+
+  // Parse queued_count - it might be a string like "0" or a number
+  let queuedCount = 0;
+  const queuedCountValue = data.status?.aggregate_snapshot?.queued_count;
+  if (queuedCountValue !== undefined && queuedCountValue !== null) {
+    queuedCount = typeof queuedCountValue === 'string' ? parseInt(queuedCountValue, 10) : queuedCountValue;
+  }
+
   // Green: No bulletins and all counts are 0
   if (bulletins.length === 0 && stoppedCount === 0 && disabledCount === 0 && invalidCount === 0 && queuedCount === 0) {
     return 'healthy';
   }
-  
+
   // Red: Bulletins exist or stopped_count is not zero
   if (bulletins.length > 0 || stoppedCount > 0) {
     return 'unhealthy';
   }
-  
+
   // Yellow: Otherwise (disabled, invalid, or queued items)
   return 'warning';
 };
@@ -1086,12 +1116,65 @@ const formatDateLong = (dateString: string): string => {
 
 const formatBytes = (bytes: number | undefined): string => {
   if (bytes === undefined || bytes === null || bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+};
+
+const getProcessorCounts = (flow: Flow, flowType: 'source' | 'destination'): string => {
+  const statusData = getFlowItemStatus(flow, flowType);
+  if (!statusData?.data) return 'N/A';
+
+  const data = statusData.data;
+  const running = data.running_count || 0;
+  const stopped = data.stopped_count || 0;
+  const invalid = data.invalid_count || 0;
+  const disabled = data.disabled_count || 0;
+
+  return `${running}/${stopped}/${invalid}/${disabled}`;
+};
+
+const getFlowFileStats = (flow: Flow, flowType: 'source' | 'destination'): string => {
+  const statusData = getFlowItemStatus(flow, flowType);
+  if (!statusData?.data?.status?.aggregate_snapshot) return 'N/A';
+
+  const snapshot = statusData.data.status.aggregate_snapshot;
+  const flowFilesIn = snapshot.flow_files_in || 0;
+  const bytesIn = formatBytes(snapshot.bytes_in);
+  const flowFilesOut = snapshot.flow_files_out || 0;
+  const bytesOut = formatBytes(snapshot.bytes_out);
+  const flowFilesSent = snapshot.flow_files_sent || 0;
+  const bytesSent = formatBytes(snapshot.bytes_sent);
+
+  return `${flowFilesIn}(${bytesIn})/${flowFilesOut}(${bytesOut})/${flowFilesSent}(${bytesSent})`;
+};
+
+const getQueueStats = (flow: Flow, flowType: 'source' | 'destination'): string => {
+  const statusData = getFlowItemStatus(flow, flowType);
+  if (!statusData?.data?.status?.aggregate_snapshot) return 'N/A';
+
+  const snapshot = statusData.data.status.aggregate_snapshot;
+  const queued = snapshot.queued || '0';
+  const queuedCount = snapshot.queued_count || '0';
+  const queuedSize = snapshot.queued_size || '0 bytes';
+
+  return `${queued}/${queuedCount}/${queuedSize}`;
+};
+
+const getBulletinCount = (flow: Flow, flowType: 'source' | 'destination'): number => {
+  const statusData = getFlowItemStatus(flow, flowType);
+  if (!statusData?.data) return 0;
+
+  const bulletins = statusData.data.bulletins || [];
+  return bulletins.length;
+};
+
+const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string => {
+  const count = getBulletinCount(flow, flowType);
+  return count > 0 ? `${count} issue${count > 1 ? 's' : ''}` : 'None';
 };
 </script>
 
@@ -1352,12 +1435,18 @@ const formatBytes = (bytes: number | undefined): string => {
   justify-content: space-between;
   font-size: 0.8rem;
   margin-bottom: 0.4rem;
-  
+
   .info-label {
     color: #6c757d;
     font-weight: 500;
+    cursor: help;
+    text-decoration: underline dotted;
+
+    &:hover {
+      color: #495057;
+    }
   }
-  
+
   .info-value {
     color: #2c3e50;
     font-weight: 600;

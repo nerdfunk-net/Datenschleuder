@@ -4,6 +4,46 @@
 
 const API_BASE_URL = "http://localhost:8000";
 
+// Flag to prevent multiple concurrent refresh attempts
+let isRefreshing = false;
+let refreshPromise: Promise<string> | null = null;
+
+/**
+ * Refresh the access token using the refresh token
+ */
+async function refreshAccessToken(): Promise<string> {
+  const refreshToken = localStorage.getItem("refresh_token");
+
+  if (!refreshToken) {
+    throw new Error("No refresh token available");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh_token: refreshToken }),
+  });
+
+  if (!response.ok) {
+    // Refresh token is invalid or expired
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("rememberMe");
+    window.location.href = "/login";
+    throw new Error("Failed to refresh token");
+  }
+
+  const data = await response.json();
+  localStorage.setItem("token", data.access_token);
+  if (data.refresh_token) {
+    localStorage.setItem("refresh_token", data.refresh_token);
+  }
+
+  return data.access_token;
+}
+
 /**
  * Make an authenticated API request
  */
@@ -27,17 +67,57 @@ export async function apiRequest<T = any>(
     ? endpoint
     : `${API_BASE_URL}${endpoint}`;
 
-  const response = await fetch(url, {
+  let response = await fetch(url, {
     ...options,
     headers,
   });
 
-  // Handle 401 Unauthorized - redirect to login
+  // Handle 401 Unauthorized - try to refresh token
   if (response.status === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("rememberMe");
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
+    const refreshToken = localStorage.getItem("refresh_token");
+
+    // Only attempt refresh if we have a refresh token
+    if (refreshToken) {
+      try {
+        // If already refreshing, wait for that to complete
+        if (isRefreshing && refreshPromise) {
+          await refreshPromise;
+        } else {
+          // Start a new refresh
+          isRefreshing = true;
+          refreshPromise = refreshAccessToken();
+          await refreshPromise;
+          isRefreshing = false;
+          refreshPromise = null;
+        }
+
+        // Retry the original request with new token
+        const newToken = localStorage.getItem("token");
+        if (newToken) {
+          headers["Authorization"] = `Bearer ${newToken}`;
+        }
+
+        response = await fetch(url, {
+          ...options,
+          headers,
+        });
+      } catch (error) {
+        // Refresh failed, redirect to login
+        isRefreshing = false;
+        refreshPromise = null;
+        localStorage.removeItem("token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("rememberMe");
+        window.location.href = "/login";
+        throw new Error("Session expired");
+      }
+    } else {
+      // No refresh token, redirect to login
+      localStorage.removeItem("token");
+      localStorage.removeItem("rememberMe");
+      window.location.href = "/login";
+      throw new Error("Unauthorized");
+    }
   }
 
   if (!response.ok) {
@@ -97,8 +177,24 @@ export async function getCurrentUser() {
 /**
  * Logout helper
  */
-export function logout() {
+export async function logout() {
+  const refreshToken = localStorage.getItem("refresh_token");
+
+  // Revoke refresh token on server if available
+  if (refreshToken) {
+    try {
+      await apiRequest("/api/auth/logout", {
+        method: "POST",
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      });
+    } catch (error) {
+      // Ignore errors during logout
+      console.error("Logout error:", error);
+    }
+  }
+
   localStorage.removeItem("token");
+  localStorage.removeItem("refresh_token");
   localStorage.removeItem("rememberMe");
   window.location.href = "/login";
 }

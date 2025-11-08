@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 import hashlib
+import secrets
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -110,3 +111,85 @@ def require_admin(current_user: "User" = Depends(get_current_user)) -> "User":
 def require_user(current_user: "User" = Depends(get_current_user)) -> "User":
     """Dependency to require user role (authenticated user)"""
     return current_user
+
+
+def create_refresh_token(user_id: int, db: Session) -> str:
+    """Create a refresh token for a user"""
+    from app.models.user import RefreshToken
+    from datetime import timezone
+
+    # Generate a secure random token
+    token = secrets.token_urlsafe(32)
+
+    # Refresh tokens expire after 7 days
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+
+    # Store refresh token in database
+    db_token = RefreshToken(
+        token=token,
+        user_id=user_id,
+        expires_at=expires_at
+    )
+    db.add(db_token)
+    db.commit()
+
+    return token
+
+
+def verify_refresh_token(token: str, db: Session) -> "User":
+    """Verify refresh token and return user"""
+    from app.models.user import RefreshToken, User
+    from datetime import timezone
+
+    # Find refresh token in database
+    db_token = db.query(RefreshToken).filter(
+        RefreshToken.token == token,
+        RefreshToken.revoked == False
+    ).first()
+
+    if not db_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token"
+        )
+
+    # Check if token is expired
+    if db_token.expires_at < datetime.now(timezone.utc):
+        # Revoke expired token
+        db_token.revoked = True
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token expired"
+        )
+
+    # Get user
+    user = db.query(User).filter(User.id == db_token.user_id).first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive"
+        )
+
+    return user
+
+
+def revoke_refresh_token(token: str, db: Session) -> None:
+    """Revoke a refresh token"""
+    from app.models.user import RefreshToken
+
+    db_token = db.query(RefreshToken).filter(RefreshToken.token == token).first()
+    if db_token:
+        db_token.revoked = True
+        db.commit()
+
+
+def revoke_all_user_tokens(user_id: int, db: Session) -> None:
+    """Revoke all refresh tokens for a user"""
+    from app.models.user import RefreshToken
+
+    db.query(RefreshToken).filter(
+        RefreshToken.user_id == user_id,
+        RefreshToken.revoked == False
+    ).update({"revoked": True})
+    db.commit()

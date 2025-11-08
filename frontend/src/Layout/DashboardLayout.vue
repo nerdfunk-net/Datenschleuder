@@ -136,19 +136,19 @@
               <span>Deploy</span>
             </router-link>
             <router-link
-              to="/settings/profile"
-              class="ds-nav-subitem"
-              active-class="ds-active"
-            >
-              <span>Profile</span>
-            </router-link>
-            <router-link
               v-if="isAdmin"
               to="/settings/users"
               class="ds-nav-subitem"
               active-class="ds-active"
             >
               <span>Users</span>
+            </router-link>
+            <router-link
+              to="/settings/profile"
+              class="ds-nav-subitem"
+              active-class="ds-active"
+            >
+              <span>Profile</span>
             </router-link>
           </div>
         </div>

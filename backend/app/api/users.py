@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, require_admin, get_current_user
-from app.models.user import User, UserCreate, UserResponse, UserUpdate, PasswordChange
+from app.models.user import User, UserCreate, UserResponse, UserUpdate, PasswordChange, ProfileUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,31 @@ router = APIRouter(prefix="/api/users", tags=["users"])
 @router.get("/me", response_model=UserResponse)
 def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current user information"""
+    return current_user
+
+
+@router.put("/me", response_model=UserResponse)
+def update_current_user_profile(
+    profile_update: ProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update current user's profile information"""
+    # Update profile fields
+    if profile_update.first_name is not None:
+        current_user.first_name = profile_update.first_name
+
+    if profile_update.last_name is not None:
+        current_user.last_name = profile_update.last_name
+
+    if profile_update.email is not None:
+        current_user.email = profile_update.email
+
+    db.commit()
+    db.refresh(current_user)
+
+    logger.info(f"User '{current_user.username}' updated their profile")
+
     return current_user
 
 
@@ -120,6 +145,15 @@ def update_user(
             )
 
     # Update fields
+    if user_update.first_name is not None:
+        user.first_name = user_update.first_name
+
+    if user_update.last_name is not None:
+        user.last_name = user_update.last_name
+
+    if user_update.email is not None:
+        user.email = user_update.email
+
     if user_update.password is not None:
         # OIDC users cannot have password changed this way
         if user.is_oidc_user:

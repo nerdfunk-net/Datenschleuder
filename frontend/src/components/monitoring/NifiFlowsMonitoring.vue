@@ -27,7 +27,92 @@
             @input="highlightedFlowId = null"
           />
         </div>
-        <button 
+
+        <!-- Status Filter -->
+        <div class="filter-dropdown" v-click-outside="() => showStatusDropdown = false">
+          <button
+            class="btn btn-outline-secondary dropdown-toggle"
+            type="button"
+            @click="showStatusDropdown = !showStatusDropdown"
+          >
+            <i class="pe-7s-filter"></i>
+            Status
+            <span v-if="statusFilter.length > 0" class="badge bg-primary ms-1">{{ statusFilter.length }}</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-checkboxes" :class="{ show: showStatusDropdown }" @click.stop>
+            <li>
+              <div class="dropdown-item">
+                <input
+                  type="checkbox"
+                  id="status-green"
+                  value="healthy"
+                  v-model="statusFilter"
+                  class="form-check-input me-2"
+                />
+                <label for="status-green" class="form-check-label">
+                  <span class="status-indicator status-green"></span> Green
+                </label>
+              </div>
+            </li>
+            <li>
+              <div class="dropdown-item">
+                <input
+                  type="checkbox"
+                  id="status-yellow"
+                  value="warning"
+                  v-model="statusFilter"
+                  class="form-check-input me-2"
+                />
+                <label for="status-yellow" class="form-check-label">
+                  <span class="status-indicator status-yellow"></span> Yellow
+                </label>
+              </div>
+            </li>
+            <li>
+              <div class="dropdown-item">
+                <input
+                  type="checkbox"
+                  id="status-red"
+                  value="unhealthy"
+                  v-model="statusFilter"
+                  class="form-check-input me-2"
+                />
+                <label for="status-red" class="form-check-label">
+                  <span class="status-indicator status-red"></span> Red
+                </label>
+              </div>
+            </li>
+            <li>
+              <div class="dropdown-item">
+                <input
+                  type="checkbox"
+                  id="status-unknown"
+                  value="unknown"
+                  v-model="statusFilter"
+                  class="form-check-input me-2"
+                />
+                <label for="status-unknown" class="form-check-label">
+                  <span class="status-indicator status-gray"></span> Unknown
+                </label>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Instance Filter -->
+        <div class="filter-dropdown">
+          <select
+            class="form-select"
+            v-model="instanceFilter"
+          >
+            <option :value="null">All Instances</option>
+            <option v-for="instance in instances" :key="instance.id" :value="instance.id">
+              {{ instance.hierarchy_value }}
+            </option>
+          </select>
+        </div>
+
+        <button
           class="btn btn-primary"
           @click="showCheckAllModal = true"
           :disabled="checking"
@@ -88,7 +173,14 @@
             <div class="flow-widget-header">
               <div class="flow-widget-title-container">
                 <span class="flow-type-badge source-badge">Source</span>
-                <div class="flow-widget-title">{{ getFlowDisplayName(flow, 'source') }}</div>
+                <div
+                  class="flow-widget-title"
+                  :class="{ 'clickable-title': getNiFiUrl(flow, 'source') }"
+                  @click="getNiFiUrl(flow, 'source') && openNiFiProcessGroup(flow, 'source', $event)"
+                  :title="getNiFiUrl(flow, 'source') ? 'Click to open in NiFi' : ''"
+                >
+                  {{ getFlowDisplayName(flow, 'source') }}
+                </div>
               </div>
               <div class="flow-widget-actions">
                 <button 
@@ -159,7 +251,14 @@
             <div class="flow-widget-header">
               <div class="flow-widget-title-container">
                 <span class="flow-type-badge dest-badge">Destination</span>
-                <div class="flow-widget-title">{{ getFlowDisplayName(flow, 'destination') }}</div>
+                <div
+                  class="flow-widget-title"
+                  :class="{ 'clickable-title': getNiFiUrl(flow, 'destination') }"
+                  @click="getNiFiUrl(flow, 'destination') && openNiFiProcessGroup(flow, 'destination', $event)"
+                  :title="getNiFiUrl(flow, 'destination') ? 'Click to open in NiFi' : ''"
+                >
+                  {{ getFlowDisplayName(flow, 'destination') }}
+                </div>
               </div>
               <div class="flow-widget-actions">
                 <button 
@@ -668,8 +767,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { apiRequest } from '@/utils/api';
+
+// Click outside directive
+const vClickOutside = {
+  mounted(el: any, binding: any) {
+    el.clickOutsideEvent = (event: Event) => {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value(event);
+      }
+    };
+    document.addEventListener('click', el.clickOutsideEvent);
+  },
+  unmounted(el: any) {
+    document.removeEventListener('click', el.clickOutsideEvent);
+  },
+};
 
 interface Flow {
   id: number;
@@ -724,6 +838,9 @@ const flowStatuses = ref<Record<string, ProcessGroupStatus>>({});
 // Filter and highlight
 const searchFilter = ref<string>('');
 const highlightedFlowId = ref<number | null>(null);
+const statusFilter = ref<string[]>([]);
+const instanceFilter = ref<number | null>(null);
+const showStatusDropdown = ref(false);
 
 onMounted(async () => {
   await loadFlows();
@@ -942,34 +1059,59 @@ const determineFlowStatus = (statusData: ProcessGroupStatus): 'healthy' | 'unhea
 
 // Computed properties
 const filteredFlows = computed(() => {
-  if (!searchFilter.value.trim()) {
-    return flows.value;
-  }
-  
-  const search = searchFilter.value.toLowerCase();
-  return flows.value.filter(flow => {
-    // Check flow name
-    const flowName = (flow.name || '').toLowerCase();
-    if (flowName.includes(search)) {
-      return true;
-    }
-    
-    // Check all hierarchy attributes (src_ and dest_)
-    for (const key in flow) {
-      if ((key.startsWith('src_') || key.startsWith('dest_')) && 
-          key !== 'src_connection_param' && 
-          key !== 'dest_connection_param' &&
-          key !== 'src_template_id' && 
-          key !== 'dest_template_id') {
-        const value = String(flow[key] || '').toLowerCase();
-        if (value.includes(search)) {
-          return true;
+  let result = flows.value;
+
+  // Apply search filter
+  if (searchFilter.value.trim()) {
+    const search = searchFilter.value.toLowerCase();
+    result = result.filter(flow => {
+      // Check flow name
+      const flowName = (flow.name || '').toLowerCase();
+      if (flowName.includes(search)) {
+        return true;
+      }
+
+      // Check all hierarchy attributes (src_ and dest_)
+      for (const key in flow) {
+        if ((key.startsWith('src_') || key.startsWith('dest_')) &&
+            key !== 'src_connection_param' &&
+            key !== 'dest_connection_param' &&
+            key !== 'src_template_id' &&
+            key !== 'dest_template_id') {
+          const value = String(flow[key] || '').toLowerCase();
+          if (value.includes(search)) {
+            return true;
+          }
         }
       }
-    }
-    
-    return false;
-  });
+
+      return false;
+    });
+  }
+
+  // Apply status filter - only show flows where at least one side (source or destination) matches
+  if (statusFilter.value.length > 0) {
+    result = result.filter(flow => {
+      const sourceStatus = getFlowStatus(flow, 'source');
+      const destStatus = getFlowStatus(flow, 'destination');
+
+      return statusFilter.value.includes(sourceStatus) || statusFilter.value.includes(destStatus);
+    });
+  }
+
+  // Apply instance filter - only show flows that were checked against this instance
+  if (instanceFilter.value !== null) {
+    result = result.filter(flow => {
+      // Check if either source or destination has status data from this instance
+      const sourceStatus = getFlowItemStatus(flow, 'source');
+      const destStatus = getFlowItemStatus(flow, 'destination');
+
+      return (sourceStatus && sourceStatus.instance_id === instanceFilter.value) ||
+             (destStatus && destStatus.instance_id === instanceFilter.value);
+    });
+  }
+
+  return result;
 });
 
 const healthyFlowsCount = computed(() => {
@@ -1176,6 +1318,41 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
   const count = getBulletinCount(flow, flowType);
   return count > 0 ? `${count} issue${count > 1 ? 's' : ''}` : 'None';
 };
+
+const getNiFiUrl = (flow: Flow, flowType: 'source' | 'destination'): string | null => {
+  const statusData = getFlowItemStatus(flow, flowType);
+  if (!statusData?.instance_id || !statusData?.process_group_id) {
+    return null;
+  }
+
+  // Find the instance to get the NiFi URL
+  const instance = instances.value.find(inst => inst.id === statusData.instance_id);
+  if (!instance) {
+    return null;
+  }
+
+  // Convert nifi-api URL to nifi URL
+  // Example: https://localhost:8443/nifi-api -> https://localhost:8443/nifi
+  let nifiUrl = instance.nifi_url;
+  if (nifiUrl.includes('/nifi-api')) {
+    nifiUrl = nifiUrl.replace('/nifi-api', '/nifi');
+  } else if (nifiUrl.endsWith('/')) {
+    nifiUrl = nifiUrl.slice(0, -1) + '/nifi';
+  } else {
+    nifiUrl = nifiUrl + '/nifi';
+  }
+
+  // Build the full URL to the process group
+  return `${nifiUrl}/#/process-groups/${statusData.process_group_id}`;
+};
+
+const openNiFiProcessGroup = (flow: Flow, flowType: 'source' | 'destination', event: MouseEvent) => {
+  event.stopPropagation();
+  const url = getNiFiUrl(flow, flowType);
+  if (url) {
+    window.open(url, '_blank');
+  }
+};
 </script>
 
 <style scoped lang="scss">
@@ -1185,32 +1362,124 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
 
 .action-bar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 1rem;
-  
+  flex-wrap: wrap;
+
   .filter-section {
     flex: 1;
     max-width: 400px;
+    min-width: 200px;
   }
-  
+
   .filter-input {
     border-radius: 0.5rem;
     padding: 0.5rem 1rem;
     border: 1px solid #dee2e6;
     transition: all 0.2s ease;
-    
+
     &:focus {
       border-color: #667eea;
       box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
       outline: none;
     }
   }
-  
+
+  .filter-dropdown {
+    min-width: 150px;
+    position: relative;
+
+    .form-select {
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: 1px solid #dee2e6;
+      transition: all 0.2s ease;
+
+      &:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        outline: none;
+      }
+    }
+
+    .dropdown-toggle::after {
+      margin-left: 0.5rem;
+    }
+  }
+
   .btn {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    white-space: nowrap;
+  }
+}
+
+.dropdown-menu-checkboxes {
+  padding: 0.5rem 0;
+  min-width: 200px;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  margin-top: 0.25rem;
+
+  &.show {
+    display: block;
+  }
+
+  .dropdown-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      background-color: #f8f9fa;
+    }
+
+    .form-check-input {
+      cursor: pointer;
+      margin-top: 0;
+    }
+
+    .form-check-label {
+      cursor: pointer;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+    }
+  }
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+
+  &.status-green {
+    background-color: #28a745;
+  }
+
+  &.status-yellow {
+    background-color: #ffc107;
+  }
+
+  &.status-red {
+    background-color: #dc3545;
+  }
+
+  &.status-gray {
+    background-color: #6c757d;
   }
 }
 
@@ -1279,26 +1548,26 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
 // Flow Widgets Grid
 .flows-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
   margin-top: 1.5rem;
 }
 
 .flow-widget {
-  border-radius: 0.75rem;
-  padding: 1rem;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   }
-  
+
   &.highlighted {
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
-    transform: scale(1.02);
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+    transform: scale(1.01);
     z-index: 10;
   }
   
@@ -1343,8 +1612,8 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
@@ -1355,13 +1624,13 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
 
 .flow-type-badge {
   display: inline-block;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.25rem;
-  margin-bottom: 0.35rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 
 .source-badge {
@@ -1394,18 +1663,18 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
 .btn-info-icon {
   background: none;
   border: none;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   cursor: pointer;
-  border-radius: 0.25rem;
+  border-radius: 0.2rem;
   transition: all 0.2s ease;
   color: #667eea;
-  font-size: 1.1rem;
-  
+  font-size: 1rem;
+
   &:hover:not(:disabled) {
     background-color: rgba(102, 126, 234, 0.1);
     transform: scale(1.1);
   }
-  
+
   &:disabled {
     opacity: 0.3;
     cursor: not-allowed;
@@ -1413,28 +1682,41 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
 }
 
 .flow-widget-title {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #2c3e50;
-  line-height: 1.3;
+  line-height: 1.2;
   flex: 1;
   padding-right: 0.5rem;
+
+  &.clickable-title {
+    color: #667eea;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #4a5fce;
+      text-decoration-style: solid;
+    }
+  }
 }
 
 .flow-widget-status-icon {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   flex-shrink: 0;
 }
 
 .flow-widget-body {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .flow-widget-info {
   display: flex;
   justify-content: space-between;
-  font-size: 0.8rem;
-  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.3rem;
 
   .info-label {
     color: #6c757d;
@@ -1459,15 +1741,15 @@ const getBulletinInfo = (flow: Flow, flowType: 'source' | 'destination'): string
 }
 
 .flow-widget-footer {
-  padding-top: 0.5rem;
+  padding-top: 0.4rem;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   text-align: center;
-  
+
   .status-text {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     color: #495057;
     
     &.clickable {

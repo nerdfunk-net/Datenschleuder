@@ -465,15 +465,15 @@ const formatType = (type: string | undefined): string => {
 };
 
 // Get NiFi URL for connection
-const getNiFiUrl = (connection: Connection): string | null => {
+const getNiFiUrl = (connection: Connection): string | undefined => {
   if (!selectedInstanceId.value || !connection.parent_group_id) {
-    return null;
+    return undefined;
   }
 
   // Find the selected instance to get the NiFi URL
   const instance = instances.value.find(inst => inst.id === selectedInstanceId.value);
   if (!instance) {
-    return null;
+    return undefined;
   }
 
   // Convert nifi-api URL to nifi URL

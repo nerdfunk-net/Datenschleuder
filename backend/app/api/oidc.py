@@ -228,3 +228,140 @@ async def oidc_callback(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication failed with provider '{provider_id}'",
         )
+
+
+@router.post("/{provider_id}/logout")
+async def oidc_logout(provider_id: str, id_token_hint: str = Query(None, description="Optional ID token hint for logout")) -> Dict[str, Any]:
+    """
+    Handle OIDC logout for specific provider.
+
+    Args:
+        provider_id: Provider identifier
+        id_token_hint: Optional ID token to hint to provider which session to end
+
+    Returns:
+        Dictionary with logout_url and redirect information
+
+    Raises:
+        HTTPException: If OIDC disabled or provider not found
+    """
+    if not settings_manager.is_oidc_enabled():
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="OIDC authentication is not enabled",
+        )
+
+    try:
+        config = await oidc_service.get_oidc_config(provider_id)
+
+        # Check if provider supports end_session_endpoint
+        end_session_endpoint = getattr(config, 'end_session_endpoint', None)
+
+        if end_session_endpoint:
+            # Build logout URL with optional ID token hint
+            logout_url = end_session_endpoint
+            if id_token_hint:
+                from urllib.parse import urlencode
+                params = {"id_token_hint": id_token_hint}
+                logout_url += f"?{urlencode(params)}"
+
+            return {
+                "logout_url": logout_url,
+                "requires_redirect": True,
+                "provider_id": provider_id,
+            }
+        else:
+            return {
+                "logout_url": None,
+                "requires_redirect": False,
+                "message": f"OIDC provider '{provider_id}' does not support end_session_endpoint",
+                "provider_id": provider_id,
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"OIDC logout failed for provider '{provider_id}': {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process OIDC logout for provider '{provider_id}'",
+        )
+
+
+@router.get("/debug")
+async def get_oidc_debug_info() -> Dict[str, Any]:
+    """
+    Get detailed debug information about OIDC configuration.
+
+    Returns:
+        Dictionary with comprehensive OIDC configuration details
+    """
+    try:
+        oidc_enabled = settings_manager.is_oidc_enabled()
+        global_settings = settings_manager.get_oidc_global_settings()
+
+        providers_debug = []
+
+        if oidc_enabled:
+            enabled_providers = settings_manager.get_enabled_oidc_providers()
+
+            for provider in enabled_providers:
+                provider_id = provider["provider_id"]
+
+                # Get full configuration
+                try:
+                    config = await oidc_service.get_oidc_config(provider_id)
+
+                    provider_debug = {
+                        "provider_id": provider_id,
+                        "name": provider.get("name", provider_id),
+                        "enabled": True,
+                        "discovery_url": provider.get("discovery_url"),
+                        "configuration": {
+                            "issuer": config.issuer,
+                            "authorization_endpoint": config.authorization_endpoint,
+                            "token_endpoint": config.token_endpoint,
+                            "jwks_uri": config.jwks_uri,
+                            "userinfo_endpoint": config.userinfo_endpoint,
+                            "end_session_endpoint": getattr(config, 'end_session_endpoint', None),
+                            "response_types_supported": config.response_types_supported,
+                            "scopes_supported": config.scopes_supported,
+                        },
+                        "client_settings": {
+                            "client_id": provider.get("client_id"),
+                            "redirect_uri": provider.get("redirect_uri"),
+                            "scopes": provider.get("scopes", ["openid", "profile", "email"]),
+                            "claim_mappings": provider.get("claim_mappings", {}),
+                        },
+                        "provisioning": {
+                            "auto_provision": provider.get("auto_provision", False),
+                            "default_role": provider.get("default_role", "user"),
+                            "username_prefix": provider.get("username_prefix", ""),
+                        },
+                        "ssl": {
+                            "ca_cert_path": provider.get("ca_cert_path"),
+                        }
+                    }
+                    providers_debug.append(provider_debug)
+
+                except Exception as e:
+                    providers_debug.append({
+                        "provider_id": provider_id,
+                        "name": provider.get("name", provider_id),
+                        "enabled": True,
+                        "error": f"Failed to fetch configuration: {str(e)}",
+                    })
+
+        return {
+            "oidc_enabled": oidc_enabled,
+            "global_settings": global_settings,
+            "providers_count": len(providers_debug),
+            "providers": providers_debug,
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to get OIDC debug info: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve OIDC debug information",
+        )

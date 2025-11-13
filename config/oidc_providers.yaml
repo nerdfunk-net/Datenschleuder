@@ -29,7 +29,7 @@ providers:
     
     # OpenID Connect Configuration
     # For Keycloak: http(s)://{host}:{port}/realms/{realm}/.well-known/openid-configuration
-    discovery_url: "http://localhost:7080/realms/datenschleuder/.well-known/openid-configuration"
+    discovery_url: "https://keycloak:7443/realms/datenschleuder/.well-known/openid-configuration"
     
     # OAuth Client Credentials (from your OIDC provider)
     client_id: "datenschleuder"
@@ -38,6 +38,11 @@ providers:
     # Optional: Override default redirect URI
     # Default is automatically constructed from backend URL + /auth/oidc/callback
     redirect_uri: "http://localhost:3000/login/callback"
+
+    # Custom CA Certificate (for self-signed certificates)
+    # Path can be absolute or relative to project root
+    # Must be in PEM format - use config/certs/convert-cert.sh to convert other formats
+    ca_cert_path: "config/certs/ca.cert.pem"
     
     # OAuth Scopes to Request
     scopes:

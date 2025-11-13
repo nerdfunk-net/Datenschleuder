@@ -8,12 +8,13 @@ from pydantic import BaseModel, Field
 
 class OIDCConfig(BaseModel):
     """OpenID Connect provider configuration from discovery endpoint."""
-    
+
     issuer: str
     authorization_endpoint: str
     token_endpoint: str
     jwks_uri: str
     userinfo_endpoint: str
+    end_session_endpoint: Optional[str] = None
     response_types_supported: List[str] = []
     subject_types_supported: List[str] = []
     id_token_signing_alg_values_supported: List[str] = []

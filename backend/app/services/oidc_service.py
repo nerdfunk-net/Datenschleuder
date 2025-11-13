@@ -5,6 +5,8 @@ Supports multiple identity providers with per-provider configuration and caching
 
 import logging
 import secrets
+import ssl
+from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
@@ -33,6 +35,74 @@ class OIDCService:
         # JWKS cache time per provider: {provider_id: datetime}
         self._jwks_cache_times: Dict[str, datetime] = {}
         self._jwks_cache_ttl = timedelta(hours=1)
+        # SSL context cache per provider
+        self._ssl_contexts: Dict[str, ssl.SSLContext] = {}
+
+    def _get_ssl_context(self, provider_id: str) -> Optional[ssl.SSLContext]:
+        """Get or create SSL context with custom CA certificate for the provider."""
+        # Return cached SSL context if available
+        if provider_id in self._ssl_contexts:
+            return self._ssl_contexts[provider_id]
+
+        # Get provider configuration
+        provider_config = settings_manager.get_oidc_provider(provider_id)
+        if not provider_config:
+            return None
+
+        ca_cert_path = provider_config.get("ca_cert_path")
+        if not ca_cert_path:
+            logger.debug(
+                f"No custom CA certificate configured for provider '{provider_id}'"
+            )
+            return None
+
+        # Resolve the CA certificate path
+        ca_cert_file = Path(ca_cert_path)
+        if not ca_cert_file.is_absolute():
+            # Relative to project root (workspace root)
+            backend_dir = Path(__file__).parent.parent.parent
+            workspace_root = backend_dir.parent
+            ca_cert_file = workspace_root / ca_cert_path
+
+        if not ca_cert_file.exists():
+            logger.warning(
+                f"CA certificate not found for provider '{provider_id}': {ca_cert_file}"
+            )
+            return None
+
+        try:
+            # Create SSL context with custom CA certificate
+            ssl_context = ssl.create_default_context()
+            ssl_context.load_verify_locations(cafile=str(ca_cert_file))
+
+            self._ssl_contexts[provider_id] = ssl_context
+            logger.info(
+                f"Loaded custom CA certificate for provider '{provider_id}': {ca_cert_file}"
+            )
+            return ssl_context
+        except Exception as e:
+            logger.error(
+                f"Failed to load CA certificate for provider '{provider_id}': {e}"
+            )
+            return None
+
+    def _sanitize_token_response(
+        self, token_response: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Sanitize token response for logging by masking sensitive tokens."""
+        sanitized = token_response.copy()
+
+        # Mask sensitive fields but show first/last few characters for debugging
+        sensitive_fields = ["access_token", "refresh_token", "id_token"]
+        for field in sensitive_fields:
+            if field in sanitized and sanitized[field]:
+                token = sanitized[field]
+                if len(token) > 20:
+                    sanitized[field] = f"{token[:10]}...{token[-10:]}"
+                else:
+                    sanitized[field] = "***MASKED***"
+
+        return sanitized
 
     async def get_oidc_config(self, provider_id: str) -> OIDCConfig:
         """
@@ -80,8 +150,16 @@ class OIDCService:
             return self._configs[provider_id]
 
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(discovery_url, timeout=10.0)
+            # Get SSL context for this provider (if custom CA cert configured)
+            ssl_context = self._get_ssl_context(provider_id)
+
+            # Create httpx client with custom SSL context if available
+            client_kwargs = {"timeout": 10.0}
+            if ssl_context:
+                client_kwargs["verify"] = ssl_context
+
+            async with httpx.AsyncClient(**client_kwargs) as client:
+                response = await client.get(discovery_url)
                 response.raise_for_status()
                 config_data = response.json()
 
@@ -214,32 +292,30 @@ class OIDCService:
         logger.debug(f"[OIDC Debug] Redirect URI: {redirect_uri}")
 
         try:
-            async with httpx.AsyncClient() as client:
+            # Get SSL context for this provider (if custom CA cert configured)
+            ssl_context = self._get_ssl_context(provider_id)
+
+            # Create httpx client with custom SSL context if available
+            client_kwargs = {"timeout": 10.0}
+            if ssl_context:
+                client_kwargs["verify"] = ssl_context
+
+            async with httpx.AsyncClient(**client_kwargs) as client:
                 response = await client.post(
                     config.token_endpoint,
                     data=token_data,
                     headers={"Content-Type": "application/x-www-form-urlencoded"},
-                    timeout=10.0,
                 )
-                
+
                 logger.debug(f"[OIDC Debug] Token response status: {response.status_code}")
-                
+
                 response.raise_for_status()
                 token_response = response.json()
-                
-                # Log token response (mask sensitive data)
-                logger.debug(f"[OIDC Debug] Token response keys: {list(token_response.keys())}")
-                if 'access_token' in token_response:
-                    logger.debug(f"[OIDC Debug] Access token received (length: {len(token_response['access_token'])})")
-                if 'id_token' in token_response:
-                    logger.debug(f"[OIDC Debug] ID token received (length: {len(token_response['id_token'])})")
-                if 'token_type' in token_response:
-                    logger.debug(f"[OIDC Debug] Token type: {token_response['token_type']}")
-                if 'expires_in' in token_response:
-                    logger.debug(f"[OIDC Debug] Expires in: {token_response['expires_in']} seconds")
-                if 'scope' in token_response:
-                    logger.debug(f"[OIDC Debug] Scopes: {token_response['scope']}")
-                
+
+                # Log sanitized token response
+                sanitized = self._sanitize_token_response(token_response)
+                logger.debug(f"[OIDC Debug] Token response (sanitized): {sanitized}")
+
                 return token_response
 
         except httpx.HTTPError as e:
@@ -274,8 +350,16 @@ class OIDCService:
         config = await self.get_oidc_config(provider_id)
 
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(config.jwks_uri, timeout=10.0)
+            # Get SSL context for this provider (if custom CA cert configured)
+            ssl_context = self._get_ssl_context(provider_id)
+
+            # Create httpx client with custom SSL context if available
+            client_kwargs = {"timeout": 10.0}
+            if ssl_context:
+                client_kwargs["verify"] = ssl_context
+
+            async with httpx.AsyncClient(**client_kwargs) as client:
+                response = await client.get(config.jwks_uri)
                 response.raise_for_status()
                 jwks = response.json()
 

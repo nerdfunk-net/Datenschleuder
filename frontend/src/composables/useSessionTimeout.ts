@@ -22,7 +22,8 @@ async function refreshToken(): Promise<void> {
   }
 
   try {
-    const response = await fetch('http://localhost:8000/api/auth/refresh', {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

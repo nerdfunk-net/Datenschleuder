@@ -1,8 +1,10 @@
 /**
  * API utility for making authenticated requests to the backend
+ * All requests use relative paths and go through the Vite proxy in development
+ * In production, the frontend is served from the same origin as the backend
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = "";
 
 // Flag to prevent multiple concurrent refresh attempts
 let isRefreshing = false;
@@ -18,7 +20,7 @@ async function refreshAccessToken(): Promise<string> {
     throw new Error("No refresh token available");
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+  const response = await fetch(`/api/auth/refresh`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -63,9 +65,8 @@ export async function apiRequest<T = any>(
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = endpoint.startsWith("http")
-    ? endpoint
-    : `${API_BASE_URL}${endpoint}`;
+  // Use relative path for all API calls (proxied in development, same-origin in production)
+  const url = endpoint.startsWith("http") ? endpoint : endpoint;
 
   let response = await fetch(url, {
     ...options,
@@ -149,7 +150,7 @@ export async function login(username: string, password: string) {
   formData.append("username", username);
   formData.append("password", password);
 
-  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+  const response = await fetch(`/api/auth/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",

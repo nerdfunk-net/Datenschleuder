@@ -67,14 +67,6 @@ export default {
       chart: null,
     };
   },
-  mounted() {
-    this.createChart();
-  },
-  beforeUnmount() {
-    if (this.chart) {
-      this.chart.destroy();
-    }
-  },
   watch: {
     data: {
       handler() {
@@ -88,6 +80,14 @@ export default {
       },
       deep: true,
     },
+  },
+  mounted() {
+    this.createChart();
+  },
+  beforeUnmount() {
+    if (this.chart) {
+      this.chart.destroy();
+    }
   },
   methods: {
     createChart() {

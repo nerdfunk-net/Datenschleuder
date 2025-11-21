@@ -1,17 +1,19 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <div class="row">
         <div class="col-md-4">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Basic Example</h5>
+              <h5 class="card-title">
+                Basic Example
+              </h5>
               <p>
                 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean
                 commodo ligula eget dolor. Aenean massa.
@@ -20,7 +22,9 @@
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Card with Subtitle</h5>
+              <h5 class="card-title">
+                Card with Subtitle
+              </h5>
               <h6 class="card-subtitle">
                 Lorem ipsum dolor sit amet, consectetuer adipiscing elit
               </h6>
@@ -32,15 +36,17 @@
           </div>
           <b-card class="mb-3">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
               <b-button
                 variant="primary"
-                @click="handleCardAction('primary')"
                 :class="{ active: cardActions.primaryClicked }"
+                @click="handleCardAction('primary')"
               >
                 Go somewhere
               </b-button>
@@ -49,15 +55,17 @@
 
           <b-card class="mb-3 text-center">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
               <b-button
                 variant="danger"
-                @click="handleCardAction('danger')"
                 :class="{ active: cardActions.dangerClicked }"
+                @click="handleCardAction('danger')"
               >
                 Go somewhere
               </b-button>
@@ -66,26 +74,32 @@
 
           <b-card class="mb-3 text-end">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="outline-dark">Go somewhere</b-button>
+              <b-button variant="outline-dark">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
           <b-card class="main-card mb-3">
             <b-card-header>Header</b-card-header>
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
               <b-button
                 variant="warning"
-                @click="handleCardAction('warning')"
                 :class="{ active: cardActions.warningClicked }"
+                @click="handleCardAction('warning')"
               >
                 Go somewhere
               </b-button>
@@ -102,15 +116,19 @@
               class="card-img-top"
             />
             <div class="card-body">
-              <h5 class="card-title">Card title</h5>
-              <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+              <h5 class="card-title">
+                Card title
+              </h5>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Card subtitle
+              </h6>
               Some quick example text to build on the card title and make up the
               bulk of the card's content.
               <br /><br />
               <button
                 class="btn btn-secondary"
-                @click="handleCardAction('secondary')"
                 :class="{ active: cardActions.secondaryClicked }"
+                @click="handleCardAction('secondary')"
               >
                 <i class="fa fa-heart me-1"></i>Like ({{ cardStats.likes }})
               </button>
@@ -118,7 +136,9 @@
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Card Title</h5>
+              <h5 class="card-title">
+                Card Title
+              </h5>
               This is a wider card with supporting text below as a natural
               lead-in to additional content. This content is a little bit
               longer. <br /><br />
@@ -135,8 +155,12 @@
         <div class="col-md-4">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Card title</h5>
-              <h6 class="mb-0 card-subtitle">Card subtitle</h6>
+              <h5 class="card-title">
+                Card title
+              </h5>
+              <h6 class="mb-0 card-subtitle">
+                Card subtitle
+              </h6>
             </div>
             <img
               width="100%"
@@ -148,16 +172,14 @@
               bulk of the card's content.<br /><br />
               <a
                 href="#"
-                @click.prevent="handleCardLink('Card')"
                 class="card-link"
-                >Card Link</a
-              >
+                @click.prevent="handleCardLink('Card')"
+              >Card Link</a>
               <a
                 href="#"
-                @click.prevent="handleCardLink('Another')"
                 class="card-link"
-                >Another Link</a
-              >
+                @click.prevent="handleCardLink('Another')"
+              >Another Link</a>
             </div>
           </div>
           <div class="main-card mb-3 card">
@@ -168,7 +190,9 @@
               class="card-img-top"
             />
             <div class="card-body">
-              <h5 class="card-title">Card Title</h5>
+              <h5 class="card-title">
+                Card Title
+              </h5>
               This is a wider card with supporting text below as a natural
               lead-in to additional content. This content is a little bit
               longer. <br /><br />
@@ -182,52 +206,68 @@
           <div
             class="card-shadow-primary border mb-3 card card-body border-primary"
           >
-            <h5 class="card-title">Primary Card Shadow</h5>
+            <h5 class="card-title">
+              Primary Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
           <div
             class="card-shadow-secondary border mb-3 card card-body border-secondary"
           >
-            <h5 class="card-title">Secondary Card Shadow</h5>
+            <h5 class="card-title">
+              Secondary Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
           <div
             class="card-shadow-warning border mb-3 card card-body border-warning"
           >
-            <h5 class="card-title">Warning Card Shadow</h5>
+            <h5 class="card-title">
+              Warning Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
           <div
             class="card-shadow-danger border mb-3 card card-body border-danger"
           >
-            <h5 class="card-title">Danger Card Shadow</h5>
+            <h5 class="card-title">
+              Danger Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
           <div
             class="card-shadow-success border mb-3 card card-body border-success"
           >
-            <h5 class="card-title">Success Card Shadow</h5>
+            <h5 class="card-title">
+              Success Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
           <div class="card-shadow-info border mb-3 card card-body border-info">
-            <h5 class="card-title">Info Card Shadow</h5>
+            <h5 class="card-title">
+              Info Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
           <div class="card-shadow-dark border mb-3 card card-body border-dark">
-            <h5 class="card-title">Dark Card Shadow</h5>
+            <h5 class="card-title">
+              Dark Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
           <div
             class="card-shadow-light border mb-3 card card-body border-light"
           >
-            <h5 class="card-title">Light Card Shadow</h5>
+            <h5 class="card-title">
+              Light Card Shadow
+            </h5>
             With supporting text below as a natural lead-in to additional
             content.
           </div>
@@ -239,7 +279,9 @@
               class="card-img"
             />
             <div class="card-img-overlay">
-              <h5 class="text-white card-title">Card Title</h5>
+              <h5 class="text-white card-title">
+                Card Title
+              </h5>
               This is a wider card with supporting text below as a natural
               lead-in to additional content. This content is a little bit
               longer. <br /><br />
@@ -250,100 +292,136 @@
         <div class="col-md-4">
           <b-card class="mb-3 border-primary" border-variant="primary">
             <b-card-body>
-              <h5 class="card-title">Primary Card Border</h5>
+              <h5 class="card-title">
+                Primary Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="primary" size="sm">Go somewhere</b-button>
+              <b-button variant="primary" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
 
           <b-card class="mb-3 border-secondary" border-variant="secondary">
             <b-card-body>
-              <h5 class="card-title">Secondary Card Border</h5>
+              <h5 class="card-title">
+                Secondary Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="secondary" size="sm">Go somewhere</b-button>
+              <b-button variant="secondary" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
 
           <b-card class="mb-3 border-warning" border-variant="warning">
             <b-card-body>
-              <h5 class="card-title">Warning Card Border</h5>
+              <h5 class="card-title">
+                Warning Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="warning" size="sm">Go somewhere</b-button>
+              <b-button variant="warning" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
 
           <b-card class="mb-3 border-danger" border-variant="danger">
             <b-card-body>
-              <h5 class="card-title">Danger Card Border</h5>
+              <h5 class="card-title">
+                Danger Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="danger" size="sm">Go somewhere</b-button>
+              <b-button variant="danger" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
 
           <b-card class="mb-3 border-success" border-variant="success">
             <b-card-body>
-              <h5 class="card-title">Success Card Border</h5>
+              <h5 class="card-title">
+                Success Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="success" size="sm">Go somewhere</b-button>
+              <b-button variant="success" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
 
           <b-card class="mb-3 border-info" border-variant="info">
             <b-card-body>
-              <h5 class="card-title">Info Card Border</h5>
+              <h5 class="card-title">
+                Info Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="info" size="sm">Go somewhere</b-button>
+              <b-button variant="info" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
 
           <b-card class="mb-3 border-dark" border-variant="dark">
             <b-card-body>
-              <h5 class="card-title">Dark Card Border</h5>
+              <h5 class="card-title">
+                Dark Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="dark" size="sm">Go somewhere</b-button>
+              <b-button variant="dark" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
 
           <b-card class="mb-3 border-light" border-variant="light">
             <b-card-body>
-              <h5 class="card-title">Light Card Border</h5>
+              <h5 class="card-title">
+                Light Card Border
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
               </p>
-              <b-button variant="outline-dark" size="sm">Go somewhere</b-button>
+              <b-button variant="outline-dark" size="sm">
+                Go somewhere
+              </b-button>
             </b-card-body>
           </b-card>
         </div>
         <div class="col-md-4">
           <div class="mb-3 card text-white bg-primary">
-            <div class="card-header">Header</div>
+            <div class="card-header">
+              Header
+            </div>
             <div class="card-body">
               With supporting text below as a natural lead-in to additional
               content.
             </div>
-            <div class="card-footer">Footer</div>
+            <div class="card-footer">
+              Footer
+            </div>
           </div>
           <b-card
             class="mb-3 text-white"
@@ -353,7 +431,9 @@
             "
           >
             <b-card-body>
-              <h5 class="text-white card-title">Special Title Treatment</h5>
+              <h5 class="text-white card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
@@ -363,7 +443,9 @@
 
           <b-card class="mb-3 text-bg-primary">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
@@ -373,7 +455,9 @@
 
           <b-card class="mb-3 text-bg-success">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
@@ -383,7 +467,9 @@
 
           <b-card class="mb-3 text-bg-danger">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
@@ -393,7 +479,9 @@
 
           <b-card class="mb-3 text-bg-info">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.
@@ -403,7 +491,9 @@
 
           <b-card class="mb-3 text-bg-warning">
             <b-card-body>
-              <h5 class="card-title">Special Title Treatment</h5>
+              <h5 class="card-title">
+                Special Title Treatment
+              </h5>
               <p class="card-text">
                 With supporting text below as a natural lead-in to additional
                 content.

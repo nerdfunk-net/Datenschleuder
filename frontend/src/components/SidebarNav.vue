@@ -5,7 +5,7 @@
     @mouseleave="onSidebarHover(false)"
   >
     <div class="app-header__logo">
-      <div class="logo-src" />
+      <div class="logo-src"></div>
       <div class="sidebar-header-controls">
         <button
           type="button"

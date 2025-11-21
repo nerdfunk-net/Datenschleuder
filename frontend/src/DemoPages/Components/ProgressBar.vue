@@ -1,10 +1,10 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <b-row>
       <b-col md="6">
@@ -21,7 +21,9 @@
           </b-card-header>
           <b-card-body>
             <div class="mb-3">
-              <h6 class="mb-2">Standard Progress Bar</h6>
+              <h6 class="mb-2">
+                Standard Progress Bar
+              </h6>
               <div class="progress" style="height: 1rem">
                 <div
                   class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
@@ -38,7 +40,9 @@
             </div>
 
             <div class="mb-3">
-              <h6 class="mb-2">Stacked Progress Bar</h6>
+              <h6 class="mb-2">
+                Stacked Progress Bar
+              </h6>
               <div class="progress" style="height: 1rem">
                 <div
                   class="progress-bar bg-success"
@@ -71,15 +75,13 @@
                   {{ Math.round(stackedValue * 0.15) }}%
                 </div>
               </div>
-              <small class="text-muted"
-                >Success: {{ Math.round(stackedValue * 0.6) }}%, Warning:
+              <small class="text-muted">Success: {{ Math.round(stackedValue * 0.6) }}%, Warning:
                 {{ Math.round(stackedValue * 0.25) }}%, Danger:
-                {{ Math.round(stackedValue * 0.15) }}%</small
-              >
+                {{ Math.round(stackedValue * 0.15) }}%</small>
             </div>
 
             <div class="text-center">
-              <b-button variant="primary" @click="randomizeBasic" class="me-2">
+              <b-button variant="primary" class="me-2" @click="randomizeBasic">
                 <i class="fas fa-random me-1"></i>
                 Randomize
               </b-button>
@@ -146,7 +148,9 @@
           </b-card-header>
           <b-card-body>
             <div class="mb-3">
-              <h6 class="mb-2">Default Size</h6>
+              <h6 class="mb-2">
+                Default Size
+              </h6>
               <div class="progress mb-2" style="height: 1rem">
                 <div
                   class="progress-bar bg-primary"
@@ -162,7 +166,9 @@
             </div>
 
             <div class="mb-3">
-              <h6 class="mb-2">Large (2rem)</h6>
+              <h6 class="mb-2">
+                Large (2rem)
+              </h6>
               <div class="progress mb-2" style="height: 2rem">
                 <div
                   class="progress-bar bg-primary"
@@ -178,7 +184,9 @@
             </div>
 
             <div class="mb-3">
-              <h6 class="mb-2">Small (20px)</h6>
+              <h6 class="mb-2">
+                Small (20px)
+              </h6>
               <div class="progress mb-2" style="height: 20px">
                 <div
                   class="progress-bar bg-primary"
@@ -194,7 +202,9 @@
             </div>
 
             <div class="mb-3">
-              <h6 class="mb-2">Thin (4px)</h6>
+              <h6 class="mb-2">
+                Thin (4px)
+              </h6>
               <div class="progress" style="height: 4px">
                 <div
                   class="progress-bar bg-info"
@@ -208,7 +218,9 @@
             </div>
 
             <div class="mb-3">
-              <h6 class="mb-2">Extra Thin (2px)</h6>
+              <h6 class="mb-2">
+                Extra Thin (2px)
+              </h6>
               <div class="progress" style="height: 2px">
                 <div
                   class="progress-bar bg-success"
@@ -244,9 +256,7 @@
               <div
                 class="d-flex justify-content-between align-items-center mb-1"
               >
-                <span class="text-capitalize fw-medium"
-                  >{{ bar.variant }} {{ bar.striped ? "(Striped)" : "" }}</span
-                >
+                <span class="text-capitalize fw-medium">{{ bar.variant }} {{ bar.striped ? "(Striped)" : "" }}</span>
                 <span class="badge bg-light text-dark">{{ bar.value }}%</span>
               </div>
               <div class="progress" style="height: 1rem">
@@ -266,8 +276,8 @@
             <div class="text-center mt-3">
               <b-button
                 :variant="allStriped ? 'outline-warning' : 'warning'"
-                @click="toggleStriped"
                 class="me-2"
+                @click="toggleStriped"
               >
                 <i
                   :class="allStriped ? 'fas fa-eye-slash' : 'fas fa-eye'"
@@ -308,7 +318,9 @@
             <b-row>
               <b-col md="6">
                 <div class="mb-4">
-                  <h6 class="mb-3">File Upload Simulation</h6>
+                  <h6 class="mb-3">
+                    File Upload Simulation
+                  </h6>
                   <div
                     class="d-flex justify-content-between align-items-center mb-2"
                   >
@@ -331,8 +343,8 @@
                     <b-button
                       variant="primary"
                       size="sm"
-                      @click="simulateUpload"
                       :disabled="uploadFile.uploading"
+                      @click="simulateUpload"
                     >
                       <i
                         :class="
@@ -349,8 +361,8 @@
                     <b-button
                       variant="outline-secondary"
                       size="sm"
-                      @click="resetUpload"
                       class="ms-2"
+                      @click="resetUpload"
                     >
                       <i class="fas fa-redo me-1"></i>
                       Reset
@@ -361,19 +373,17 @@
 
               <b-col md="6">
                 <div class="mb-4">
-                  <h6 class="mb-3">System Resources</h6>
+                  <h6 class="mb-3">
+                    System Resources
+                  </h6>
 
                   <div class="mb-3">
                     <div
                       class="d-flex justify-content-between align-items-center mb-1"
                     >
-                      <span
-                        ><i class="fas fa-microchip text-info me-1"></i>CPU
-                        Usage</span
-                      >
-                      <span class="text-muted"
-                        >{{ Math.round(systemResources.cpu) }}%</span
-                      >
+                      <span><i class="fas fa-microchip text-info me-1"></i>CPU
+                        Usage</span>
+                      <span class="text-muted">{{ Math.round(systemResources.cpu) }}%</span>
                     </div>
                     <div class="progress" style="height: 8px">
                       <div
@@ -391,13 +401,8 @@
                     <div
                       class="d-flex justify-content-between align-items-center mb-1"
                     >
-                      <span
-                        ><i class="fas fa-memory text-warning me-1"></i
-                        >Memory</span
-                      >
-                      <span class="text-muted"
-                        >{{ Math.round(systemResources.memory) }}%</span
-                      >
+                      <span><i class="fas fa-memory text-warning me-1"></i>Memory</span>
+                      <span class="text-muted">{{ Math.round(systemResources.memory) }}%</span>
                     </div>
                     <div class="progress" style="height: 8px">
                       <div
@@ -415,13 +420,9 @@
                     <div
                       class="d-flex justify-content-between align-items-center mb-1"
                     >
-                      <span
-                        ><i class="fas fa-hdd text-danger me-1"></i>Disk
-                        Usage</span
-                      >
-                      <span class="text-muted"
-                        >{{ Math.round(systemResources.disk) }}%</span
-                      >
+                      <span><i class="fas fa-hdd text-danger me-1"></i>Disk
+                        Usage</span>
+                      <span class="text-muted">{{ Math.round(systemResources.disk) }}%</span>
                     </div>
                     <div class="progress" style="height: 8px">
                       <div
@@ -439,7 +440,9 @@
             </b-row>
 
             <div class="alert alert-info mt-3">
-              <h6 class="mb-2">💡 Progress Bar Features:</h6>
+              <h6 class="mb-2">
+                💡 Progress Bar Features:
+              </h6>
               <ul class="mb-0">
                 <li>
                   <strong>Variants:</strong> primary, secondary, success, info,

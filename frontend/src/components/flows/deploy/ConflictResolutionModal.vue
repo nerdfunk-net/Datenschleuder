@@ -11,7 +11,9 @@
         <div class="d-flex align-items-center gap-2">
           <i class="pe-7s-upload" style="font-size: 1.5rem;"></i>
           <div>
-            <div class="fw-bold text-white">{{ deploymentConfig.flowName }}</div>
+            <div class="fw-bold text-white">
+              {{ deploymentConfig.flowName }}
+            </div>
             <div class="small text-white-75">
               <span
                 class="badge"
@@ -36,7 +38,7 @@
             <span class="label">Name:</span>
             <span class="value fw-bold">{{ conflictInfo.existing_process_group.name }}</span>
           </div>
-          <div class="info-row" v-if="deploymentConfig">
+          <div v-if="deploymentConfig" class="info-row">
             <span class="label">Path:</span>
             <span class="value font-monospace small">{{ getSelectedPath() }}</span>
           </div>
@@ -47,7 +49,7 @@
               <i class="pe-7s-close text-muted ms-2 me-1"></i>{{ conflictInfo.existing_process_group.stopped_count }} stopped
             </span>
           </div>
-          <div class="info-row" v-if="conflictInfo.existing_process_group.has_version_control">
+          <div v-if="conflictInfo.existing_process_group.has_version_control" class="info-row">
             <span class="label">Version Control:</span>
             <span class="value">
               <i class="pe-7s-check text-info me-1"></i>Yes
@@ -64,32 +66,32 @@
       <div class="conflict-actions">
         <b-button
           variant="primary"
-          @click="handleResolution('deploy_anyway')"
           :disabled="isResolving"
           size="sm"
           class="mb-2 w-100"
+          @click="handleResolution('deploy_anyway')"
         >
           <b-spinner
             v-if="isResolving && selectedResolution === 'deploy_anyway'"
             small
             class="me-1"
-          ></b-spinner>
+          />
           <i v-else class="pe-7s-plus me-1"></i>
           Deploy Anyway
         </b-button>
 
         <b-button
           variant="danger"
-          @click="handleResolution('delete_and_deploy')"
           :disabled="isResolving"
           size="sm"
           class="mb-2 w-100"
+          @click="handleResolution('delete_and_deploy')"
         >
           <b-spinner
             v-if="isResolving && selectedResolution === 'delete_and_deploy'"
             small
             class="me-1"
-          ></b-spinner>
+          />
           <i v-else class="pe-7s-trash me-1"></i>
           Delete & Redeploy
         </b-button>
@@ -97,26 +99,26 @@
         <b-button
           v-if="conflictInfo.existing_process_group.has_version_control"
           variant="info"
-          @click="handleResolution('update_version')"
           :disabled="isResolving"
           size="sm"
           class="mb-2 w-100"
+          @click="handleResolution('update_version')"
         >
           <b-spinner
             v-if="isResolving && selectedResolution === 'update_version'"
             small
             class="me-1"
-          ></b-spinner>
+          />
           <i v-else class="pe-7s-refresh-2 me-1"></i>
           Update Version
         </b-button>
 
         <b-button
           variant="outline-secondary"
-          @click="handleCancel"
           :disabled="isResolving"
           size="sm"
           class="w-100"
+          @click="handleCancel"
         >
           Cancel
         </b-button>

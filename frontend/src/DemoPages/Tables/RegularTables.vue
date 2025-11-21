@@ -1,44 +1,68 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <!-- Table Options Card -->
     <b-card title="Bootstrap 5 Table Options" class="main-card mb-4">
       <b-row>
         <b-col md="6">
           <div class="form-check-group">
-            <b-form-checkbox v-model="striped" class="mb-2"
-              >Striped Rows</b-form-checkbox
+            <b-form-checkbox
+              v-model="striped"
+              class="mb-2"
             >
-            <b-form-checkbox v-model="bordered" class="mb-2"
-              >Bordered</b-form-checkbox
+              Striped Rows
+            </b-form-checkbox>
+            <b-form-checkbox
+              v-model="bordered"
+              class="mb-2"
             >
-            <b-form-checkbox v-model="hover" class="mb-2"
-              >Hover Effect</b-form-checkbox
+              Bordered
+            </b-form-checkbox>
+            <b-form-checkbox
+              v-model="hover"
+              class="mb-2"
             >
-            <b-form-checkbox v-model="small" class="mb-2"
-              >Small Size</b-form-checkbox
+              Hover Effect
+            </b-form-checkbox>
+            <b-form-checkbox
+              v-model="small"
+              class="mb-2"
             >
+              Small Size
+            </b-form-checkbox>
           </div>
         </b-col>
         <b-col md="6">
           <div class="form-check-group">
-            <b-form-checkbox v-model="dark" class="mb-2"
-              >Dark Theme</b-form-checkbox
+            <b-form-checkbox
+              v-model="dark"
+              class="mb-2"
             >
-            <b-form-checkbox v-model="responsive" class="mb-2"
-              >Responsive</b-form-checkbox
+              Dark Theme
+            </b-form-checkbox>
+            <b-form-checkbox
+              v-model="responsive"
+              class="mb-2"
             >
-            <b-form-checkbox v-model="showEmpty" class="mb-2"
-              >Show Empty State</b-form-checkbox
+              Responsive
+            </b-form-checkbox>
+            <b-form-checkbox
+              v-model="showEmpty"
+              class="mb-2"
             >
-            <b-form-checkbox v-model="sortable" class="mb-2"
-              >Sortable Columns</b-form-checkbox
+              Show Empty State
+            </b-form-checkbox>
+            <b-form-checkbox
+              v-model="sortable"
+              class="mb-2"
             >
+              Sortable Columns
+            </b-form-checkbox>
           </div>
         </b-col>
       </b-row>
@@ -61,7 +85,7 @@
                 ]"
                 size="sm"
                 style="width: auto"
-              ></b-form-select>
+              />
               <span class="ms-2 text-muted">entries</span>
             </div>
           </b-col>
@@ -73,7 +97,7 @@
                 size="sm"
                 placeholder="Search..."
                 style="width: 200px"
-              ></b-form-input>
+              />
             </div>
           </b-col>
         </b-row>
@@ -135,22 +159,34 @@
           size="sm"
           class="mb-0"
           aria-label="Table pagination"
-        ></b-pagination>
+        />
       </div>
     </b-card>
 
     <!-- Basic Examples Card -->
     <b-card title="Basic Table Examples" class="main-card mb-4">
-      <h6 class="mb-3">Simple Table with Custom Styling</h6>
+      <h6 class="mb-3">
+        Simple Table with Custom Styling
+      </h6>
       <div class="table-responsive">
         <table class="table table-striped table-hover">
           <thead class="table-dark">
             <tr>
-              <th scope="col">#</th>
-              <th scope="col">Name</th>
-              <th scope="col">Position</th>
-              <th scope="col">Department</th>
-              <th scope="col">Salary</th>
+              <th scope="col">
+                #
+              </th>
+              <th scope="col">
+                Name
+              </th>
+              <th scope="col">
+                Position
+              </th>
+              <th scope="col">
+                Department
+              </th>
+              <th scope="col">
+                Salary
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -170,7 +206,9 @@
               </td>
               <td>{{ employee.position }}</td>
               <td>{{ employee.department }}</td>
-              <td class="text-end">${{ employee.salary.toLocaleString() }}</td>
+              <td class="text-end">
+                ${{ employee.salary.toLocaleString() }}
+              </td>
             </tr>
           </tbody>
         </table>

@@ -38,12 +38,16 @@
           >
             <i class="pe-7s-home text-white" style="font-size: 2rem"></i>
           </div>
-          <h4 class="text-primary fw-bold mb-0">ArchitectUI</h4>
+          <h4 class="text-primary fw-bold mb-0">
+            ArchitectUI
+          </h4>
         </div>
 
         <!-- Login Header -->
         <div class="text-center mb-5">
-          <h2 class="fw-bold text-dark mb-2">Sign in to your account</h2>
+          <h2 class="fw-bold text-dark mb-2">
+            Sign in to your account
+          </h2>
           <p class="text-secondary mb-0">
             Welcome back! Please enter your details.
           </p>
@@ -52,9 +56,10 @@
         <!-- Login Form -->
         <form>
           <div class="mb-4">
-            <label for="email" class="form-label text-dark fw-medium mb-2"
-              >Email address</label
-            >
+            <label
+              for="email"
+              class="form-label text-dark fw-medium mb-2"
+            >Email address</label>
             <b-form-input
               id="email"
               type="email"
@@ -66,9 +71,10 @@
           </div>
 
           <div class="mb-4">
-            <label for="password" class="form-label text-dark fw-medium mb-2"
-              >Password</label
-            >
+            <label
+              for="password"
+              class="form-label text-dark fw-medium mb-2"
+            >Password</label>
             <b-form-input
               id="password"
               type="password"

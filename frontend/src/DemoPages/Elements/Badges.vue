@@ -1,29 +1,53 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <div class="row">
         <div class="col-lg-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Colors</h5>
-              <div class="mb-2 me-2 badge badge-primary">Primary</div>
-              <div class="mb-2 me-2 badge badge-secondary">Secondary</div>
-              <div class="mb-2 me-2 badge badge-success">Success</div>
-              <div class="mb-2 me-2 badge badge-info">Info</div>
-              <div class="mb-2 me-2 badge badge-warning">Warning</div>
-              <div class="mb-2 me-2 badge badge-danger">Danger</div>
-              <div class="mb-2 me-2 badge badge-focus">Focus</div>
-              <div class="mb-2 me-2 badge badge-alternate">Alt</div>
-              <div class="mb-2 me-2 badge badge-light">Light</div>
-              <div class="mb-2 me-2 badge badge-dark">Dark</div>
+              <h5 class="card-title">
+                Colors
+              </h5>
+              <div class="mb-2 me-2 badge badge-primary">
+                Primary
+              </div>
+              <div class="mb-2 me-2 badge badge-secondary">
+                Secondary
+              </div>
+              <div class="mb-2 me-2 badge badge-success">
+                Success
+              </div>
+              <div class="mb-2 me-2 badge badge-info">
+                Info
+              </div>
+              <div class="mb-2 me-2 badge badge-warning">
+                Warning
+              </div>
+              <div class="mb-2 me-2 badge badge-danger">
+                Danger
+              </div>
+              <div class="mb-2 me-2 badge badge-focus">
+                Focus
+              </div>
+              <div class="mb-2 me-2 badge badge-alternate">
+                Alt
+              </div>
+              <div class="mb-2 me-2 badge badge-light">
+                Light
+              </div>
+              <div class="mb-2 me-2 badge badge-dark">
+                Dark
+              </div>
               <div class="divider"></div>
-              <h5 class="card-title">Pills</h5>
+              <h5 class="card-title">
+                Pills
+              </h5>
               <div class="mb-2 me-2 badge rounded-pill badge-primary">
                 Primary
               </div>
@@ -33,61 +57,71 @@
               <div class="mb-2 me-2 badge rounded-pill badge-success">
                 Success
               </div>
-              <div class="mb-2 me-2 badge rounded-pill badge-info">Info</div>
+              <div class="mb-2 me-2 badge rounded-pill badge-info">
+                Info
+              </div>
               <div class="mb-2 me-2 badge rounded-pill badge-warning">
                 Warning
               </div>
               <div class="mb-2 me-2 badge rounded-pill badge-danger">
                 Danger
               </div>
-              <div class="mb-2 me-2 badge rounded-pill badge-focus">Focus</div>
+              <div class="mb-2 me-2 badge rounded-pill badge-focus">
+                Focus
+              </div>
               <div class="mb-2 me-2 badge rounded-pill badge-alternate">
                 Alt
               </div>
-              <div class="mb-2 me-2 badge rounded-pill badge-light">Light</div>
-              <div class="mb-2 me-2 badge rounded-pill badge-dark">Dark</div>
+              <div class="mb-2 me-2 badge rounded-pill badge-light">
+                Light
+              </div>
+              <div class="mb-2 me-2 badge rounded-pill badge-dark">
+                Dark
+              </div>
               <div class="divider"></div>
-              <h5 class="card-title">Links</h5>
+              <h5 class="card-title">
+                Links
+              </h5>
               <a
                 href="javascript:void(0);"
                 class="mb-2 me-2 badge badge-primary"
-                >Primary</a
-              ><a
+              >Primary</a><a
                 href="javascript:void(0);"
                 class="mb-2 me-2 badge badge-secondary"
-                >Secondary</a
-              ><a
+              >Secondary</a><a
                 href="javascript:void(0);"
                 class="mb-2 me-2 badge badge-success"
-                >Success</a
-              ><a href="javascript:void(0);" class="mb-2 me-2 badge badge-info"
-                >Info</a
-              ><a
+              >Success</a><a
+                href="javascript:void(0);"
+                class="mb-2 me-2 badge badge-info"
+              >Info</a><a
                 href="javascript:void(0);"
                 class="mb-2 me-2 badge badge-warning"
-                >Warning</a
-              ><a
+              >Warning</a><a
                 href="javascript:void(0);"
                 class="mb-2 me-2 badge badge-danger"
-                >Danger</a
-              ><a href="javascript:void(0);" class="mb-2 me-2 badge badge-focus"
-                >Focus</a
-              ><a
+              >Danger</a><a
+                href="javascript:void(0);"
+                class="mb-2 me-2 badge badge-focus"
+              >Focus</a><a
                 href="javascript:void(0);"
                 class="mb-2 me-2 badge badge-alternate"
-                >Alt</a
-              ><a href="javascript:void(0);" class="mb-2 me-2 badge badge-light"
-                >Light</a
-              ><a href="javascript:void(0);" class="mb-2 me-2 badge badge-dark"
-                >Dark</a
-              >
+              >Alt</a><a
+                href="javascript:void(0);"
+                class="mb-2 me-2 badge badge-light"
+              >Light</a><a
+                href="javascript:void(0);"
+                class="mb-2 me-2 badge badge-dark"
+              >Dark</a>
             </div>
           </div>
         </div>
         <div class="col-lg-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">With Buttons</h5>
+              <h5 class="card-title">
+                With Buttons
+              </h5>
               <button class="mb-2 me-2 btn btn-primary">
                 Primary<span class="badge badge-light ms-2">NEW</span>
               </button>

@@ -1,8 +1,12 @@
 <template>
   <div class="monitoring-page">
     <div class="page-header">
-      <h1 class="page-title">NiFi Monitoring</h1>
-      <p class="page-description">Monitor NiFi system diagnostics and flows</p>
+      <h1 class="page-title">
+        NiFi Monitoring
+      </h1>
+      <p class="page-description">
+        Monitor NiFi system diagnostics and flows
+      </p>
     </div>
 
     <!-- Tabs Navigation -->
@@ -11,9 +15,9 @@
         <button
           class="nav-link"
           :class="{ active: activeTab === 'instances' }"
-          @click="activeTab = 'instances'"
           type="button"
           role="tab"
+          @click="activeTab = 'instances'"
         >
           <i class="pe-7s-server"></i> NiFi Instances
         </button>
@@ -22,9 +26,9 @@
         <button
           class="nav-link"
           :class="{ active: activeTab === 'flows' }"
-          @click="activeTab = 'flows'"
           type="button"
           role="tab"
+          @click="activeTab = 'flows'"
         >
           <i class="pe-7s-network"></i> NiFi Flows
         </button>
@@ -33,9 +37,9 @@
         <button
           class="nav-link"
           :class="{ active: activeTab === 'queues' }"
-          @click="activeTab = 'queues'"
           type="button"
           role="tab"
+          @click="activeTab = 'queues'"
         >
           <i class="pe-7s-albums"></i> NiFi Queues
         </button>

@@ -1,34 +1,47 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <b-card class="main-card mb-3 text-center">
-        <b-button class="me-2" @click="$refs.modal1.show()"
-          >Launch demo modal</b-button
+        <b-button
+          class="me-2"
+          @click="$refs.modal1.show()"
         >
-        <b-button class="me-2" @click="$refs.modallg.show()" variant="primary"
-          >Large modal</b-button
+          Launch demo modal
+        </b-button>
+        <b-button
+          class="me-2"
+          variant="primary"
+          @click="$refs.modallg.show()"
         >
-        <b-button class="me-2" @click="$refs.modalsm.show()" variant="primary"
-          >Small modal</b-button
+          Large modal
+        </b-button>
+        <b-button
+          class="me-2"
+          variant="primary"
+          @click="$refs.modalsm.show()"
         >
+          Small modal
+        </b-button>
       </b-card>
 
       <!-- BootstrapVueNext Modals -->
       <!-- Default Modal -->
       <b-modal
-        ref="modal1"
         id="modal1"
+        ref="modal1"
         title="BootstrapVueNext Modal"
         hide-footer
         :z-index="1055"
       >
-        <p class="my-4">Hello from BootstrapVueNext modal!</p>
+        <p class="my-4">
+          Hello from BootstrapVueNext modal!
+        </p>
         <template #modal-footer>
           <div class="w-100">
             <div class="float-end">
@@ -40,7 +53,9 @@
               >
                 Close
               </b-button>
-              <b-button variant="primary" size="sm">Save changes</b-button>
+              <b-button variant="primary" size="sm">
+                Save changes
+              </b-button>
             </div>
           </div>
         </template>
@@ -48,8 +63,8 @@
 
       <!-- Large Modal -->
       <b-modal
-        ref="modallg"
         id="modallg"
+        ref="modallg"
         title="Large Modal"
         hide-footer
         size="lg"
@@ -71,7 +86,9 @@
               >
                 Close
               </b-button>
-              <b-button variant="primary" size="sm">Save changes</b-button>
+              <b-button variant="primary" size="sm">
+                Save changes
+              </b-button>
             </div>
           </div>
         </template>
@@ -79,8 +96,8 @@
 
       <!-- Small Modal -->
       <b-modal
-        ref="modalsm"
         id="modalsm"
+        ref="modalsm"
         title="Small Modal"
         hide-footer
         size="sm"
@@ -98,7 +115,9 @@
               >
                 Close
               </b-button>
-              <b-button variant="primary" size="sm">Save</b-button>
+              <b-button variant="primary" size="sm">
+                Save
+              </b-button>
             </div>
           </div>
         </template>

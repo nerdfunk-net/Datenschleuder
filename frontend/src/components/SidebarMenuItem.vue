@@ -26,9 +26,9 @@
   >
     <div
       class="vsm-link"
-      @click="toggleSubmenu"
       role="button"
       tabindex="0"
+      @click="toggleSubmenu"
       @keydown.enter="toggleSubmenu"
       @keydown.space.prevent="toggleSubmenu"
     >

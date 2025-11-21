@@ -2,7 +2,9 @@
   <div class="settings-page">
     <div class="page-card">
       <div class="card-header">
-        <h2 class="card-title">Hierarchy Settings</h2>
+        <h2 class="card-title">
+          Hierarchy Settings
+        </h2>
         <p class="text-muted mb-0">
           Configure the hierarchy of attributes (e.g.,
           CN=test,O=myOrg,OU=myOrgUnit,DC=myNet)
@@ -27,7 +29,9 @@
                   :key="index"
                   class="hierarchy-item"
                 >
-                  <div class="hierarchy-order">{{ index + 1 }}</div>
+                  <div class="hierarchy-order">
+                    {{ index + 1 }}
+                  </div>
 
                   <div class="hierarchy-fields">
                     <div class="row g-2">
@@ -35,9 +39,9 @@
                         <b-form-input
                           v-model="attr.name"
                           placeholder="Name (e.g., CN)"
-                          @input="validateUniqueName(index)"
                           :class="{ 'is-invalid': attr.nameError }"
                           :disabled="!isAdmin"
+                          @input="validateUniqueName(index)"
                         />
                         <div
                           v-if="attr.nameError"
@@ -57,8 +61,8 @@
                         <b-button
                           variant="outline-info"
                           size="sm"
-                          @click="viewAttribute(index)"
                           title="View values"
+                          @click="viewAttribute(index)"
                         >
                           <i class="pe-7s-look"></i>
                         </b-button>
@@ -66,8 +70,8 @@
                           v-if="isAdmin"
                           variant="outline-primary"
                           size="sm"
-                          @click="editAttribute(index)"
                           title="Edit values"
+                          @click="editAttribute(index)"
                         >
                           <i class="pe-7s-pen"></i>
                         </b-button>
@@ -75,9 +79,9 @@
                           v-if="isAdmin"
                           variant="outline-danger"
                           size="sm"
-                          @click="removeAttribute(index)"
                           :disabled="settings.hierarchy.length === 1"
                           title="Remove attribute"
+                          @click="removeAttribute(index)"
                         >
                           <i class="pe-7s-trash"></i>
                         </b-button>
@@ -90,9 +94,9 @@
                       v-if="isAdmin"
                       variant="link"
                       size="sm"
-                      @click="moveUp(index)"
                       :disabled="index === 0"
                       class="p-0"
+                      @click="moveUp(index)"
                     >
                       ▲
                     </b-button>
@@ -100,9 +104,9 @@
                       v-if="isAdmin"
                       variant="link"
                       size="sm"
-                      @click="moveDown(index)"
                       :disabled="index === settings.hierarchy.length - 1"
                       class="p-0"
+                      @click="moveDown(index)"
                     >
                       ▼
                     </b-button>
@@ -140,8 +144,9 @@
               type="button"
               variant="outline-secondary"
               @click="handleReset"
-              >Reset</b-button
             >
+              Reset
+            </b-button>
             <b-button
               v-if="isAdmin"
               type="submit"
@@ -149,7 +154,7 @@
               class="ms-2"
               :disabled="isSaving || hasErrors"
             >
-              <b-spinner v-if="isSaving" small class="me-2"></b-spinner>
+              <b-spinner v-if="isSaving" small class="me-2" />
               Save Settings
             </b-button>
           </div>

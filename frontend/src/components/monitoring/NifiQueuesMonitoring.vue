@@ -14,7 +14,9 @@
               class="form-select"
               @change="onInstanceChange"
             >
-              <option :value="null">-- Select an instance --</option>
+              <option :value="null">
+                -- Select an instance --
+              </option>
               <option
                 v-for="instance in instances"
                 :key="instance.id"
@@ -27,8 +29,8 @@
           <div class="col-md-6">
             <button
               class="btn btn-primary"
-              @click="checkAllQueues"
               :disabled="!selectedInstanceId || checking"
+              @click="checkAllQueues"
             >
               <i
                 class="pe-7s-refresh"
@@ -46,7 +48,9 @@
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
-      <p class="mt-3 text-muted">Loading instances...</p>
+      <p class="mt-3 text-muted">
+        Loading instances...
+      </p>
     </div>
 
     <!-- Error State -->
@@ -65,26 +69,42 @@
         <div class="row mb-4">
           <div class="col-md-3">
             <div class="stat-card">
-              <div class="stat-label">Total Connections</div>
-              <div class="stat-value">{{ connections.length }}</div>
+              <div class="stat-label">
+                Total Connections
+              </div>
+              <div class="stat-value">
+                {{ connections.length }}
+              </div>
             </div>
           </div>
           <div class="col-md-3">
             <div class="stat-card">
-              <div class="stat-label">Queued Connections</div>
-              <div class="stat-value text-warning">{{ queuedConnectionsCount }}</div>
+              <div class="stat-label">
+                Queued Connections
+              </div>
+              <div class="stat-value text-warning">
+                {{ queuedConnectionsCount }}
+              </div>
             </div>
           </div>
           <div class="col-md-3">
             <div class="stat-card">
-              <div class="stat-label">Total FlowFiles</div>
-              <div class="stat-value text-info">{{ totalFlowFiles }}</div>
+              <div class="stat-label">
+                Total FlowFiles
+              </div>
+              <div class="stat-value text-info">
+                {{ totalFlowFiles }}
+              </div>
             </div>
           </div>
           <div class="col-md-3">
             <div class="stat-card">
-              <div class="stat-label">Total Size</div>
-              <div class="stat-value text-success">{{ totalQueuedSize }}</div>
+              <div class="stat-label">
+                Total Size
+              </div>
+              <div class="stat-value text-success">
+                {{ totalQueuedSize }}
+              </div>
             </div>
           </div>
         </div>
@@ -99,7 +119,9 @@
                 <th>Source Type</th>
                 <th>Destination</th>
                 <th>Destination Type</th>
-                <th class="text-end">Queued</th>
+                <th class="text-end">
+                  Queued
+                </th>
                 <th class="text-end sortable" @click="toggleSort('flowFilesIn')">
                   FlowFiles In
                   <i

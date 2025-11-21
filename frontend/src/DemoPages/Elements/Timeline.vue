@@ -1,17 +1,19 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <div class="row">
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Colorful Dots</h5>
+              <h5 class="card-title">
+                Colorful Dots
+              </h5>
               <div
                 class="vertical-time-simple vertical-without-time vertical-timeline vertical-timeline--animate vertical-timeline--one-column"
               >
@@ -21,7 +23,9 @@
                       class="vertical-timeline-element-icon bounce-in"
                     ></span>
                     <div class="vertical-timeline-element-content bounce-in">
-                      <h4 class="timeline-title">All Hands Meeting</h4>
+                      <h4 class="timeline-title">
+                        All Hands Meeting
+                      </h4>
                     </div>
                   </div>
                 </div>
@@ -46,7 +50,9 @@
                     <div class="vertical-timeline-element-content bounce-in">
                       <h4 class="timeline-title">
                         Build the production release
-                        <div class="badge badge-danger ms-2">NEW</div>
+                        <div class="badge badge-danger ms-2">
+                          NEW
+                        </div>
                       </h4>
                     </div>
                   </div>
@@ -57,7 +63,9 @@
                       class="vertical-timeline-element-icon bounce-in"
                     ></span>
                     <div class="vertical-timeline-element-content bounce-in">
-                      <h4 class="timeline-title">Something not important</h4>
+                      <h4 class="timeline-title">
+                        Something not important
+                      </h4>
                     </div>
                   </div>
                 </div>
@@ -67,7 +75,9 @@
                       class="vertical-timeline-element-icon bounce-in"
                     ></span>
                     <div class="vertical-timeline-element-content bounce-in">
-                      <h4 class="timeline-title">This dot has an info state</h4>
+                      <h4 class="timeline-title">
+                        This dot has an info state
+                      </h4>
                     </div>
                   </div>
                 </div>
@@ -77,7 +87,9 @@
                       class="vertical-timeline-element-icon bounce-in"
                     ></span>
                     <div class="vertical-timeline-element-content bounce-in">
-                      <h4 class="timeline-title">This dot has a dark state</h4>
+                      <h4 class="timeline-title">
+                        This dot has a dark state
+                      </h4>
                     </div>
                   </div>
                 </div>
@@ -88,7 +100,9 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Simple Dots</h5>
+              <h5 class="card-title">
+                Simple Dots
+              </h5>
               <div
                 class="vertical-time-simple vertical-without-time vertical-timeline vertical-timeline--animate vertical-timeline--one-column"
               >
@@ -98,7 +112,9 @@
                       class="vertical-timeline-element-icon bounce-in"
                     ></span>
                     <div class="vertical-timeline-element-content bounce-in">
-                      <h4 class="timeline-title">All Hands Meeting</h4>
+                      <h4 class="timeline-title">
+                        All Hands Meeting
+                      </h4>
                     </div>
                   </div>
                 </div>

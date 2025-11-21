@@ -1,10 +1,10 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
     <div class="row">
       <div class="col-md-12">
         <div class="alert alert-warning fade show" role="alert">
@@ -19,32 +19,42 @@
       <div class="col-lg-6">
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Opacity</h5>
+            <h5 class="card-title">
+              Opacity
+            </h5>
             <table class="mb-0 table table-bordered">
               <tbody>
                 <tr>
-                  <th scope="row"><b>.opacity-01 </b> - <b>.opacity-09</b></th>
+                  <th scope="row">
+                    <b>.opacity-01 </b> - <b>.opacity-09</b>
+                  </th>
                   <td>
                     Adding this class to any element sets the opacity to
                     <b>1% ... 9%</b>
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><b>.opacity-2 </b> - <b>.opacity-10</b></th>
+                  <th scope="row">
+                    <b>.opacity-2 </b> - <b>.opacity-10</b>
+                  </th>
                   <td>
                     Adding this class to any element sets the opacity to
                     <b>10% ... 100%</b>
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><b>.opacity-01</b></th>
+                  <th scope="row">
+                    <b>.opacity-01</b>
+                  </th>
                   <td>
                     Adding this class to any element sets the opacity to
                     <b>10%</b>
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row"><b>.opacity-15</b></th>
+                  <th scope="row">
+                    <b>.opacity-15</b>
+                  </th>
                   <td>
                     Adding this class to any element sets the opacity to
                     <b>15%</b>
@@ -58,7 +68,9 @@
       <div class="col-lg-6">
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Breadcrumbs</h5>
+            <h5 class="card-title">
+              Breadcrumbs
+            </h5>
             <div>
               <nav class="" aria-label="breadcrumb">
                 <ol class="breadcrumb">
@@ -96,7 +108,9 @@
       </div>
     </div>
     <div class="card main-card mb-3">
-      <div class="card-header">Height</div>
+      <div class="card-header">
+        Height
+      </div>
       <div class="card-body">
         <div class="row">
           <div class="col-sm">
@@ -130,8 +144,12 @@
               <table class="table table-bordered mb-0">
                 <thead>
                   <tr>
-                    <th style="width: 35%">Class</th>
-                    <th style="width: 65%">Values</th>
+                    <th style="width: 35%">
+                      Class
+                    </th>
+                    <th style="width: 65%">
+                      Values
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,9 +163,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <code class="bg-transparent p-0"
-                        >class="mh-[value]p"</code
-                      >
+                      <code class="bg-transparent p-0">class="mh-[value]p"</code>
                     </td>
                     <td class="fs-6">
                       100 / 125 / 150 / 200 / 225 ... / 800 (step of 25)<br />Set
@@ -156,9 +172,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <code class="bg-transparent p-0"
-                        >class="mnh-[value]p"</code
-                      >
+                      <code class="bg-transparent p-0">class="mnh-[value]p"</code>
                     </td>
                     <td class="fs-6">
                       100 / 125 / 150 / 200 / 225 ... / 800 (step of 25)<br />Set
@@ -173,7 +187,9 @@
       </div>
     </div>
     <div class="card main-card mb-3">
-      <div class="card-header">Height in percentage</div>
+      <div class="card-header">
+        Height in percentage
+      </div>
       <div class="card-body">
         <div class="row">
           <div class="col-sm">
@@ -213,8 +229,12 @@
               <table class="table table-bordered mb-0">
                 <thead>
                   <tr>
-                    <th style="width: 35%">Class</th>
-                    <th style="width: 65%">Values</th>
+                    <th style="width: 35%">
+                      Class
+                    </th>
+                    <th style="width: 65%">
+                      Values
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,13 +250,17 @@
                     <td>
                       <code class="bg-transparent p-0">class="h-auto"</code>
                     </td>
-                    <td class="fs-6">Set the height to auto</td>
+                    <td class="fs-6">
+                      Set the height to auto
+                    </td>
                   </tr>
                   <tr>
                     <td>
                       <code class="bg-transparent p-0">class="mh-100"</code>
                     </td>
-                    <td class="fs-6">Set max-height of an element to 100%</td>
+                    <td class="fs-6">
+                      Set max-height of an element to 100%
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -246,7 +270,9 @@
       </div>
     </div>
     <div class="card main-card mb-3">
-      <div class="card-header">Width</div>
+      <div class="card-header">
+        Width
+      </div>
       <div class="card-body">
         <div class="row">
           <div class="col-sm">
@@ -280,31 +306,23 @@
               <table class="table table-bordered mb-0">
                 <thead>
                   <tr>
-                    <th style="width: 35%">Class</th>
-                    <th style="width: 65%">Values</th>
+                    <th style="width: 35%">
+                      Class
+                    </th>
+                    <th style="width: 65%">
+                      Values
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-[value]p"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-sm-[value]p"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-md-[value]p"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-lg-[value]p"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-xl-[value]p"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-xxl-[value]p"</code
-                      >
+                      <code class="d-block bg-transparent pa-0">class="w-[value]p"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-sm-[value]p"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-md-[value]p"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-lg-[value]p"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-xl-[value]p"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-xxl-[value]p"</code>
                     </td>
                     <td class="fs-6">
                       25 / 30 / 35 / 40 / 45 / 50 ... / 800 (step of 5)
@@ -312,9 +330,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <code class="bg-transparent p-0"
-                        >class="mw-[value]p"</code
-                      >
+                      <code class="bg-transparent p-0">class="mw-[value]p"</code>
                     </td>
                     <td class="fs-6">
                       25 / 50 / 75 / 100 / 125 / 150 / 200 / 225 ... / 800 (step
@@ -323,9 +339,7 @@
                   </tr>
                   <tr>
                     <td>
-                      <code class="bg-transparent p-0"
-                        >class="mnw-[value]p"</code
-                      >
+                      <code class="bg-transparent p-0">class="mnw-[value]p"</code>
                     </td>
                     <td class="fs-6">
                       25 / 50 / 75 / 100 / 125 / 150 / 200 / 225 ... / 800 (step
@@ -340,7 +354,9 @@
       </div>
     </div>
     <div class="card main-card mb-3">
-      <div class="card-header">Width in percentage</div>
+      <div class="card-header">
+        Width in percentage
+      </div>
       <div class="card-body">
         <div class="row">
           <div class="col-sm">
@@ -380,31 +396,23 @@
               <table class="table table-bordered mb-0">
                 <thead>
                   <tr>
-                    <th style="width: 35%">Class</th>
-                    <th style="width: 65%">Values</th>
+                    <th style="width: 35%">
+                      Class
+                    </th>
+                    <th style="width: 65%">
+                      Values
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-[value]"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-sm-[value]"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-md-[value]"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-lg-[value]"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-xl-[value]"</code
-                      >
-                      <code class="d-block bg-transparent pa-0"
-                        >class="w-xxl-[value]"</code
-                      >
+                      <code class="d-block bg-transparent pa-0">class="w-[value]"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-sm-[value]"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-md-[value]"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-lg-[value]"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-xl-[value]"</code>
+                      <code class="d-block bg-transparent pa-0">class="w-xxl-[value]"</code>
                     </td>
                     <td class="fs-6">
                       5 / 10 / 15 / 20 / 25 / 30 / 35 / 40 / 45 / 50 ... / 100
@@ -415,13 +423,17 @@
                     <td>
                       <code class="bg-transparent p-0">class="w-auto"</code>
                     </td>
-                    <td class="fs-6">Set the width to auto</td>
+                    <td class="fs-6">
+                      Set the width to auto
+                    </td>
                   </tr>
                   <tr>
                     <td>
                       <code class="bg-transparent p-0">class="mw-100"</code>
                     </td>
-                    <td class="fs-6">Set max-width of an element to 100%</td>
+                    <td class="fs-6">
+                      Set max-width of an element to 100%
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -431,7 +443,9 @@
       </div>
     </div>
     <div class="card main-card mb-3">
-      <div class="card-header">Equal Height &amp; Width</div>
+      <div class="card-header">
+        Equal Height &amp; Width
+      </div>
       <div class="card-body">
         <div class="row">
           <div class="col-sm">
@@ -459,8 +473,12 @@
               <table class="table table-bordered mb-0">
                 <thead>
                   <tr>
-                    <th style="width: 35%">Class</th>
-                    <th style="width: 65%">Values</th>
+                    <th style="width: 35%">
+                      Class
+                    </th>
+                    <th style="width: 65%">
+                      Values
+                    </th>
                   </tr>
                 </thead>
                 <tbody>

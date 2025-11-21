@@ -17,7 +17,9 @@
             <i class="pe-7s-key text-white" style="font-size: 3rem"></i>
           </div>
         </div>
-        <h2 class="text-white text-center mb-3 fw-bold">Password Recovery</h2>
+        <h2 class="text-white text-center mb-3 fw-bold">
+          Password Recovery
+        </h2>
         <p class="text-white-50 text-center mb-0 fs-5">
           Don't worry, we'll help you get back into your ArchitectUI account
         </p>
@@ -30,11 +32,11 @@
                   style="font-size: 1.2rem"
                 ></i>
                 <div>
-                  <div class="text-white fw-medium mb-1">Check your email</div>
-                  <small
-                    >We'll send recovery instructions to your email
-                    address</small
-                  >
+                  <div class="text-white fw-medium mb-1">
+                    Check your email
+                  </div>
+                  <small>We'll send recovery instructions to your email
+                    address</small>
                 </div>
               </div>
               <div class="d-flex align-items-start">
@@ -43,7 +45,9 @@
                   style="font-size: 1.2rem"
                 ></i>
                 <div>
-                  <div class="text-white fw-medium mb-1">Secure process</div>
+                  <div class="text-white fw-medium mb-1">
+                    Secure process
+                  </div>
                   <small>Your account security is our top priority</small>
                 </div>
               </div>
@@ -65,12 +69,16 @@
           >
             <i class="pe-7s-key text-white" style="font-size: 2rem"></i>
           </div>
-          <h4 class="text-warning fw-bold mb-0">Password Recovery</h4>
+          <h4 class="text-warning fw-bold mb-0">
+            Password Recovery
+          </h4>
         </div>
 
         <!-- Recovery Header -->
         <div class="text-center mb-5">
-          <h2 class="fw-bold text-dark mb-2">Forgot your password?</h2>
+          <h2 class="fw-bold text-dark mb-2">
+            Forgot your password?
+          </h2>
           <p class="text-secondary mb-0">
             Enter your email address and we'll send you recovery instructions.
           </p>
@@ -82,8 +90,7 @@
             <label
               for="recovery-email"
               class="form-label text-dark fw-medium mb-2"
-              >Email address</label
-            >
+            >Email address</label>
             <b-form-input
               id="recovery-email"
               type="email"
@@ -129,15 +136,18 @@
               style="font-size: 1.2rem"
             ></i>
             <div>
-              <h6 class="text-dark mb-2">Still having trouble?</h6>
+              <h6 class="text-dark mb-2">
+                Still having trouble?
+              </h6>
               <p class="text-secondary small mb-0">
                 If you don't receive the email within a few minutes, please
                 check your spam folder or
                 <b-link
                   href="javascript:void(0);"
                   class="text-warning text-decoration-none fw-medium"
-                  >contact support</b-link
-                >.
+                >
+                  contact support
+                </b-link>.
               </p>
             </div>
           </div>

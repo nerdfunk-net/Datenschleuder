@@ -1,10 +1,10 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
     <div class="mb-3 card">
       <div class="card-header-tab card-header">
         <div class="card-header-title font-size-lg text-capitalize fw-normal">
@@ -109,8 +109,12 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Total Orders</div>
-                        <div class="widget-subheading">Last year expenses</div>
+                        <div class="widget-heading">
+                          Total Orders
+                        </div>
+                        <div class="widget-subheading">
+                          Last year expenses
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div class="widget-numbers text-success">
@@ -133,8 +137,12 @@
                         ></div>
                       </div>
                       <div class="progress-sub-label">
-                        <div class="sub-label-left">YoY Growth</div>
-                        <div class="sub-label-right">100%</div>
+                        <div class="sub-label-left">
+                          YoY Growth
+                        </div>
+                        <div class="sub-label-right">
+                          100%
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -170,7 +178,9 @@
                         class="vertical-timeline-element-icon bounce-in"
                       ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <h4 class="timeline-title">All Hands Meeting</h4>
+                        <h4 class="timeline-title">
+                          All Hands Meeting
+                        </h4>
                       </div>
                     </div>
                   </div>
@@ -195,7 +205,9 @@
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">
                           Build the production release
-                          <div class="badge bg-danger ms-2">NEW</div>
+                          <div class="badge bg-danger ms-2">
+                            NEW
+                          </div>
                         </h4>
                       </div>
                     </div>
@@ -206,7 +218,9 @@
                         class="vertical-timeline-element-icon bounce-in"
                       ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <h4 class="timeline-title">Something not important</h4>
+                        <h4 class="timeline-title">
+                          Something not important
+                        </h4>
                       </div>
                     </div>
                   </div>
@@ -231,7 +245,9 @@
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">
                           Build the production release
-                          <div class="badge bg-danger ms-2">NEW</div>
+                          <div class="badge bg-danger ms-2">
+                            NEW
+                          </div>
                         </h4>
                       </div>
                     </div>
@@ -266,7 +282,9 @@
                         class="vertical-timeline-element-icon bounce-in"
                       ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <h4 class="timeline-title">All Hands Meeting</h4>
+                        <h4 class="timeline-title">
+                          All Hands Meeting
+                        </h4>
                       </div>
                     </div>
                   </div>
@@ -291,7 +309,9 @@
                       <div class="vertical-timeline-element-content bounce-in">
                         <h4 class="timeline-title">
                           Build the production release
-                          <div class="badge bg-danger ms-2">NEW</div>
+                          <div class="badge bg-danger ms-2">
+                            NEW
+                          </div>
                         </h4>
                       </div>
                     </div>
@@ -302,7 +322,9 @@
                         class="vertical-timeline-element-icon bounce-in"
                       ></span>
                       <div class="vertical-timeline-element-content bounce-in">
-                        <h4 class="timeline-title">Something not important</h4>
+                        <h4 class="timeline-title">
+                          Something not important
+                        </h4>
                       </div>
                     </div>
                   </div>
@@ -335,7 +357,9 @@
                   </div>
                 </div>
               </div>
-              <h6 class="widget-subheading mb-0 opacity-5">sales last month</h6>
+              <h6 class="widget-subheading mb-0 opacity-5">
+                sales last month
+              </h6>
             </div>
           </div>
         </div>
@@ -356,7 +380,9 @@
                   </div>
                 </div>
               </div>
-              <h6 class="widget-subheading mb-0 opacity-5">sales Income</h6>
+              <h6 class="widget-subheading mb-0 opacity-5">
+                sales Income
+              </h6>
             </div>
           </div>
         </div>
@@ -377,7 +403,9 @@
                   </div>
                 </div>
               </div>
-              <h6 class="widget-subheading mb-0 opacity-5">last month sales</h6>
+              <h6 class="widget-subheading mb-0 opacity-5">
+                last month sales
+              </h6>
             </div>
           </div>
         </div>
@@ -398,7 +426,9 @@
                   </div>
                 </div>
               </div>
-              <h6 class="widget-subheading mb-0 opacity-5">total revenue</h6>
+              <h6 class="widget-subheading mb-0 opacity-5">
+                total revenue
+              </h6>
             </div>
           </div>
         </div>
@@ -412,8 +442,7 @@
               class="card-header-title font-size-lg text-capitalize fw-normal"
             >
               <i class="header-icon lnr-database icon-gradient bg-malibu-beach">
-              </i
-              >Tasks List
+              </i>Tasks List
             </div>
           </div>
           <div class="scroll-area-lg" style="overflow-x: hidden">
@@ -429,20 +458,21 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox12"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox12"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left">
                         <div class="widget-heading">
                           Wash the car
-                          <div class="badge bg-danger ms-2">Rejected</div>
+                          <div class="badge bg-danger ms-2">
+                            Rejected
+                          </div>
                         </div>
                         <div class="widget-subheading">
                           <i>Written by Bob</i>
@@ -470,14 +500,13 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox1"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox1"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left">
@@ -503,14 +532,13 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox4"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox4"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left flex2">
@@ -543,14 +571,13 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox2"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox2"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left me-3">
@@ -564,7 +591,9 @@
                         </div>
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Go grocery shopping</div>
+                        <div class="widget-heading">
+                          Go grocery shopping
+                        </div>
                         <div class="widget-subheading">
                           A short description for this todo item
                         </div>
@@ -591,20 +620,21 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox12"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox12"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left">
                         <div class="widget-heading">
                           Wash the car
-                          <div class="badge bg-danger ms-2">Rejected</div>
+                          <div class="badge bg-danger ms-2">
+                            Rejected
+                          </div>
                         </div>
                         <div class="widget-subheading">
                           <i>Written by Bob</i>
@@ -632,14 +662,13 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox1"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox1"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left">
@@ -677,14 +706,13 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox4"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox4"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left flex2">
@@ -717,24 +745,27 @@
                       <div class="widget-content-left me-2">
                         <div class="form-check">
                           <input
-                            type="checkbox"
                             id="exampleCustomCheckbox3"
+                            type="checkbox"
                             class="form-check-input"
                           /><label
                             class="form-check-label"
                             for="exampleCustomCheckbox3"
-                            >&nbsp;</label
-                          >
+                          >&nbsp;</label>
                         </div>
                       </div>
                       <div class="widget-content-left flex2">
-                        <div class="widget-heading">Development Task</div>
+                        <div class="widget-heading">
+                          Development Task
+                        </div>
                         <div class="widget-subheading">
                           Finish Vue ToDo List App
                         </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="badge bg-warning me-2">69</div>
+                        <div class="badge bg-warning me-2">
+                          69
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <button
@@ -755,8 +786,12 @@
             </PerfectScrollbar>
           </div>
           <div class="d-block text-end card-footer">
-            <button class="me-2 btn btn-link btn-sm">Cancel</button>
-            <button class="btn btn-primary">Add Task</button>
+            <button class="me-2 btn btn-link btn-sm">
+              Cancel
+            </button>
+            <button class="btn btn-primary">
+              Add Task
+            </button>
           </div>
         </div>
       </div>
@@ -838,49 +873,103 @@
               <tbody role="rowgroup" class="">
                 <!---->
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Dickerson</td>
-                  <td role="cell" aria-colindex="2" class="">Macdonald</td>
-                  <td role="cell" aria-colindex="3" class="">40</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Dickerson
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Macdonald
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    40
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Larsen</td>
-                  <td role="cell" aria-colindex="2" class="">Shaw</td>
-                  <td role="cell" aria-colindex="3" class="">21</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Larsen
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Shaw
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    21
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Geneva</td>
-                  <td role="cell" aria-colindex="2" class="">Wilson</td>
-                  <td role="cell" aria-colindex="3" class="">89</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Geneva
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Wilson
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    89
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Dickerson</td>
-                  <td role="cell" aria-colindex="2" class="">Macdonald</td>
-                  <td role="cell" aria-colindex="3" class="">40</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Dickerson
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Macdonald
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    40
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Larsen</td>
-                  <td role="cell" aria-colindex="2" class="">Shaw</td>
-                  <td role="cell" aria-colindex="3" class="">21</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Larsen
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Shaw
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    21
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Geneva</td>
-                  <td role="cell" aria-colindex="2" class="">Wilson</td>
-                  <td role="cell" aria-colindex="3" class="">89</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Geneva
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Wilson
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    89
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Dickerson</td>
-                  <td role="cell" aria-colindex="2" class="">Macdonald</td>
-                  <td role="cell" aria-colindex="3" class="">40</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Dickerson
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Macdonald
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    40
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Larsen</td>
-                  <td role="cell" aria-colindex="2" class="">Shaw</td>
-                  <td role="cell" aria-colindex="3" class="">21</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Larsen
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Shaw
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    21
+                  </td>
                 </tr>
                 <tr role="row" class="">
-                  <td role="cell" aria-colindex="1" class="">Geneva</td>
-                  <td role="cell" aria-colindex="2" class="">Wilson</td>
-                  <td role="cell" aria-colindex="3" class="">89</td>
+                  <td role="cell" aria-colindex="1" class="">
+                    Geneva
+                  </td>
+                  <td role="cell" aria-colindex="2" class="">
+                    Wilson
+                  </td>
+                  <td role="cell" aria-colindex="3" class="">
+                    89
+                  </td>
                 </tr>
                 <!----><!---->
               </tbody>
@@ -899,11 +988,17 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Total Orders</div>
-                      <div class="widget-subheading">Last year expenses</div>
+                      <div class="widget-heading">
+                        Total Orders
+                      </div>
+                      <div class="widget-subheading">
+                        Last year expenses
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-success">1896</div>
+                      <div class="widget-numbers text-success">
+                        1896
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -914,45 +1009,17 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Clients</div>
-                      <div class="widget-subheading">Total Clients Profit</div>
+                      <div class="widget-heading">
+                        Clients
+                      </div>
+                      <div class="widget-subheading">
+                        Total Clients Profit
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-primary">$12.6k</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-        <div class="col-md-12 col-lg-4">
-          <ul class="list-group list-group-flush">
-            <li class="bg-transparent list-group-item">
-              <div class="widget-content p-0">
-                <div class="widget-content-outer">
-                  <div class="widget-content-wrapper">
-                    <div class="widget-content-left">
-                      <div class="widget-heading">Followers</div>
-                      <div class="widget-subheading">People Interested</div>
-                    </div>
-                    <div class="widget-content-right">
-                      <div class="widget-numbers text-danger">45,9%</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </li>
-            <li class="bg-transparent list-group-item">
-              <div class="widget-content p-0">
-                <div class="widget-content-outer">
-                  <div class="widget-content-wrapper">
-                    <div class="widget-content-left">
-                      <div class="widget-heading">Products Sold</div>
-                      <div class="widget-subheading">Total revenue streams</div>
-                    </div>
-                    <div class="widget-content-right">
-                      <div class="widget-numbers text-warning">$3M</div>
+                      <div class="widget-numbers text-primary">
+                        $12.6k
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -967,11 +1034,17 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Total Orders</div>
-                      <div class="widget-subheading">Last year expenses</div>
+                      <div class="widget-heading">
+                        Followers
+                      </div>
+                      <div class="widget-subheading">
+                        People Interested
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-success">1896</div>
+                      <div class="widget-numbers text-danger">
+                        45,9%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -982,11 +1055,63 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Clients</div>
-                      <div class="widget-subheading">Total Clients Profit</div>
+                      <div class="widget-heading">
+                        Products Sold
+                      </div>
+                      <div class="widget-subheading">
+                        Total revenue streams
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-primary">$12.6k</div>
+                      <div class="widget-numbers text-warning">
+                        $3M
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-12 col-lg-4">
+          <ul class="list-group list-group-flush">
+            <li class="bg-transparent list-group-item">
+              <div class="widget-content p-0">
+                <div class="widget-content-outer">
+                  <div class="widget-content-wrapper">
+                    <div class="widget-content-left">
+                      <div class="widget-heading">
+                        Total Orders
+                      </div>
+                      <div class="widget-subheading">
+                        Last year expenses
+                      </div>
+                    </div>
+                    <div class="widget-content-right">
+                      <div class="widget-numbers text-success">
+                        1896
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </li>
+            <li class="bg-transparent list-group-item">
+              <div class="widget-content p-0">
+                <div class="widget-content-outer">
+                  <div class="widget-content-wrapper">
+                    <div class="widget-content-left">
+                      <div class="widget-heading">
+                        Clients
+                      </div>
+                      <div class="widget-subheading">
+                        Total Clients Profit
+                      </div>
+                    </div>
+                    <div class="widget-content-right">
+                      <div class="widget-numbers text-primary">
+                        $12.6k
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1023,12 +1148,6 @@ export default {
     // chart2,
     // chart3,
   },
-  data: () => ({
-    heading: "Analytics Dashboard",
-    subheading:
-      "This is an example dashboard created using build-in elements and components.",
-    icon: "pe-7s-plane icon-gradient bg-tempting-azure",
-  }),
 
   setup() {
     // Initialize stores
@@ -1042,6 +1161,12 @@ export default {
       notificationsStore,
     };
   },
+  data: () => ({
+    heading: "Analytics Dashboard",
+    subheading:
+      "This is an example dashboard created using build-in elements and components.",
+    icon: "pe-7s-plane icon-gradient bg-tempting-azure",
+  }),
 
   mounted() {
     // Set page title using UI store

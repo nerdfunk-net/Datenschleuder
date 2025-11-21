@@ -32,22 +32,26 @@
               </template>
 
               <b-dropdown-header>User Menu</b-dropdown-header>
-              <b-dropdown-item @click="handleMenuAction('profile')"
-                >Profile</b-dropdown-item
-              >
-              <b-dropdown-item @click="handleMenuAction('settings')"
-                >Settings</b-dropdown-item
-              >
-              <b-dropdown-divider></b-dropdown-divider>
-              <b-dropdown-item @click="handleMenuAction('logout')"
-                >Logout</b-dropdown-item
-              >
+              <b-dropdown-item @click="handleMenuAction('profile')">
+                Profile
+              </b-dropdown-item>
+              <b-dropdown-item @click="handleMenuAction('settings')">
+                Settings
+              </b-dropdown-item>
+              <b-dropdown-divider />
+              <b-dropdown-item @click="handleMenuAction('logout')">
+                Logout
+              </b-dropdown-item>
             </b-dropdown>
 
             <!-- User Info - Direct in same flex container -->
             <div class="header-user-info">
-              <div class="widget-heading">{{ user.name }}</div>
-              <div class="widget-subheading">{{ user.role }}</div>
+              <div class="widget-heading">
+                {{ user.name }}
+              </div>
+              <div class="widget-subheading">
+                {{ user.role }}
+              </div>
             </div>
           </div>
 

@@ -4,7 +4,9 @@
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
-      <p class="mt-3 text-muted">Loading flows...</p>
+      <p class="mt-3 text-muted">
+        Loading flows...
+      </p>
     </div>
 
     <div v-if="error" class="alert alert-danger">
@@ -20,16 +22,16 @@
       <div class="action-bar mb-4">
         <div class="filter-section">
           <input
+            v-model="searchFilter"
             type="text"
             class="form-control filter-input"
-            v-model="searchFilter"
             placeholder="Filter by flow name..."
             @input="highlightedFlowId = null"
           />
         </div>
 
         <!-- Status Filter -->
-        <div class="filter-dropdown" v-click-outside="() => showStatusDropdown = false">
+        <div v-click-outside="() => showStatusDropdown = false" class="filter-dropdown">
           <button
             class="btn btn-outline-secondary dropdown-toggle"
             type="button"
@@ -43,10 +45,10 @@
             <li>
               <div class="dropdown-item">
                 <input
-                  type="checkbox"
                   id="status-green"
-                  value="healthy"
                   v-model="statusFilter"
+                  type="checkbox"
+                  value="healthy"
                   class="form-check-input me-2"
                 />
                 <label for="status-green" class="form-check-label">
@@ -57,10 +59,10 @@
             <li>
               <div class="dropdown-item">
                 <input
-                  type="checkbox"
                   id="status-yellow"
-                  value="warning"
                   v-model="statusFilter"
+                  type="checkbox"
+                  value="warning"
                   class="form-check-input me-2"
                 />
                 <label for="status-yellow" class="form-check-label">
@@ -71,10 +73,10 @@
             <li>
               <div class="dropdown-item">
                 <input
-                  type="checkbox"
                   id="status-red"
-                  value="unhealthy"
                   v-model="statusFilter"
+                  type="checkbox"
+                  value="unhealthy"
                   class="form-check-input me-2"
                 />
                 <label for="status-red" class="form-check-label">
@@ -85,10 +87,10 @@
             <li>
               <div class="dropdown-item">
                 <input
-                  type="checkbox"
                   id="status-unknown"
-                  value="unknown"
                   v-model="statusFilter"
+                  type="checkbox"
+                  value="unknown"
                   class="form-check-input me-2"
                 />
                 <label for="status-unknown" class="form-check-label">
@@ -102,10 +104,12 @@
         <!-- Instance Filter -->
         <div class="filter-dropdown">
           <select
-            class="form-select"
             v-model="instanceFilter"
+            class="form-select"
           >
-            <option :value="null">All Instances</option>
+            <option :value="null">
+              All Instances
+            </option>
             <option v-for="instance in instances" :key="instance.id" :value="instance.id">
               {{ instance.hierarchy_value }}
             </option>
@@ -114,8 +118,8 @@
 
         <button
           class="btn btn-primary"
-          @click="showCheckAllModal = true"
           :disabled="checking"
+          @click="showCheckAllModal = true"
         >
           <i class="pe-7s-refresh" :class="{ 'spinning': checking }"></i>
           {{ checking ? 'Checking...' : 'Check All' }}
@@ -127,32 +131,48 @@
         <div class="col-md-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Total Flows</h6>
-              <div class="metric-value">{{ flows.length }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Total Flows
+              </h6>
+              <div class="metric-value">
+                {{ flows.length }}
+              </div>
             </div>
           </div>
         </div>
         <div class="col-md-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Healthy</h6>
-              <div class="metric-value text-success">{{ healthyFlowsCount }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Healthy
+              </h6>
+              <div class="metric-value text-success">
+                {{ healthyFlowsCount }}
+              </div>
             </div>
           </div>
         </div>
         <div class="col-md-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Issues</h6>
-              <div class="metric-value text-danger">{{ unhealthyFlowsCount }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Issues
+              </h6>
+              <div class="metric-value text-danger">
+                {{ unhealthyFlowsCount }}
+              </div>
             </div>
           </div>
         </div>
         <div class="col-md-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Unknown</h6>
-              <div class="metric-value text-secondary">{{ unknownStatusFlowsCount }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Unknown
+              </h6>
+              <div class="metric-value text-secondary">
+                {{ unknownStatusFlowsCount }}
+              </div>
             </div>
           </div>
         </div>
@@ -176,8 +196,8 @@
                 <div
                   class="flow-widget-title"
                   :class="{ 'clickable-title': getNiFiUrl(flow, 'source') }"
-                  @click="getNiFiUrl(flow, 'source') && openNiFiProcessGroup(flow, 'source', $event)"
                   :title="getNiFiUrl(flow, 'source') ? 'Click to open in NiFi' : ''"
+                  @click="getNiFiUrl(flow, 'source') && openNiFiProcessGroup(flow, 'source', $event)"
                 >
                   {{ getFlowDisplayName(flow, 'source') }}
                 </div>
@@ -185,9 +205,9 @@
               <div class="flow-widget-actions">
                 <button 
                   class="btn-info-icon"
-                  @click.stop="viewProcessGroupDetails(flow, 'source')"
                   :disabled="!getFlowItemStatus(flow, 'source')"
                   title="View details"
+                  @click.stop="viewProcessGroupDetails(flow, 'source')"
                 >
                   <i class="pe-7s-info"></i>
                 </button>
@@ -204,25 +224,25 @@
                 <span class="info-label">Flow ID:</span>
                 <span class="info-value">#{{ flow.id }}</span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+              <div v-if="getFlowItemStatus(flow, 'source')" class="flow-widget-info">
                 <span class="info-label" title="running / stopped / invalid / disabled">Status:</span>
                 <span class="info-value">
                   {{ getProcessorCounts(flow, 'source') }}
                 </span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+              <div v-if="getFlowItemStatus(flow, 'source')" class="flow-widget-info">
                 <span class="info-label" title="flow_files_in (bytes_in) / flow_files_out (bytes_out) / flow_files_sent (bytes_sent)">I/O:</span>
                 <span class="info-value">
                   {{ getFlowFileStats(flow, 'source') }}
                 </span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+              <div v-if="getFlowItemStatus(flow, 'source')" class="flow-widget-info">
                 <span class="info-label" title="queued / queued_count / queued_size">Queue:</span>
                 <span class="info-value">
                   {{ getQueueStats(flow, 'source') }}
                 </span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'source')">
+              <div v-if="getFlowItemStatus(flow, 'source')" class="flow-widget-info">
                 <span class="info-label" title="Number of error bulletins">Bulletins:</span>
                 <span class="info-value" :class="{ 'text-danger': getBulletinCount(flow, 'source') > 0 }">
                   {{ getBulletinInfo(flow, 'source') }}
@@ -254,8 +274,8 @@
                 <div
                   class="flow-widget-title"
                   :class="{ 'clickable-title': getNiFiUrl(flow, 'destination') }"
-                  @click="getNiFiUrl(flow, 'destination') && openNiFiProcessGroup(flow, 'destination', $event)"
                   :title="getNiFiUrl(flow, 'destination') ? 'Click to open in NiFi' : ''"
+                  @click="getNiFiUrl(flow, 'destination') && openNiFiProcessGroup(flow, 'destination', $event)"
                 >
                   {{ getFlowDisplayName(flow, 'destination') }}
                 </div>
@@ -263,9 +283,9 @@
               <div class="flow-widget-actions">
                 <button 
                   class="btn-info-icon"
-                  @click.stop="viewProcessGroupDetails(flow, 'destination')"
                   :disabled="!getFlowItemStatus(flow, 'destination')"
                   title="View details"
+                  @click.stop="viewProcessGroupDetails(flow, 'destination')"
                 >
                   <i class="pe-7s-info"></i>
                 </button>
@@ -282,25 +302,25 @@
                 <span class="info-label">Flow ID:</span>
                 <span class="info-value">#{{ flow.id }}</span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+              <div v-if="getFlowItemStatus(flow, 'destination')" class="flow-widget-info">
                 <span class="info-label" title="running / stopped / invalid / disabled">Status:</span>
                 <span class="info-value">
                   {{ getProcessorCounts(flow, 'destination') }}
                 </span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+              <div v-if="getFlowItemStatus(flow, 'destination')" class="flow-widget-info">
                 <span class="info-label" title="flow_files_in (bytes_in) / flow_files_out (bytes_out) / flow_files_sent (bytes_sent)">I/O:</span>
                 <span class="info-value">
                   {{ getFlowFileStats(flow, 'destination') }}
                 </span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+              <div v-if="getFlowItemStatus(flow, 'destination')" class="flow-widget-info">
                 <span class="info-label" title="queued / queued_count / queued_size">Queue:</span>
                 <span class="info-value">
                   {{ getQueueStats(flow, 'destination') }}
                 </span>
               </div>
-              <div class="flow-widget-info" v-if="getFlowItemStatus(flow, 'destination')">
+              <div v-if="getFlowItemStatus(flow, 'destination')" class="flow-widget-info">
                 <span class="info-label" title="Number of error bulletins">Bulletins:</span>
                 <span class="info-value" :class="{ 'text-danger': getBulletinCount(flow, 'destination') > 0 }">
                   {{ getBulletinInfo(flow, 'destination') }}
@@ -348,7 +368,7 @@
                 <i class="pe-7s-info"></i> Flow Information
               </h6>
               <div class="detail-grid">
-                <div class="detail-item" v-if="selectedFlow.name">
+                <div v-if="selectedFlow.name" class="detail-item">
                   <span class="detail-key">Flow Name</span>
                   <span class="detail-value">{{ selectedFlow.name }}</span>
                 </div>
@@ -386,16 +406,16 @@
               </div>
             </div>
 
-            <div class="detail-section" v-if="selectedFlow.src_connection_param || selectedFlow.dest_connection_param">
+            <div v-if="selectedFlow.src_connection_param || selectedFlow.dest_connection_param" class="detail-section">
               <h6 class="section-title">
                 <i class="pe-7s-network"></i> Connection Parameters
               </h6>
               <div class="detail-grid">
-                <div class="detail-item" v-if="selectedFlow.src_connection_param">
+                <div v-if="selectedFlow.src_connection_param" class="detail-item">
                   <span class="detail-key">Source Connection</span>
                   <span class="detail-value">{{ selectedFlow.src_connection_param }}</span>
                 </div>
-                <div class="detail-item" v-if="selectedFlow.dest_connection_param">
+                <div v-if="selectedFlow.dest_connection_param" class="detail-item">
                   <span class="detail-key">Destination Connection</span>
                   <span class="detail-value">{{ selectedFlow.dest_connection_param }}</span>
                 </div>
@@ -448,7 +468,9 @@
             ></button>
           </div>
           <div class="modal-body">
-            <p class="text-muted mb-3">Select a NiFi instance to check all flows:</p>
+            <p class="text-muted mb-3">
+              Select a NiFi instance to check all flows:
+            </p>
             <div v-if="loadingInstances" class="text-center py-3">
               <div class="spinner-border spinner-border-sm text-primary"></div>
             </div>
@@ -466,7 +488,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
                     <strong>{{ instance.hierarchy_value }}</strong>
-                    <br>
+                    <br />
                     <small class="text-muted">{{ instance.nifi_url }}</small>
                   </div>
                   <i class="pe-7s-angle-right"></i>
@@ -507,242 +529,356 @@
             <!-- Not Deployed Message -->
             <div v-if="selectedPGData.data?.not_deployed" class="alert alert-danger">
               <h5><i class="pe-7s-attention"></i> Flow Not Deployed</h5>
-              <p class="mb-0">{{ selectedPGData.data.message || 'This flow has not been deployed to the NiFi instance.' }}</p>
+              <p class="mb-0">
+                {{ selectedPGData.data.message || 'This flow has not been deployed to the NiFi instance.' }}
+              </p>
             </div>
 
             <!-- Status Summary -->
-            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed">
+            <div v-if="!selectedPGData.data?.not_deployed" class="detail-section mb-4">
               <h6 class="section-title">
                 <i class="pe-7s-graph2"></i> Processor Status
               </h6>
               <div class="row g-3">
                 <div class="col-md-3">
                   <div class="stat-card">
-                    <div class="stat-label">Running</div>
-                    <div class="stat-value text-success">{{ selectedPGData.data?.running_count || 0 }}</div>
+                    <div class="stat-label">
+                      Running
+                    </div>
+                    <div class="stat-value text-success">
+                      {{ selectedPGData.data?.running_count || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-card">
-                    <div class="stat-label">Stopped</div>
-                    <div class="stat-value text-danger">{{ selectedPGData.data?.stopped_count || 0 }}</div>
+                    <div class="stat-label">
+                      Stopped
+                    </div>
+                    <div class="stat-value text-danger">
+                      {{ selectedPGData.data?.stopped_count || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-card">
-                    <div class="stat-label">Disabled</div>
-                    <div class="stat-value text-warning">{{ selectedPGData.data?.disabled_count || 0 }}</div>
+                    <div class="stat-label">
+                      Disabled
+                    </div>
+                    <div class="stat-value text-warning">
+                      {{ selectedPGData.data?.disabled_count || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="stat-card">
-                    <div class="stat-label">Invalid</div>
-                    <div class="stat-value text-danger">{{ selectedPGData.data?.invalid_count || 0 }}</div>
+                    <div class="stat-label">
+                      Invalid
+                    </div>
+                    <div class="stat-value text-danger">
+                      {{ selectedPGData.data?.invalid_count || 0 }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Ports Summary -->
-            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed">
+            <div v-if="!selectedPGData.data?.not_deployed" class="detail-section mb-4">
               <h6 class="section-title">
                 <i class="pe-7s-share"></i> Ports
               </h6>
               <div class="row g-3">
                 <div class="col-md-3">
                   <div class="metric-card">
-                    <div class="metric-label">Input Ports</div>
-                    <div class="metric-value">{{ selectedPGData.data?.input_port_count || 0 }}</div>
+                    <div class="metric-label">
+                      Input Ports
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data?.input_port_count || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="metric-card">
-                    <div class="metric-label">Output Ports</div>
-                    <div class="metric-value">{{ selectedPGData.data?.output_port_count || 0 }}</div>
+                    <div class="metric-label">
+                      Output Ports
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data?.output_port_count || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="metric-card">
-                    <div class="metric-label">Local Input</div>
-                    <div class="metric-value">{{ selectedPGData.data?.local_input_port_count || 0 }}</div>
+                    <div class="metric-label">
+                      Local Input
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data?.local_input_port_count || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-3">
                   <div class="metric-card">
-                    <div class="metric-label">Local Output</div>
-                    <div class="metric-value">{{ selectedPGData.data?.local_output_port_count || 0 }}</div>
+                    <div class="metric-label">
+                      Local Output
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data?.local_output_port_count || 0 }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Aggregate Snapshot -->
-            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
+            <div v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot" class="detail-section mb-4">
               <h6 class="section-title">
                 <i class="pe-7s-graph1"></i> Performance Metrics
               </h6>
               <div class="row g-3">
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Active Threads</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.active_thread_count || 0 }}</div>
+                    <div class="metric-label">
+                      Active Threads
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.active_thread_count || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Queued FlowFiles</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_queued || 0 }}</div>
+                    <div class="metric-label">
+                      Queued FlowFiles
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.flow_files_queued || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Queued (5 min)</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.queued || '0' }}</div>
+                    <div class="metric-label">
+                      Queued (5 min)
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.queued || '0' }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Throughput -->
-            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
+            <div v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot" class="detail-section mb-4">
               <h6 class="section-title">
                 <i class="pe-7s-graph2"></i> Throughput (5 min average)
               </h6>
               <div class="row g-3">
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Input</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.input || '0' }}</div>
+                    <div class="metric-label">
+                      Input
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.input || '0' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Output</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.output || '0' }}</div>
+                    <div class="metric-label">
+                      Output
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.output || '0' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Read</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.read || '0' }}</div>
+                    <div class="metric-label">
+                      Read
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.read || '0' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Written</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.written || '0' }}</div>
+                    <div class="metric-label">
+                      Written
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.written || '0' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Transferred</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.transferred || '0' }}</div>
+                    <div class="metric-label">
+                      Transferred
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.transferred || '0' }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Received</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.received || '0' }}</div>
+                    <div class="metric-label">
+                      Received
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.received || '0' }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Data Volumes -->
-            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
+            <div v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot" class="detail-section mb-4">
               <h6 class="section-title">
                 <i class="pe-7s-server"></i> Data Volumes
               </h6>
               <div class="row g-3">
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Bytes In</div>
-                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_in) }}</div>
+                    <div class="metric-label">
+                      Bytes In
+                    </div>
+                    <div class="metric-value">
+                      {{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_in) }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Bytes Out</div>
-                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_out) }}</div>
+                    <div class="metric-label">
+                      Bytes Out
+                    </div>
+                    <div class="metric-value">
+                      {{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_out) }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Bytes Queued</div>
-                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_queued) }}</div>
+                    <div class="metric-label">
+                      Bytes Queued
+                    </div>
+                    <div class="metric-value">
+                      {{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_queued) }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Bytes Read</div>
-                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_read) }}</div>
+                    <div class="metric-label">
+                      Bytes Read
+                    </div>
+                    <div class="metric-value">
+                      {{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_read) }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Bytes Written</div>
-                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_written) }}</div>
+                    <div class="metric-label">
+                      Bytes Written
+                    </div>
+                    <div class="metric-value">
+                      {{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_written) }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">Bytes Transferred</div>
-                    <div class="metric-value">{{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_transferred) }}</div>
+                    <div class="metric-label">
+                      Bytes Transferred
+                    </div>
+                    <div class="metric-value">
+                      {{ formatBytes(selectedPGData.data.status.aggregate_snapshot.bytes_transferred) }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- FlowFile Counts -->
-            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot">
+            <div v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.status?.aggregate_snapshot" class="detail-section mb-4">
               <h6 class="section-title">
                 <i class="pe-7s-albums"></i> FlowFile Statistics
               </h6>
               <div class="row g-3">
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">FlowFiles In</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_in || 0 }}</div>
+                    <div class="metric-label">
+                      FlowFiles In
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.flow_files_in || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">FlowFiles Out</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_out || 0 }}</div>
+                    <div class="metric-label">
+                      FlowFiles Out
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.flow_files_out || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">FlowFiles Transferred</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_transferred || 0 }}</div>
+                    <div class="metric-label">
+                      FlowFiles Transferred
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.flow_files_transferred || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">FlowFiles Received</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_received || 0 }}</div>
+                    <div class="metric-label">
+                      FlowFiles Received
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.flow_files_received || 0 }}
+                    </div>
                   </div>
                 </div>
                 <div class="col-md-4">
                   <div class="metric-card">
-                    <div class="metric-label">FlowFiles Sent</div>
-                    <div class="metric-value">{{ selectedPGData.data.status.aggregate_snapshot.flow_files_sent || 0 }}</div>
+                    <div class="metric-label">
+                      FlowFiles Sent
+                    </div>
+                    <div class="metric-value">
+                      {{ selectedPGData.data.status.aggregate_snapshot.flow_files_sent || 0 }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- Bulletins -->
-            <div class="detail-section mb-4" v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.bulletins && selectedPGData.data.bulletins.length > 0">
+            <div v-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.bulletins && selectedPGData.data.bulletins.length > 0" class="detail-section mb-4">
               <h6 class="section-title">
                 <i class="pe-7s-attention"></i> Bulletins ({{ selectedPGData.data.bulletins.length }})
               </h6>
-              <div class="alert alert-warning" v-for="(bulletin, idx) in selectedPGData.data.bulletins" :key="idx">
+              <div v-for="(bulletin, idx) in selectedPGData.data.bulletins" :key="idx" class="alert alert-warning">
                 <strong>{{ bulletin.bulletin?.source_name || 'Unknown' }}:</strong>
                 {{ bulletin.bulletin?.message || 'No message' }}
               </div>
             </div>
-            <div class="alert alert-success" v-else-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.bulletins">
+            <div v-else-if="!selectedPGData.data?.not_deployed && selectedPGData.data?.bulletins" class="alert alert-success">
               <i class="pe-7s-check"></i> No bulletins - all processors are running normally.
             </div>
 

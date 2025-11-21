@@ -8,7 +8,9 @@
         class="form-select"
         @change="loadInstanceData"
       >
-        <option :value="null">-- Select an instance --</option>
+        <option :value="null">
+          -- Select an instance --
+        </option>
         <option
           v-for="instance in instances"
           :key="instance.id"
@@ -36,8 +38,12 @@
         <div class="col-md-6 col-lg-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Heap Memory</h6>
-              <div class="metric-value">{{ heapUtilization }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Heap Memory
+              </h6>
+              <div class="metric-value">
+                {{ heapUtilization }}
+              </div>
               <div class="progress mt-2" style="height: 8px;">
                 <div
                   class="progress-bar"
@@ -56,8 +62,12 @@
         <div class="col-md-6 col-lg-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">CPU Load</h6>
-              <div class="metric-value">{{ cpuLoad }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                CPU Load
+              </h6>
+              <div class="metric-value">
+                {{ cpuLoad }}
+              </div>
               <small class="text-muted">{{ availableProcessors }} processors</small>
             </div>
           </div>
@@ -67,8 +77,12 @@
         <div class="col-md-6 col-lg-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Threads</h6>
-              <div class="metric-value">{{ totalThreads }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Threads
+              </h6>
+              <div class="metric-value">
+                {{ totalThreads }}
+              </div>
               <small class="text-muted">{{ daemonThreads }} daemon</small>
             </div>
           </div>
@@ -78,8 +92,12 @@
         <div class="col-md-6 col-lg-3">
           <div class="card summary-card">
             <div class="card-body">
-              <h6 class="card-subtitle mb-2 text-muted">Content Storage</h6>
-              <div class="metric-value">{{ contentStorageUtilization }}</div>
+              <h6 class="card-subtitle mb-2 text-muted">
+                Content Storage
+              </h6>
+              <div class="metric-value">
+                {{ contentStorageUtilization }}
+              </div>
               <small class="text-muted">{{ contentStorageUsed }} / {{ contentStorageTotal }}</small>
             </div>
           </div>
@@ -271,7 +289,9 @@
 
               <!-- Content Repository -->
               <div v-if="contentRepoStorage" class="storage-subsection">
-                <div class="subsection-title">Content Repository</div>
+                <div class="subsection-title">
+                  Content Repository
+                </div>
                 <div class="detail-grid">
                   <div class="detail-item">
                     <span class="detail-key">Utilization</span>
@@ -294,7 +314,9 @@
 
               <!-- FlowFile Repository -->
               <div v-if="flowFileRepoStorage" class="storage-subsection">
-                <div class="subsection-title">FlowFile Repository</div>
+                <div class="subsection-title">
+                  FlowFile Repository
+                </div>
                 <div class="detail-grid">
                   <div class="detail-item">
                     <span class="detail-key">Utilization</span>
@@ -317,7 +339,9 @@
 
               <!-- Provenance Repository -->
               <div v-if="provenanceRepoStorage" class="storage-subsection">
-                <div class="subsection-title">Provenance Repository</div>
+                <div class="subsection-title">
+                  Provenance Repository
+                </div>
                 <div class="detail-grid">
                   <div class="detail-item">
                     <span class="detail-key">Utilization</span>
@@ -345,7 +369,9 @@
                 <i class="pe-7s-refresh"></i> Garbage Collection
               </h6>
               <div v-for="(gc, index) in garbageCollection" :key="index" class="storage-subsection">
-                <div class="subsection-title">{{ gc.name || `GC ${index + 1}` }}</div>
+                <div class="subsection-title">
+                  {{ gc.name || `GC ${index + 1}` }}
+                </div>
                 <div class="detail-grid">
                   <div class="detail-item">
                     <span class="detail-key">Collection Count</span>

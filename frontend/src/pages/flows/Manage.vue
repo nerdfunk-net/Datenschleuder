@@ -3,7 +3,9 @@
     <div class="page-card">
       <!-- Header with Controls -->
       <div class="card-header">
-        <h2 class="card-title">Flow Management</h2>
+        <h2 class="card-title">
+          Flow Management
+        </h2>
         <div class="header-actions">
           <!-- Columns Dropdown -->
           <b-dropdown 
@@ -25,8 +27,8 @@
                 v-for="col in allAvailableColumns"
                 :key="col.key"
                 v-model="visibleColumns[col.key]"
-                @change="onColumnToggle"
                 class="column-checkbox-compact"
+                @change="onColumnToggle"
               >
                 {{ col.label }}
               </b-form-checkbox>
@@ -43,8 +45,8 @@
               <i class="pe-7s-photo-gallery"></i> Views
             </template>
             <b-dropdown-item-button 
-              @click="handleSaveView(false)"
               :disabled="currentLoadedViewId === null"
+              @click="handleSaveView(false)"
             >
               <i class="pe-7s-disk"></i> Save
             </b-dropdown-item-button>
@@ -52,8 +54,8 @@
               <i class="pe-7s-copy-file"></i> Save as New
             </b-dropdown-item-button>
             <b-dropdown-item-button 
-              @click="handleSetAsDefault"
               :disabled="currentLoadedViewId === null"
+              @click="handleSetAsDefault"
             >
               <i class="pe-7s-star"></i> Set as Default
             </b-dropdown-item-button>
@@ -65,19 +67,19 @@
               <div
                 v-for="view in savedViews"
                 :key="view.id"
-                @click="loadView(view, true)"
                 class="view-item-custom"
+                @click="loadView(view, true)"
               >
                 <span class="view-name">
-                  <i class="pe-7s-star" v-if="view.is_default"></i>
+                  <i v-if="view.is_default" class="pe-7s-star"></i>
                   {{ view.name }}
                 </span>
                 <b-button
                   size="sm"
                   variant="link"
                   class="text-danger p-0 delete-btn"
-                  @click.stop="deleteView(view.id)"
                   title="Delete"
+                  @click.stop="deleteView(view.id)"
                 >
                   <i class="pe-7s-trash"></i>
                 </b-button>
@@ -87,8 +89,8 @@
           
           <b-button
             variant="success"
-            @click="handleAddFlow"
             :disabled="!tableExists"
+            @click="handleAddFlow"
           >
             <i class="pe-7s-plus"></i> Add Flow
           </b-button>
@@ -102,9 +104,9 @@
         <p class="mb-0 mt-2">
           The NiFi flows table hasn't been created yet. Please configure your
           hierarchy in
-          <router-link to="/settings/hierarchy"
-            >Settings → Hierarchy</router-link
-          >
+          <router-link to="/settings/hierarchy">
+            Settings → Hierarchy
+          </router-link>
           first.
         </p>
       </div>
@@ -115,10 +117,16 @@
         class="filters-section"
       >
         <div class="filter-header">
-          <h6 class="mb-0"><i class="pe-7s-filter"></i> Filters</h6>
-          <b-button size="sm" variant="link" @click="clearFilters"
-            >Clear All</b-button
+          <h6 class="mb-0">
+            <i class="pe-7s-filter"></i> Filters
+          </h6>
+          <b-button
+            size="sm"
+            variant="link"
+            @click="clearFilters"
           >
+            Clear All
+          </b-button>
         </div>
         <div class="row g-2">
           <div
@@ -138,8 +146,10 @@
 
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-5">
-        <b-spinner variant="primary"></b-spinner>
-        <p class="mt-3 text-muted">Loading flows...</p>
+        <b-spinner variant="primary" />
+        <p class="mt-3 text-muted">
+          Loading flows...
+        </p>
       </div>
 
       <!-- Table -->
@@ -152,10 +162,6 @@
                 v-for="(col, index) in visibleColumnsList"
                 :key="col.key"
                 :draggable="!isResizing"
-                @dragstart="handleDragStart(index, $event)"
-                @dragover="handleDragOver($event)"
-                @drop="handleDrop(index)"
-                @dragend="handleDragEnd"
                 class="draggable-header resizable-header"
                 :class="{
                   dragging: draggingIndex === index,
@@ -166,6 +172,10 @@
                     ? columnWidths[col.key] + 'px'
                     : 'auto',
                 }"
+                @dragstart="handleDragStart(index, $event)"
+                @dragover="handleDragOver($event)"
+                @drop="handleDrop(index)"
+                @dragend="handleDragEnd"
               >
                 <span class="drag-handle">⋮⋮</span>
                 {{ col.label }}
@@ -174,7 +184,9 @@
                   @mousedown.stop.prevent="startResize(col.key, $event)"
                 ></span>
               </th>
-              <th class="text-end">Actions</th>
+              <th class="text-end">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -191,7 +203,7 @@
                 <span
                   v-else-if="
                     col.key === 'src_template_id' ||
-                    col.key === 'dest_template_id'
+                      col.key === 'dest_template_id'
                   "
                 >
                   {{ getTemplateName(flow[col.key]) }}
@@ -203,58 +215,58 @@
                   <b-button
                     size="sm"
                     variant="outline-success"
-                    @click="handleQuickDeploySource(flow)"
                     title="Deploy to Source"
                     :disabled="deployingFlows[`${flow.id}-source`]"
+                    @click="handleQuickDeploySource(flow)"
                   >
                     <b-spinner
                       v-if="deployingFlows[`${flow.id}-source`]"
                       small
-                    ></b-spinner>
+                    />
                     <i v-else class="pe-7s-angle-right-circle"></i>
                   </b-button>
                   <b-button
                     size="sm"
                     variant="outline-success"
-                    @click="handleQuickDeployDest(flow)"
                     title="Deploy to Destination"
                     :disabled="deployingFlows[`${flow.id}-dest`]"
+                    @click="handleQuickDeployDest(flow)"
                   >
                     <b-spinner
                       v-if="deployingFlows[`${flow.id}-dest`]"
                       small
-                    ></b-spinner>
+                    />
                     <i v-else class="pe-7s-angle-left-circle"></i>
                   </b-button>
                   <b-button
                     size="sm"
                     variant="outline-primary"
-                    @click="handleEdit(flow)"
                     title="Edit"
+                    @click="handleEdit(flow)"
                   >
                     <i class="pe-7s-pen"></i>
                   </b-button>
                   <b-button
                     size="sm"
                     variant="outline-info"
-                    @click="handleView(flow)"
                     title="View"
+                    @click="handleView(flow)"
                   >
                     <i class="pe-7s-look"></i>
                   </b-button>
                   <b-button
                     size="sm"
                     variant="outline-secondary"
-                    @click="handleCopy(flow)"
                     title="Copy"
+                    @click="handleCopy(flow)"
                   >
                     <i class="pe-7s-copy-file"></i>
                   </b-button>
                   <b-button
                     size="sm"
                     variant="outline-danger"
-                    @click="handleRemove(flow)"
                     title="Remove"
+                    @click="handleRemove(flow)"
                   >
                     <i class="pe-7s-trash"></i>
                   </b-button>
@@ -287,8 +299,8 @@
           <b-button
             size="sm"
             variant="outline-secondary"
-            @click="previousPage"
             :disabled="currentPage === 1"
+            @click="previousPage"
           >
             Previous
           </b-button>
@@ -296,8 +308,8 @@
           <b-button
             size="sm"
             variant="outline-secondary"
-            @click="nextPage"
             :disabled="currentPage === totalPages"
+            @click="nextPage"
           >
             Next
           </b-button>
@@ -317,7 +329,9 @@
           <!-- Source Section -->
           <div class="col-md-12">
             <div class="section-frame source-frame">
-              <div class="section-header">Source</div>
+              <div class="section-header">
+                Source
+              </div>
               <div class="row g-2">
                 <!-- Dynamic hierarchy fields - Source -->
                 <div
@@ -394,7 +408,9 @@
           <!-- Destination Section -->
           <div class="col-md-12">
             <div class="section-frame destination-frame">
-              <div class="section-header">Destination</div>
+              <div class="section-header">
+                Destination
+              </div>
               <div class="row g-2">
                 <!-- Dynamic hierarchy fields - Destination -->
                 <div
@@ -508,14 +524,14 @@
       </div>
 
       <template #footer>
-        <b-button variant="secondary" @click="showModal = false" size="sm">
+        <b-button variant="secondary" size="sm" @click="showModal = false">
           {{ isViewMode ? "Close" : "Cancel" }}
         </b-button>
         <b-button
           v-if="!isViewMode"
           variant="primary"
-          @click="handleModalOk"
           size="sm"
+          @click="handleModalOk"
         >
           {{ selectedFlow?.id ? "Update" : "Create" }}
         </b-button>
@@ -528,7 +544,7 @@
       :title="isSaveAsNew ? 'Save as New View' : 'Save View'"
       size="md"
     >
-      <div class="form-group mb-3" v-if="isSaveAsNew">
+      <div v-if="isSaveAsNew" class="form-group mb-3">
         <label class="form-label">View Name</label>
         <b-form-input
           v-model="newViewName"
@@ -539,7 +555,7 @@
           A view with this name already exists
         </b-form-invalid-feedback>
       </div>
-      <div class="form-group mb-3" v-else>
+      <div v-else class="form-group mb-3">
         <label class="form-label">View Name</label>
         <b-form-input v-model="newViewName" :disabled="true" />
         <small class="text-muted">You are updating the existing view</small>
@@ -560,15 +576,16 @@
       <template #footer>
         <b-button
           variant="secondary"
-          @click="showSaveViewModal = false"
           size="sm"
-          >Cancel</b-button
+          @click="showSaveViewModal = false"
         >
+          Cancel
+        </b-button>
         <b-button
           variant="primary"
-          @click="saveView"
           size="sm"
           :disabled="!isValidViewName"
+          @click="saveView"
         >
           {{ isSaveAsNew ? "Save as New" : "Update" }}
         </b-button>
@@ -617,15 +634,17 @@
 
         <div class="conflict-message mb-4">
           <p>{{ conflictInfo.message }}</p>
-          <p class="text-muted">What would you like to do?</p>
+          <p class="text-muted">
+            What would you like to do?
+          </p>
         </div>
 
         <div class="conflict-actions">
           <b-button
             variant="primary"
-            @click="handleConflictResolution('deploy_anyway')"
             :disabled="isResolvingConflict"
             class="mb-2 w-100"
+            @click="handleConflictResolution('deploy_anyway')"
           >
             <b-spinner
               v-if="
@@ -633,25 +652,25 @@
               "
               small
               class="me-2"
-            ></b-spinner>
+            />
             <i v-else class="pe-7s-plus"></i>
             Deploy Anyway (Create Additional Process Group)
           </b-button>
 
           <b-button
             variant="danger"
-            @click="handleConflictResolution('delete_and_deploy')"
             :disabled="isResolvingConflict"
             class="mb-2 w-100"
+            @click="handleConflictResolution('delete_and_deploy')"
           >
             <b-spinner
               v-if="
                 isResolvingConflict &&
-                conflictResolution === 'delete_and_deploy'
+                  conflictResolution === 'delete_and_deploy'
               "
               small
               class="me-2"
-            ></b-spinner>
+            />
             <i v-else class="pe-7s-trash"></i>
             Delete Existing and Deploy New
           </b-button>
@@ -659,9 +678,9 @@
           <b-button
             v-if="conflictInfo.existing_process_group.has_version_control"
             variant="info"
-            @click="handleConflictResolution('update_version')"
             :disabled="isResolvingConflict"
             class="mb-2 w-100"
+            @click="handleConflictResolution('update_version')"
           >
             <b-spinner
               v-if="
@@ -669,16 +688,16 @@
               "
               small
               class="me-2"
-            ></b-spinner>
+            />
             <i v-else class="pe-7s-refresh-2"></i>
             Update to New Version
           </b-button>
 
           <b-button
             variant="outline-secondary"
-            @click="showConflictModal = false"
             :disabled="isResolvingConflict"
             class="w-100"
+            @click="showConflictModal = false"
           >
             Cancel
           </b-button>
@@ -700,7 +719,9 @@
           <div class="result-icon success">
             <i class="pe-7s-check"></i>
           </div>
-          <h5 class="mb-3">Flow Deployed Successfully!</h5>
+          <h5 class="mb-3">
+            Flow Deployed Successfully!
+          </h5>
 
           <div class="result-details">
             <div class="detail-row">
@@ -739,7 +760,9 @@
           <div class="result-icon failed">
             <i class="pe-7s-close"></i>
           </div>
-          <h5 class="mb-3">Deployment Failed</h5>
+          <h5 class="mb-3">
+            Deployment Failed
+          </h5>
 
           <div class="result-details">
             <div class="detail-row">
@@ -773,8 +796,8 @@
         <div class="result-actions">
           <b-button
             variant="primary"
-            @click="showResultModal = false"
             class="w-100"
+            @click="showResultModal = false"
           >
             <i class="pe-7s-check"></i>
             Close
@@ -800,8 +823,8 @@
         <div class="result-actions mt-3">
           <b-button
             variant="danger"
-            @click="showErrorModal = false"
             class="w-100"
+            @click="showErrorModal = false"
           >
             <i class="pe-7s-check"></i>
             Close

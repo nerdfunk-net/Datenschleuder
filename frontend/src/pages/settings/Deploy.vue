@@ -2,7 +2,9 @@
   <div class="settings-page">
     <div class="page-card">
       <div class="card-header">
-        <h2 class="card-title">Deployment Settings</h2>
+        <h2 class="card-title">
+          Deployment Settings
+        </h2>
         <p class="text-muted mb-0">
           Configure deployment parameters for flow deployment
         </p>
@@ -74,7 +76,7 @@
 
           <!-- Loading State -->
           <div v-if="loadingInstances" class="text-center py-3">
-            <b-spinner small></b-spinner>
+            <b-spinner small />
             <span class="ms-2">Loading instances...</span>
           </div>
 
@@ -86,11 +88,9 @@
               class="instance-path-item"
             >
               <div class="instance-label">
-                <strong
-                  >{{ instance.hierarchy_attribute }}={{
-                    instance.hierarchy_value
-                  }}</strong
-                >
+                <strong>{{ instance.hierarchy_attribute }}={{
+                  instance.hierarchy_value
+                }}</strong>
                 <small class="text-muted d-block">{{
                   instance.nifi_url
                 }}</small>
@@ -98,29 +98,27 @@
 
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label"
-                    >Source Path ({{ topHierarchyName }})</label
-                  >
+                  <label class="form-label">Source Path ({{ topHierarchyName }})</label>
                   <div class="path-select-wrapper">
                     <b-form-select
                       :model-value="getSourcePath(instance.id)"
+                      :options="getPathOptionsForInstance(instance.id)"
+                      :disabled="loadingPaths[instance.id] || !isAdmin"
                       @update:model-value="
                         updateSourcePath(instance.id, $event)
                       "
-                      :options="getPathOptionsForInstance(instance.id)"
-                      :disabled="loadingPaths[instance.id] || !isAdmin"
                     />
                     <b-button
                       v-if="isAdmin"
                       variant="outline-primary"
                       size="sm"
-                      @click="loadPathsForInstance(instance.id)"
                       :disabled="loadingPaths[instance.id]"
+                      @click="loadPathsForInstance(instance.id)"
                     >
                       <b-spinner
                         v-if="loadingPaths[instance.id]"
                         small
-                      ></b-spinner>
+                      />
                       <i v-else class="pe-7s-refresh"></i>
                     </b-button>
                   </div>
@@ -130,27 +128,25 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label class="form-label"
-                    >Destination Path ({{ topHierarchyName }})</label
-                  >
+                  <label class="form-label">Destination Path ({{ topHierarchyName }})</label>
                   <div class="path-select-wrapper">
                     <b-form-select
                       :model-value="getDestPath(instance.id)"
-                      @update:model-value="updateDestPath(instance.id, $event)"
                       :options="getPathOptionsForInstance(instance.id)"
                       :disabled="loadingPaths[instance.id] || !isAdmin"
+                      @update:model-value="updateDestPath(instance.id, $event)"
                     />
                     <b-button
                       v-if="isAdmin"
                       variant="outline-primary"
                       size="sm"
-                      @click="loadPathsForInstance(instance.id)"
                       :disabled="loadingPaths[instance.id]"
+                      @click="loadPathsForInstance(instance.id)"
                     >
                       <b-spinner
                         v-if="loadingPaths[instance.id]"
                         small
-                      ></b-spinner>
+                      />
                       <i v-else class="pe-7s-refresh"></i>
                     </b-button>
                   </div>
@@ -164,7 +160,9 @@
 
           <div v-else class="alert alert-info mt-3">
             No NiFi instances configured. Please add instances in
-            <router-link to="/settings/nifi">Settings / NiFi</router-link>.
+            <router-link to="/settings/nifi">
+              Settings / NiFi
+            </router-link>.
           </div>
 
           <div class="card-footer">
@@ -173,8 +171,9 @@
               type="button"
               variant="outline-secondary"
               @click="handleReset"
-              >Reset</b-button
             >
+              Reset
+            </b-button>
             <b-button
               v-if="isAdmin"
               type="submit"
@@ -182,7 +181,7 @@
               class="ms-2"
               :disabled="isSaving"
             >
-              <b-spinner v-if="isSaving" small class="me-2"></b-spinner>
+              <b-spinner v-if="isSaving" small class="me-2" />
               Save Settings
             </b-button>
           </div>

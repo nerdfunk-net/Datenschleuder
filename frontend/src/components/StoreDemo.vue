@@ -14,14 +14,16 @@
           <h6>Dashboard Store</h6>
           <div class="row">
             <div
-              class="col-md-4"
               v-for="stat in dashboardStore.statsWithTrends"
               :key="stat.key"
+              class="col-md-4"
             >
               <div class="card mb-3">
                 <div class="card-body">
                   <h6>{{ stat.label }}</h6>
-                  <div class="h4 mb-0">{{ stat.value }}</div>
+                  <div class="h4 mb-0">
+                    {{ stat.value }}
+                  </div>
                   <small :class="stat.trendColor">
                     <font-awesome-icon :icon="stat.trendIcon" />
                     {{ stat.formattedChange }}
@@ -39,13 +41,13 @@
           </div>
           <div class="mb-3">
             <button
-              @click="dashboardStore.refreshDashboard()"
               class="btn btn-primary me-2"
+              @click="dashboardStore.refreshDashboard()"
             >
               <font-awesome-icon icon="refresh" />
               Refresh Dashboard
             </button>
-            <button @click="addDemoTask" class="btn btn-success">
+            <button class="btn btn-success" @click="addDemoTask">
               <font-awesome-icon icon="plus" />
               Add Demo Task
             </button>
@@ -58,8 +60,8 @@
           <div class="mb-3">
             <strong>Current Theme:</strong> {{ uiStore.theme }}
             <button
-              @click="toggleTheme"
               class="btn btn-sm btn-outline-secondary ms-2"
+              @click="toggleTheme"
             >
               Toggle Theme
             </button>
@@ -67,8 +69,8 @@
           <div class="mb-3">
             <strong>Sidebar Collapsed:</strong> {{ uiStore.sidebarCollapsed }}
             <button
-              @click="uiStore.toggleSidebar()"
               class="btn btn-sm btn-outline-secondary ms-2"
+              @click="uiStore.toggleSidebar()"
             >
               Toggle Sidebar
             </button>
@@ -76,8 +78,8 @@
           <div class="mb-3">
             <strong>Page Title:</strong> {{ uiStore.pageTitle }}
             <button
-              @click="updatePageTitle"
               class="btn btn-sm btn-outline-secondary ms-2"
+              @click="updatePageTitle"
             >
               Update Page Title
             </button>
@@ -95,40 +97,40 @@
           </div>
           <div class="mb-3">
             <button
-              @click="notificationsStore.success('Success message!')"
               class="btn btn-success btn-sm me-2"
+              @click="notificationsStore.success('Success message!')"
             >
               Success
             </button>
             <button
-              @click="notificationsStore.error('Error message!')"
               class="btn btn-danger btn-sm me-2"
+              @click="notificationsStore.error('Error message!')"
             >
               Error
             </button>
             <button
-              @click="notificationsStore.warning('Warning message!')"
               class="btn btn-warning btn-sm me-2"
+              @click="notificationsStore.warning('Warning message!')"
             >
               Warning
             </button>
             <button
-              @click="notificationsStore.info('Info message!')"
               class="btn btn-info btn-sm me-2"
+              @click="notificationsStore.info('Info message!')"
             >
               Info
             </button>
           </div>
           <div class="mb-3">
             <button
-              @click="notificationsStore.showDemoNotifications()"
               class="btn btn-primary me-2"
+              @click="notificationsStore.showDemoNotifications()"
             >
               Show Demo Notifications
             </button>
             <button
-              @click="notificationsStore.clearAll()"
               class="btn btn-outline-secondary"
+              @click="notificationsStore.clearAll()"
             >
               Clear All
             </button>
@@ -153,21 +155,23 @@
                 <strong class="ms-2">{{
                   notification.title || notification.type.toUpperCase()
                 }}</strong>
-                <div class="small text-muted">{{ notification.message }}</div>
+                <div class="small text-muted">
+                  {{ notification.message }}
+                </div>
               </div>
               <div>
                 <button
                   v-if="!notification.read"
-                  @click="notificationsStore.markAsRead(notification.id)"
                   class="btn btn-sm btn-outline-primary me-2"
+                  @click="notificationsStore.markAsRead(notification.id)"
                 >
                   Mark Read
                 </button>
                 <button
+                  class="btn btn-sm btn-outline-danger"
                   @click="
                     notificationsStore.removeNotification(notification.id)
                   "
-                  class="btn btn-sm btn-outline-danger"
                 >
                   <font-awesome-icon icon="times" />
                 </button>

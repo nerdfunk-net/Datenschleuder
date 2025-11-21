@@ -1,15 +1,17 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <div class="main-card mb-3 card">
         <div class="card-body">
-          <div class="card-title">Gradient Icons</div>
+          <div class="card-title">
+            Gradient Icons
+          </div>
           <div class="font-icon-wrapper font-icon-lg">
             <i class="pe-7s-filter icon-gradient bg-warm-flame"> </i>
           </div>
@@ -312,7 +314,12 @@
             </b-col>
             <b-col md="2">
               <div class="font-icon-wrapper text-danger">
-                <font-awesome-icon icon="spinner" spin fixedWidth size="4x" />
+                <font-awesome-icon
+                  icon="spinner"
+                  spin
+                  fixed-width
+                  size="4x"
+                />
                 <p>spin fixedWidth size="4x"</p>
               </div>
             </b-col>
@@ -321,7 +328,7 @@
                 <font-awesome-icon
                   icon="check-square"
                   pulse
-                  fixedWidth
+                  fixed-width
                   size="4x"
                 />
                 <p>pulse fixedWidth size="4x"</p>

@@ -12,15 +12,21 @@
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-5">
-      <b-spinner></b-spinner>
-      <p class="text-muted mt-2">Loading NiFi instances...</p>
+      <b-spinner />
+      <p class="text-muted mt-2">
+        Loading NiFi instances...
+      </p>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="instances.length === 0" class="empty-state">
       <i class="pe-7s-server" style="font-size: 4rem; color: #6c757d"></i>
-      <h4 class="mt-3">No NiFi Instances</h4>
-      <p class="text-muted">{{ isAdmin ? 'Add your first NiFi instance to get started' : 'No NiFi instances configured yet' }}</p>
+      <h4 class="mt-3">
+        No NiFi Instances
+      </h4>
+      <p class="text-muted">
+        {{ isAdmin ? 'Add your first NiFi instance to get started' : 'No NiFi instances configured yet' }}
+      </p>
       <b-button v-if="isAdmin" variant="primary" @click="showAddModal">
         + Add NiFi Instance
       </b-button>
@@ -33,7 +39,7 @@
         :key="instance.id"
         class="instance-card"
       >
-                  <div class="card-header-custom">
+        <div class="card-header-custom">
           <div class="instance-badge">
             {{ instance.hierarchy_attribute }}={{ instance.hierarchy_value }}
           </div>
@@ -41,16 +47,16 @@
             <b-button
               variant="link"
               size="sm"
-              @click="testConnection(instance.id)"
               title="Test Connection"
+              @click="testConnection(instance.id)"
             >
               <i class="pe-7s-check"></i>
             </b-button>
             <b-button
               variant="link"
               size="sm"
-              @click="editInstance(instance)"
               title="Edit"
+              @click="editInstance(instance)"
             >
               <i class="pe-7s-pen"></i>
             </b-button>
@@ -58,8 +64,8 @@
               variant="link"
               size="sm"
               class="text-danger"
-              @click="deleteInstance(instance.id)"
               title="Delete"
+              @click="deleteInstance(instance.id)"
             >
               <i class="pe-7s-trash"></i>
             </b-button>
@@ -79,27 +85,30 @@
             <div class="info-row">
               <span class="label">SSL:</span>
               <span class="value">
-                <span v-if="instance.use_ssl" class="badge bg-success"
-                  >Enabled</span
-                >
+                <span
+                  v-if="instance.use_ssl"
+                  class="badge bg-success"
+                >Enabled</span>
                 <span v-else class="badge bg-secondary">Disabled</span>
               </span>
             </div>
             <div class="info-row">
               <span class="label">Verify SSL:</span>
               <span class="value">
-                <span v-if="instance.verify_ssl" class="badge bg-success"
-                  >Yes</span
-                >
+                <span
+                  v-if="instance.verify_ssl"
+                  class="badge bg-success"
+                >Yes</span>
                 <span v-else class="badge bg-warning">No</span>
               </span>
             </div>
             <div class="info-row">
               <span class="label">Auth Method:</span>
               <span class="value">
-                <span v-if="instance.certificate_name" class="badge bg-info"
-                  >{{ instance.certificate_name }}</span
-                >
+                <span
+                  v-if="instance.certificate_name"
+                  class="badge bg-info"
+                >{{ instance.certificate_name }}</span>
                 <span v-else class="badge bg-secondary">Username/Password</span>
               </span>
             </div>
@@ -144,9 +153,7 @@
               placeholder="https://nifi.example.com:8443/nifi-api"
               required
             />
-            <small class="form-text text-muted"
-              >Full NiFi API endpoint URL (must end with /nifi-api)</small
-            >
+            <small class="form-text text-muted">Full NiFi API endpoint URL (must end with /nifi-api)</small>
           </div>
 
           <div class="col-md-12">
@@ -205,8 +212,8 @@
         </b-button>
         <b-button
           variant="info"
-          @click="testConnectionFromModal"
           :disabled="!form.nifi_url"
+          @click="testConnectionFromModal"
         >
           <i class="pe-7s-check"></i> Test Connection
         </b-button>

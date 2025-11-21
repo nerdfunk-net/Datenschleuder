@@ -17,7 +17,9 @@
             <i class="pe-7s-server text-white" style="font-size: 3rem"></i>
           </div>
         </div>
-        <h2 class="text-white text-center mb-3 fw-bold">Datenschleuder</h2>
+        <h2 class="text-white text-center mb-3 fw-bold">
+          Datenschleuder
+        </h2>
         <p class="text-white-50 text-center mb-0 fs-5">
           Flow Management and Deployment Platform
         </p>
@@ -36,12 +38,16 @@
           >
             <i class="pe-7s-server text-white" style="font-size: 2rem"></i>
           </div>
-          <h4 class="text-primary fw-bold mb-0">Datenschleuder</h4>
+          <h4 class="text-primary fw-bold mb-0">
+            Datenschleuder
+          </h4>
         </div>
 
         <!-- Login Header -->
         <div class="text-center mb-5">
-          <h2 class="fw-bold text-dark mb-2">Sign in to your account</h2>
+          <h2 class="fw-bold text-dark mb-2">
+            Sign in to your account
+          </h2>
           <p class="text-secondary mb-0">
             Please enter your credentials to continue.
           </p>
@@ -58,7 +64,7 @@
         <!-- OIDC Providers Section -->
         <div v-if="oidcEnabled && oidcProviders.length > 0" class="mb-4">
           <div v-if="isLoadingProviders" class="text-center py-3">
-            <b-spinner small></b-spinner>
+            <b-spinner small />
             <span class="ms-2 text-secondary">Loading sign-in options...</span>
           </div>
 
@@ -73,8 +79,8 @@
                 variant="outline-primary"
                 size="lg"
                 class="w-100 py-3 d-flex align-items-center justify-content-center"
-                @click="handleOIDCLogin(provider.provider_id)"
                 :disabled="isLoading"
+                @click="handleOIDCLogin(provider.provider_id)"
               >
                 <i
                   :class="getProviderIcon(provider.icon)"
@@ -86,8 +92,7 @@
               <small
                 v-if="provider.description"
                 class="text-secondary d-block mt-1 ms-2"
-                >{{ provider.description }}</small
-              >
+              >{{ provider.description }}</small>
             </div>
 
             <!-- Divider -->
@@ -118,9 +123,10 @@
           @submit.prevent="handleLogin"
         >
           <div class="mb-4">
-            <label for="username" class="form-label text-dark fw-medium mb-2"
-              >Username</label
-            >
+            <label
+              for="username"
+              class="form-label text-dark fw-medium mb-2"
+            >Username</label>
             <b-form-input
               id="username"
               v-model="username"
@@ -133,9 +139,10 @@
           </div>
 
           <div class="mb-4">
-            <label for="password" class="form-label text-dark fw-medium mb-2"
-              >Password</label
-            >
+            <label
+              for="password"
+              class="form-label text-dark fw-medium mb-2"
+            >Password</label>
             <b-form-input
               id="password"
               v-model="password"
@@ -166,7 +173,7 @@
               :disabled="isLoading"
             >
               <span v-if="isLoading">
-                <b-spinner small class="me-2"></b-spinner>
+                <b-spinner small class="me-2" />
                 Signing in...
               </span>
               <span v-else>Sign in to Dashboard</span>

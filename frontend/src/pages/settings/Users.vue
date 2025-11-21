@@ -4,8 +4,12 @@
       <!-- Header -->
       <div class="card-header d-flex justify-content-between align-items-center">
         <div>
-          <h2 class="card-title">User Management</h2>
-          <p class="text-muted mb-0 small">Manage users, roles, and permissions</p>
+          <h2 class="card-title">
+            User Management
+          </h2>
+          <p class="text-muted mb-0 small">
+            Manage users, roles, and permissions
+          </p>
         </div>
         <b-button variant="primary" @click="showCreateModal">
           <i class="pe-7s-plus"></i> Add User
@@ -14,8 +18,10 @@
 
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-5">
-        <b-spinner variant="primary"></b-spinner>
-        <p class="mt-3 text-muted">Loading users...</p>
+        <b-spinner variant="primary" />
+        <p class="mt-3 text-muted">
+          Loading users...
+        </p>
       </div>
 
       <!-- Users Table -->
@@ -23,11 +29,21 @@
         <table class="table users-table">
           <thead>
             <tr>
-              <th style="width: 35%">Username</th>
-              <th style="width: 20%">Role</th>
-              <th style="width: 20%">Status</th>
-              <th style="width: 15%">Created</th>
-              <th style="width: 10%" class="text-end">Actions</th>
+              <th style="width: 35%">
+                Username
+              </th>
+              <th style="width: 20%">
+                Role
+              </th>
+              <th style="width: 20%">
+                Status
+              </th>
+              <th style="width: 15%">
+                Created
+              </th>
+              <th style="width: 10%" class="text-end">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -84,18 +100,18 @@
                   <b-button
                     variant="outline-primary"
                     size="sm"
-                    @click="editUser(user)"
                     :disabled="user.username === 'admin'"
                     title="Edit user"
+                    @click="editUser(user)"
                   >
                     <i class="pe-7s-pen"></i>
                   </b-button>
                   <b-button
                     variant="outline-danger"
                     size="sm"
-                    @click="confirmDelete(user)"
                     :disabled="user.username === 'admin'"
                     title="Delete user"
+                    @click="confirmDelete(user)"
                   >
                     <i class="pe-7s-trash"></i>
                   </b-button>
@@ -109,8 +125,12 @@
       <!-- Empty State -->
       <div v-else class="text-center py-5">
         <i class="pe-7s-users" style="font-size: 4rem; color: #6c757d"></i>
-        <h4 class="mt-3">No Users Found</h4>
-        <p class="text-muted">Create your first user to get started</p>
+        <h4 class="mt-3">
+          No Users Found
+        </h4>
+        <p class="text-muted">
+          Create your first user to get started
+        </p>
       </div>
     </div>
 
@@ -119,23 +139,23 @@
       v-model="isModalVisible"
       :title="editingUser ? 'Edit User' : 'Create New User'"
       size="lg"
-      @hidden="resetForm"
-      @ok="handleModalOk"
       :ok-title="editingUser ? 'Update User' : 'Create User'"
       ok-variant="primary"
       cancel-title="Cancel"
       cancel-variant="secondary"
       :ok-disabled="isSaving"
       centered
+      @hidden="resetForm"
+      @ok="handleModalOk"
     >
       <div>
         <div class="row">
           <div class="col-12 mb-3">
             <label class="form-label">Username</label>
             <input
+              v-model="formData.username"
               type="text"
               class="form-control"
-              v-model="formData.username"
               :disabled="!!editingUser"
               placeholder="Enter username"
               required
@@ -147,12 +167,12 @@
           </div>
 
           <div class="col-12 mb-3">
-            <label class="form-label" v-if="!editingUser || canChangePassword">Password</label>
+            <label v-if="!editingUser || canChangePassword" class="form-label">Password</label>
             <input
               v-if="!editingUser || canChangePassword"
+              v-model="formData.password"
               type="password"
               class="form-control"
-              v-model="formData.password"
               :placeholder="
                 editingUser
                   ? 'Leave empty to keep current password'
@@ -169,12 +189,16 @@
           <div class="col-md-6 mb-3">
             <label class="form-label">Role</label>
             <select
-              class="form-select"
               v-model="formData.is_superuser"
+              class="form-select"
               :disabled="!!(editingUser && editingUser.username === 'admin')"
             >
-              <option :value="false">User</option>
-              <option :value="true">Admin</option>
+              <option :value="false">
+                User
+              </option>
+              <option :value="true">
+                Admin
+              </option>
             </select>
             <small v-if="editingUser && editingUser.username === 'admin'" class="text-muted d-block mt-1">
               <i class="pe-7s-lock"></i> Admin role cannot be changed
@@ -184,12 +208,16 @@
           <div class="col-md-6 mb-3">
             <label class="form-label">Status</label>
             <select
-              class="form-select"
               v-model="formData.is_active"
+              class="form-select"
               :disabled="!!(editingUser && editingUser.username === 'admin')"
             >
-              <option :value="true">Active</option>
-              <option :value="false">Inactive</option>
+              <option :value="true">
+                Active
+              </option>
+              <option :value="false">
+                Inactive
+              </option>
             </select>
           </div>
         </div>
@@ -200,7 +228,12 @@
 
         <div v-if="modalError" class="alert alert-danger alert-dismissible fade show mb-0 mt-3" role="alert">
           {{ modalError }}
-          <button type="button" class="btn-close" @click="modalError = ''" aria-label="Close"></button>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Close"
+            @click="modalError = ''"
+          ></button>
         </div>
       </div>
     </b-modal>
@@ -209,15 +242,17 @@
     <b-modal
       v-model="isDeleteModalVisible"
       title="Delete User"
-      @ok="deleteUser"
       ok-variant="danger"
       ok-title="Delete"
+      @ok="deleteUser"
     >
       <p>
         Are you sure you want to delete user
         <strong>{{ userToDelete?.username }}</strong>?
       </p>
-      <p class="text-danger mb-0">This action cannot be undone.</p>
+      <p class="text-danger mb-0">
+        This action cannot be undone.
+      </p>
     </b-modal>
   </div>
 </template>

@@ -15,8 +15,8 @@
         </b-form-input>
         <b-button
           variant="primary"
-          @click="showCreateModal"
           class="new-context-btn"
+          @click="showCreateModal"
         >
           <i class="pe-7s-plus"></i> New Parameter Context
         </b-button>
@@ -25,25 +25,25 @@
 
     <!-- Loading State -->
     <div v-if="loading" class="text-center py-5">
-      <b-spinner></b-spinner>
-      <p class="text-muted mt-2">Loading parameter contexts...</p>
+      <b-spinner />
+      <p class="text-muted mt-2">
+        Loading parameter contexts...
+      </p>
     </div>
 
     <!-- Parameter Contexts by Instance -->
     <div v-else>
       <div v-for="instance in instances" :key="instance.id" class="mb-5">
         <h4 class="mb-3">
-          <span class="badge bg-primary"
-            >{{ instance.hierarchy_attribute }}={{
-              instance.hierarchy_value
-            }}</span
-          >
+          <span class="badge bg-primary">{{ instance.hierarchy_attribute }}={{
+            instance.hierarchy_value
+          }}</span>
           <span class="text-muted ms-2">{{ instance.nifi_url }}</span>
         </h4>
 
         <!-- Loading state for instance -->
         <div v-if="instanceLoading[instance.id]" class="text-center py-3">
-          <b-spinner small></b-spinner>
+          <b-spinner small />
           <span class="text-muted ms-2">Loading...</span>
         </div>
 
@@ -66,9 +66,7 @@
           </template>
 
           <template #cell(parameter_count)="data">
-            <span class="param-count"
-              >{{ data.item.parameters?.length || 0 }} parameters</span
-            >
+            <span class="param-count">{{ data.item.parameters?.length || 0 }} parameters</span>
           </template>
 
           <template #cell(bound)="data">
@@ -78,8 +76,8 @@
             <a
               v-else
               href="javascript:void(0)"
-              @click="showBoundProcessGroups(data.item)"
               class="bound-link"
+              @click="showBoundProcessGroups(data.item)"
             >
               {{ data.item.bound_process_groups.length }}
             </a>
@@ -90,24 +88,24 @@
               <b-button
                 variant="outline-primary"
                 size="sm"
-                @click="editParameterContext(instance.id, data.item)"
                 title="Edit"
+                @click="editParameterContext(instance.id, data.item)"
               >
                 <i class="pe-7s-pen"></i>
               </b-button>
               <b-button
                 variant="outline-secondary"
                 size="sm"
-                @click="copyParameterContext(instance.id, data.item)"
                 title="Copy"
+                @click="copyParameterContext(instance.id, data.item)"
               >
                 <i class="pe-7s-copy-file"></i>
               </b-button>
               <b-button
                 variant="outline-danger"
                 size="sm"
-                @click="deleteParameterContext(instance.id, data.item)"
                 title="Remove"
+                @click="deleteParameterContext(instance.id, data.item)"
               >
                 <i class="pe-7s-trash"></i>
               </b-button>
@@ -138,13 +136,13 @@
           : 'Edit Parameter Context'
       "
       size="xl"
-      @hidden="resetForm"
       ok-title="Save"
       cancel-title="Cancel"
-      @ok="handleSave"
       :ok-disabled="saving"
       modal-class="parameter-modal"
       body-class="compact-modal-body"
+      @hidden="resetForm"
+      @ok="handleSave"
     >
       <form @submit.prevent="handleSave">
         <!-- NiFi Instance Selection (only for create) -->
@@ -156,20 +154,18 @@
             required
             :disabled="modalMode !== 'create'"
             size="sm"
-          ></b-form-select>
+          />
         </div>
 
         <!-- Name -->
         <div class="mb-2">
-          <label class="form-label compact-label"
-            >Name <span class="text-danger">*</span></label
-          >
+          <label class="form-label compact-label">Name <span class="text-danger">*</span></label>
           <b-form-input
             v-model="form.name"
             required
             placeholder="Enter parameter context name"
             size="sm"
-          ></b-form-input>
+          />
         </div>
 
         <!-- Description -->
@@ -180,7 +176,7 @@
             rows="2"
             placeholder="Enter description (optional)"
             size="sm"
-          ></b-form-textarea>
+          />
         </div>
 
         <!-- Parameters Table -->
@@ -198,7 +194,7 @@
                 size="sm"
                 :disabled="data.item.isExisting"
                 placeholder="Parameter name"
-              ></b-form-input>
+              />
             </template>
 
             <template #cell(value)="data">
@@ -208,7 +204,7 @@
                 size="sm"
                 placeholder="Parameter value"
                 @input="markParameterAsLocal(data.item)"
-              ></b-form-input>
+              />
               <b-form-input
                 v-else
                 v-model="data.item.value"
@@ -216,7 +212,7 @@
                 size="sm"
                 placeholder="Sensitive value"
                 @input="markParameterAsLocal(data.item)"
-              ></b-form-input>
+              />
             </template>
 
             <template #cell(description)="data">
@@ -224,14 +220,14 @@
                 v-model="data.item.description"
                 size="sm"
                 placeholder="Description (optional)"
-              ></b-form-input>
+              />
             </template>
 
             <template #cell(sensitive)="data">
               <b-form-checkbox
                 v-model="data.item.sensitive"
                 switch
-              ></b-form-checkbox>
+              />
             </template>
 
             <template #cell(status)="data">
@@ -270,9 +266,9 @@
             v-if="modalMode === 'edit'"
             variant="outline-secondary"
             size="sm"
-            @click.prevent.stop="showInheritanceModal"
             class="ms-2"
             type="button"
+            @click.prevent.stop="showInheritanceModal"
           >
             <i class="pe-7s-link"></i> Edit Inheritance
           </b-button>
@@ -296,11 +292,12 @@
       @hide="onInheritanceModalHide"
       @hidden="onInheritanceModalHidden"
     >
-
       <div class="inheritance-container">
         <!-- Available Parameter Contexts -->
         <div class="inheritance-panel">
-          <h5 class="panel-title">Available Parameter Contexts</h5>
+          <h5 class="panel-title">
+            Available Parameter Contexts
+          </h5>
           <div class="context-list available-list">
             <div
               v-for="context in availableContexts"
@@ -326,7 +323,9 @@
 
         <!-- Inherited Parameter Contexts -->
         <div class="inheritance-panel">
-          <h5 class="panel-title">Inherited Parameter Contexts (in order)</h5>
+          <h5 class="panel-title">
+            Inherited Parameter Contexts (in order)
+          </h5>
           <div
             class="context-list inherited-list"
             @dragover="onDragOver"
@@ -368,9 +367,9 @@
         </b-button>
         <b-button
           variant="primary"
-          @click.prevent.stop="saveInheritance"
           :disabled="savingInheritance"
           type="button"
+          @click.prevent.stop="saveInheritance"
         >
           Save
         </b-button>
@@ -393,7 +392,7 @@
           <ul class="process-group-list">
             <li v-for="(pg, index) in selectedBoundContext.bound_process_groups" :key="index">
               <strong>{{ pg.component?.name || pg.id }}</strong>
-              <div class="text-muted small" v-if="pg.id">
+              <div v-if="pg.id" class="text-muted small">
                 ID: <code>{{ pg.id }}</code>
               </div>
             </li>
@@ -425,7 +424,9 @@
           <div class="error-icon">
             <i class="pe-7s-attention"></i>
           </div>
-          <h5 class="error-title">Parameter Context Cannot Be Deleted</h5>
+          <h5 class="error-title">
+            Parameter Context Cannot Be Deleted
+          </h5>
         </div>
 
         <!-- Parameter Context Info -->
@@ -434,7 +435,7 @@
             <span class="error-label">Parameter Context:</span>
             <strong>{{ errorModalData.context.name }}</strong>
           </div>
-          <div class="error-info-row" v-if="errorModalData.context.description">
+          <div v-if="errorModalData.context.description" class="error-info-row">
             <span class="error-label">Description:</span>
             <span class="text-muted">{{ errorModalData.context.description }}</span>
           </div>
@@ -458,7 +459,7 @@
                 <i class="pe-7s-box2 me-2"></i>
                 <div class="flex-grow-1">
                   <strong>{{ pg.component?.name || 'Unnamed Process Group' }}</strong>
-                  <div class="text-muted small" v-if="pg.id">
+                  <div v-if="pg.id" class="text-muted small">
                     ID: <code>{{ pg.id }}</code>
                   </div>
                 </div>
@@ -480,9 +481,9 @@
         <!-- Action Buttons -->
         <div class="error-modal-footer">
           <b-button
+            v-if="errorModalData.context.bound_process_groups && errorModalData.context.bound_process_groups.length > 0"
             variant="outline-primary"
             @click="showBoundProcessGroups(errorModalData.context); showErrorModal = false"
-            v-if="errorModalData.context.bound_process_groups && errorModalData.context.bound_process_groups.length > 0"
           >
             <i class="pe-7s-link"></i>
             View Bound Process Groups

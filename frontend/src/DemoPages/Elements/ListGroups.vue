@@ -1,10 +1,10 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <div class="row">
@@ -23,7 +23,9 @@
                       />
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Alina Mcloughlin</div>
+                      <div class="widget-heading">
+                        Alina Mcloughlin
+                      </div>
                       <div class="widget-subheading">
                         A short profile description
                       </div>
@@ -59,13 +61,17 @@
                       />
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Ruben Tillman</div>
+                      <div class="widget-heading">
+                        Ruben Tillman
+                      </div>
                       <div class="widget-subheading">
                         Etiam sit amet orci eget eros faucibus
                       </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="badge badge-danger">NEW</div>
+                      <div class="badge badge-danger">
+                        NEW
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -82,7 +88,9 @@
                       />
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Vinnie Wagstaff</div>
+                      <div class="widget-heading">
+                        Vinnie Wagstaff
+                      </div>
                     </div>
                     <div class="widget-content-right">
                       <button
@@ -106,7 +114,9 @@
                       />
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Ella-Rose Henry</div>
+                      <div class="widget-heading">
+                        Ella-Rose Henry
+                      </div>
                       <div class="widget-subheading">
                         Lorem ipsum dolor sit amet, consectetuer
                       </div>
@@ -133,7 +143,9 @@
                       />
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Eliot Huber</div>
+                      <div class="widget-heading">
+                        Eliot Huber
+                      </div>
                     </div>
                     <div class="widget-content-right">
                       <div class="ms-auto badge rounded-pill badge-warning">
@@ -157,7 +169,9 @@
                       </div>
                     </div>
                     <div class="widget-content-left flex2">
-                      <div class="widget-heading">Product Sales</div>
+                      <div class="widget-heading">
+                        Product Sales
+                      </div>
                       <div class="widget-subheading opacity-10">
                         <span class="pe-2"> <b>43</b> Sales </span>
                         <span>
@@ -176,7 +190,9 @@
                 <div class="widget-content p-0">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Product Sales</div>
+                      <div class="widget-heading">
+                        Product Sales
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -191,7 +207,9 @@
                       </div>
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Hidden Actions Pane</div>
+                      <div class="widget-heading">
+                        Hidden Actions Pane
+                      </div>
                     </div>
                     <div class="widget-content-right widget-content-actions">
                       <button class="btn-pill btn btn-outline-primary">
@@ -208,7 +226,9 @@
                       <i class="pe-7s-file text-muted fsize-2"></i>
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Example file 1</div>
+                      <div class="widget-heading">
+                        Example file 1
+                      </div>
                     </div>
                     <div class="widget-content-right">
                       <button class="btn-icon btn-icon-only btn btn-link">
@@ -221,7 +241,9 @@
             </ul>
           </div>
           <div class="main-card mb-3 card">
-            <div class="card-header">ToDo List</div>
+            <div class="card-header">
+              ToDo List
+            </div>
             <ul class="todo-list-wrapper list-group list-group-flush">
               <li class="list-group-item">
                 <div class="todo-indicator bg-warning"></div>
@@ -230,14 +252,13 @@
                     <div class="widget-content-left me-2">
                       <div class="form-check">
                         <input
-                          type="checkbox"
                           id="exampleCustomCheckbox12"
+                          type="checkbox"
                           class="form-check-input"
                         /><label
                           class="form-check-label"
                           for="exampleCustomCheckbox12"
-                          >&nbsp;</label
-                        >
+                        >&nbsp;</label>
                       </div>
                     </div>
                     <div class="widget-content-left">
@@ -247,7 +268,9 @@
                           Rejected
                         </div>
                       </div>
-                      <div class="widget-subheading"><i>Written by Bob</i></div>
+                      <div class="widget-subheading">
+                        <i>Written by Bob</i>
+                      </div>
                     </div>
                     <div class="widget-content-right widget-content-actions">
                       <button
@@ -271,14 +294,13 @@
                     <div class="widget-content-left me-2">
                       <div class="form-check">
                         <input
-                          type="checkbox"
                           id="exampleCustomCheckbox1"
+                          type="checkbox"
                           class="form-check-input"
                         /><label
                           class="form-check-label"
                           for="exampleCustomCheckbox1"
-                          >&nbsp;</label
-                        >
+                        >&nbsp;</label>
                       </div>
                     </div>
                     <div class="widget-content-left">
@@ -304,16 +326,18 @@
                           variant="link"
                           no-caret
                         >
-                          <template v-slot:button-content>
-                            <span
-                              ><i class="pe-7s-menu btn-icon-wrapper"></i
-                            ></span>
+                          <template #button-content>
+                            <span><i class="pe-7s-menu btn-icon-wrapper"></i></span>
                           </template>
                           <ul class="nav flex-column">
-                            <li class="nav-item-header nav-item">Activity</li>
+                            <li class="nav-item-header nav-item">
+                              Activity
+                            </li>
                             <li class="nav-item">
-                              <a href="javascript:void(0);" class="nav-link"
-                                >Chat
+                              <a
+                                href="javascript:void(0);"
+                                class="nav-link"
+                              >Chat
                                 <div
                                   class="ms-auto badge rounded-pill bg-info text-white"
                                 >
@@ -322,14 +346,19 @@
                               </a>
                             </li>
                             <li class="nav-item">
-                              <a href="javascript:void(0);" class="nav-link"
-                                >Recover Password</a
-                              >
+                              <a
+                                href="javascript:void(0);"
+                                class="nav-link"
+                              >Recover Password</a>
                             </li>
-                            <li class="nav-item-header nav-item">My Account</li>
+                            <li class="nav-item-header nav-item">
+                              My Account
+                            </li>
                             <li class="nav-item">
-                              <a href="javascript:void(0);" class="nav-link"
-                                >Settings
+                              <a
+                                href="javascript:void(0);"
+                                class="nav-link"
+                              >Settings
                                 <div
                                   class="ms-auto badge bg-success text-white"
                                 >
@@ -338,17 +367,20 @@
                               </a>
                             </li>
                             <li class="nav-item">
-                              <a href="javascript:void(0);" class="nav-link"
-                                >Messages
+                              <a
+                                href="javascript:void(0);"
+                                class="nav-link"
+                              >Messages
                                 <div class="ms-auto badge bg-warning text-dark">
                                   512
                                 </div>
                               </a>
                             </li>
                             <li class="nav-item">
-                              <a href="javascript:void(0);" class="nav-link"
-                                >Logs</a
-                              >
+                              <a
+                                href="javascript:void(0);"
+                                class="nav-link"
+                              >Logs</a>
                             </li>
                             <li class="nav-item-divider nav-item"></li>
                             <li class="nav-item-btn nav-item">
@@ -372,18 +404,19 @@
                     <div class="widget-content-left me-2">
                       <div class="form-check">
                         <input
-                          type="checkbox"
                           id="exampleCustomCheckbox4"
+                          type="checkbox"
                           class="form-check-input"
                         /><label
                           class="form-check-label"
                           for="exampleCustomCheckbox4"
-                          >&nbsp;</label
-                        >
+                        >&nbsp;</label>
                       </div>
                     </div>
                     <div class="widget-content-left flex2">
-                      <div class="widget-heading">Badge on the right task</div>
+                      <div class="widget-heading">
+                        Badge on the right task
+                      </div>
                       <div class="widget-subheading">
                         This task has show on hover actions!
                       </div>
@@ -410,14 +443,13 @@
                     <div class="widget-content-left me-2">
                       <div class="form-check">
                         <input
-                          type="checkbox"
                           id="exampleCustomCheckbox2"
+                          type="checkbox"
                           class="form-check-input"
                         /><label
                           class="form-check-label"
                           for="exampleCustomCheckbox2"
-                          >&nbsp;</label
-                        >
+                        >&nbsp;</label>
                       </div>
                     </div>
                     <div class="widget-content-left me-3">
@@ -431,7 +463,9 @@
                       </div>
                     </div>
                     <div class="widget-content-left">
-                      <div class="widget-heading">Go grocery shopping</div>
+                      <div class="widget-heading">
+                        Go grocery shopping
+                      </div>
                       <div class="widget-subheading">
                         A short description for this todo item
                       </div>
@@ -458,24 +492,27 @@
                     <div class="widget-content-left me-2">
                       <div class="form-check">
                         <input
-                          type="checkbox"
                           id="exampleCustomCheckbox3"
+                          type="checkbox"
                           class="form-check-input"
                         /><label
                           class="form-check-label"
                           for="exampleCustomCheckbox3"
-                          >&nbsp;</label
-                        >
+                        >&nbsp;</label>
                       </div>
                     </div>
                     <div class="widget-content-left flex2">
-                      <div class="widget-heading">Development Task</div>
+                      <div class="widget-heading">
+                        Development Task
+                      </div>
                       <div class="widget-subheading">
                         Finish Vue ToDo List App
                       </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="badge bg-warning text-dark me-2">69</div>
+                      <div class="badge bg-warning text-dark me-2">
+                        69
+                      </div>
                     </div>
                     <div class="widget-content-right">
                       <button
@@ -494,8 +531,12 @@
               </li>
             </ul>
             <div class="d-block text-end card-footer">
-              <button class="me-2 btn btn-link btn-sm">Cancel</button>
-              <button class="btn btn-success btn-lg">Save</button>
+              <button class="me-2 btn btn-link btn-sm">
+                Cancel
+              </button>
+              <button class="btn btn-success btn-lg">
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -515,7 +556,9 @@
                         />
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Alina Mcloughlin</div>
+                        <div class="widget-heading">
+                          Alina Mcloughlin
+                        </div>
                         <div class="widget-subheading">
                           A short profile description
                         </div>
@@ -551,13 +594,17 @@
                         />
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Ruben Tillman</div>
+                        <div class="widget-heading">
+                          Ruben Tillman
+                        </div>
                         <div class="widget-subheading">
                           Etiam sit amet orci eget eros faucibus
                         </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="badge bg-danger text-white">NEW</div>
+                        <div class="badge bg-danger text-white">
+                          NEW
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -574,7 +621,9 @@
                         />
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Vinnie Wagstaff</div>
+                        <div class="widget-heading">
+                          Vinnie Wagstaff
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <button
@@ -598,7 +647,9 @@
                         />
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Ella-Rose Henry</div>
+                        <div class="widget-heading">
+                          Ella-Rose Henry
+                        </div>
                         <div class="widget-subheading">
                           Lorem ipsum dolor sit amet, consectetuer
                         </div>
@@ -623,7 +674,9 @@
                         />
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Eliot Huber</div>
+                        <div class="widget-heading">
+                          Eliot Huber
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <div
@@ -649,12 +702,12 @@
                         </div>
                       </div>
                       <div class="widget-content-left flex2">
-                        <div class="widget-heading">Product Sales</div>
+                        <div class="widget-heading">
+                          Product Sales
+                        </div>
                         <div class="widget-subheading opacity-10">
                           <span class="pe-2"><b>43</b> Sales</span>
-                          <span
-                            ><b class="text-success">$156,24</b> Totals</span
-                          >
+                          <span><b class="text-success">$156,24</b> Totals</span>
                         </div>
                       </div>
                       <div class="widget-content-right text-end me-3">
@@ -668,7 +721,9 @@
                   <div class="widget-content p-0">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Product Sales</div>
+                        <div class="widget-heading">
+                          Product Sales
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -683,7 +738,9 @@
                         </div>
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Hidden Actions Pane</div>
+                        <div class="widget-heading">
+                          Hidden Actions Pane
+                        </div>
                       </div>
                       <div class="widget-content-right widget-content-actions">
                         <button class="btn-pill btn btn-outline-primary">
@@ -700,7 +757,9 @@
                         <i class="pe-7s-file text-muted fsize-2"></i>
                       </div>
                       <div class="widget-content-left">
-                        <div class="widget-heading">Example file 1</div>
+                        <div class="widget-heading">
+                          Example file 1
+                        </div>
                       </div>
                       <div class="widget-content-right">
                         <button class="btn-icon btn-icon-only btn btn-link">
@@ -720,13 +779,25 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">List group</h5>
+              <h5 class="card-title">
+                List group
+              </h5>
               <ul class="list-group">
-                <li class="list-group-item">Cras justo odio</li>
-                <li class="list-group-item">Dapibus ac facilisis in</li>
-                <li class="list-group-item">Morbi leo risus</li>
-                <li class="list-group-item">Porta ac consectetur ac</li>
-                <li class="list-group-item">Vestibulum at eros</li>
+                <li class="list-group-item">
+                  Cras justo odio
+                </li>
+                <li class="list-group-item">
+                  Dapibus ac facilisis in
+                </li>
+                <li class="list-group-item">
+                  Morbi leo risus
+                </li>
+                <li class="list-group-item">
+                  Porta ac consectetur ac
+                </li>
+                <li class="list-group-item">
+                  Vestibulum at eros
+                </li>
               </ul>
             </div>
           </div>
@@ -734,7 +805,9 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">List group buttons</h5>
+              <h5 class="card-title">
+                List group buttons
+              </h5>
               <div>
                 <ul class="list-group">
                   <button class="list-group-item list-group-item-action active">
@@ -762,31 +835,27 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">List group badges</h5>
+              <h5 class="card-title">
+                List group badges
+              </h5>
               <ul class="list-group">
                 <li
                   class="list-group-item d-flex justify-content-between align-items-center"
                 >
                   Cras justo odio
-                  <span class="badge bg-secondary text-white rounded-pill"
-                    >14</span
-                  >
+                  <span class="badge bg-secondary text-white rounded-pill">14</span>
                 </li>
                 <li
                   class="list-group-item d-flex justify-content-between align-items-center"
                 >
                   Dapibus ac facilisis in
-                  <span class="badge bg-secondary text-white rounded-pill"
-                    >2</span
-                  >
+                  <span class="badge bg-secondary text-white rounded-pill">2</span>
                 </li>
                 <li
                   class="list-group-item d-flex justify-content-between align-items-center"
                 >
                   Morbi leo risus
-                  <span class="badge bg-secondary text-white rounded-pill"
-                    >1</span
-                  >
+                  <span class="badge bg-secondary text-white rounded-pill">1</span>
                 </li>
               </ul>
             </div>
@@ -795,7 +864,9 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">List group contextual classes</h5>
+              <h5 class="card-title">
+                List group contextual classes
+              </h5>
               <ul class="list-group">
                 <li class="list-group-item list-group-item-success">
                   Cras justo odio
@@ -816,7 +887,9 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">List group custom content</h5>
+              <h5 class="card-title">
+                List group custom content
+              </h5>
               <ul class="list-group">
                 <li class="list-group-item active">
                   <h5 class="list-group-item-heading">
@@ -852,33 +925,30 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">List group disabled items</h5>
+              <h5 class="card-title">
+                List group disabled items
+              </h5>
               <ul class="list-group">
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action disabled"
-                  >Cras justo odio</a
-                >
+                >Cras justo odio</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Dapibus ac facilisis in</a
-                >
+                >Dapibus ac facilisis in</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Morbi leo risus</a
-                >
+                >Morbi leo risus</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Porta ac consectetur ac</a
-                >
+                >Porta ac consectetur ac</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Vestibulum at eros</a
-                >
+                >Vestibulum at eros</a>
               </ul>
             </div>
           </div>
@@ -886,33 +956,30 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">List group without border</h5>
+              <h5 class="card-title">
+                List group without border
+              </h5>
               <ul class="list-group list-group-flush">
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action disabled"
-                  >Cras justo odio</a
-                >
+                >Cras justo odio</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Dapibus ac facilisis in</a
-                >
+                >Dapibus ac facilisis in</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Morbi leo risus</a
-                >
+                >Morbi leo risus</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Porta ac consectetur ac</a
-                >
+                >Porta ac consectetur ac</a>
                 <a
                   href="javascript:void(0);"
                   class="list-group-item list-group-item-action"
-                  >Vestibulum at eros</a
-                >
+                >Vestibulum at eros</a>
               </ul>
             </div>
           </div>

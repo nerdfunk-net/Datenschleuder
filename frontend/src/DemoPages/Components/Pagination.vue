@@ -1,31 +1,35 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <!-- Basic Pagination Examples -->
     <b-row>
       <b-col md="6">
         <b-card title="Pagination Sizing" class="main-card mb-3">
           <div class="mb-4">
-            <h6 class="mb-2">Default Size</h6>
+            <h6 class="mb-2">
+              Default Size
+            </h6>
             <b-pagination
               v-model="basicPage"
               :total-rows="basicRows"
               :per-page="basicPerPage"
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
             <p class="text-center mb-0">
               Page {{ basicPage }} of {{ Math.ceil(basicRows / basicPerPage) }}
             </p>
           </div>
 
           <div class="mb-4">
-            <h6 class="mb-2">Small Size</h6>
+            <h6 class="mb-2">
+              Small Size
+            </h6>
             <b-pagination
               v-model="smallPage"
               :total-rows="basicRows"
@@ -33,14 +37,16 @@
               size="sm"
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
             <p class="text-center mb-0">
               Page {{ smallPage }} of {{ Math.ceil(basicRows / basicPerPage) }}
             </p>
           </div>
 
           <div class="mb-0">
-            <h6 class="mb-2">Large Size</h6>
+            <h6 class="mb-2">
+              Large Size
+            </h6>
             <b-pagination
               v-model="largePage"
               :total-rows="basicRows"
@@ -48,7 +54,7 @@
               size="lg"
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
             <p class="text-center mb-0">
               Page {{ largePage }} of {{ Math.ceil(basicRows / basicPerPage) }}
             </p>
@@ -59,36 +65,42 @@
       <b-col md="6">
         <b-card title="Pagination Alignment" class="main-card mb-3">
           <div class="mb-4">
-            <h6 class="mb-2">Left Alignment (default)</h6>
+            <h6 class="mb-2">
+              Left Alignment (default)
+            </h6>
             <b-pagination
               v-model="leftPage"
               :total-rows="alignRows"
               :per-page="alignPerPage"
               align="start"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
 
           <div class="mb-4">
-            <h6 class="mb-2">Center Alignment</h6>
+            <h6 class="mb-2">
+              Center Alignment
+            </h6>
             <b-pagination
               v-model="centerPage"
               :total-rows="alignRows"
               :per-page="alignPerPage"
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
 
           <div class="mb-0">
-            <h6 class="mb-2">Right Alignment</h6>
+            <h6 class="mb-2">
+              Right Alignment
+            </h6>
             <b-pagination
               v-model="rightPage"
               :total-rows="alignRows"
               :per-page="alignPerPage"
               align="end"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
         </b-card>
       </b-col>
@@ -99,7 +111,9 @@
       <b-row>
         <b-col md="6">
           <div class="mb-4">
-            <h6 class="mb-2">Limited Page Buttons</h6>
+            <h6 class="mb-2">
+              Limited Page Buttons
+            </h6>
             <b-pagination
               v-model="limitedPage"
               :total-rows="largeRows"
@@ -107,7 +121,7 @@
               :limit="5"
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
             <div class="text-center">
               <small class="text-muted">
                 Showing {{ (limitedPage - 1) * largePerPage + 1 }} -
@@ -118,7 +132,9 @@
           </div>
 
           <div class="mb-4">
-            <h6 class="mb-2">Hide Goto End Buttons</h6>
+            <h6 class="mb-2">
+              Hide Goto End Buttons
+            </h6>
             <b-pagination
               v-model="noEndPage"
               :total-rows="largeRows"
@@ -127,11 +143,13 @@
               hide-goto-end-buttons
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
 
           <div class="mb-0">
-            <h6 class="mb-2">Hide Ellipsis</h6>
+            <h6 class="mb-2">
+              Hide Ellipsis
+            </h6>
             <b-pagination
               v-model="noEllipsisPage"
               :total-rows="largeRows"
@@ -140,13 +158,15 @@
               hide-ellipsis
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
         </b-col>
 
         <b-col md="6">
           <div class="mb-4">
-            <h6 class="mb-2">Custom Button Content</h6>
+            <h6 class="mb-2">
+              Custom Button Content
+            </h6>
             <b-pagination
               v-model="customPage"
               :total-rows="customRows"
@@ -157,11 +177,13 @@
               last-text="Last"
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
 
           <div class="mb-4">
-            <h6 class="mb-2">With Icons</h6>
+            <h6 class="mb-2">
+              With Icons
+            </h6>
             <b-pagination
               v-model="iconPage"
               :total-rows="customRows"
@@ -172,11 +194,13 @@
               last-text="⏭"
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
 
           <div class="mb-0">
-            <h6 class="mb-2">Pills Style</h6>
+            <h6 class="mb-2">
+              Pills Style
+            </h6>
             <b-pagination
               v-model="pillsPage"
               :total-rows="customRows"
@@ -184,7 +208,7 @@
               pills
               align="center"
               class="mb-3"
-            ></b-pagination>
+            />
           </div>
         </b-col>
       </b-row>
@@ -205,7 +229,7 @@
               :options="perPageOptions"
               size="sm"
               class="w-auto"
-            ></b-form-select>
+            />
           </b-col>
           <b-col sm="6" class="text-sm-end">
             <span class="text-muted">
@@ -221,7 +245,7 @@
         :per-page="interactivePerPage"
         align="center"
         class="mb-3"
-      ></b-pagination>
+      />
 
       <!-- Sample data table -->
       <div class="table-responsive">
@@ -269,7 +293,7 @@
           :per-page="interactivePerPage"
           size="sm"
           class="mb-0"
-        ></b-pagination>
+        />
       </div>
     </b-card>
   </div>

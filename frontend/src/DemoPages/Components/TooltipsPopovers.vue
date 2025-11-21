@@ -1,14 +1,16 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="main-card mb-3 card">
       <div class="card-body">
-        <h5 class="card-title">Tooltips</h5>
+        <h5 class="card-title">
+          Tooltips
+        </h5>
         <p class="text-muted mb-4">
           Hover over the buttons to see the tooltips in action.
         </p>
@@ -46,7 +48,9 @@
           </b-tooltip>
         </div>
 
-        <h6 class="mb-3 mt-4">Tooltip Trigger Examples</h6>
+        <h6 class="mb-3 mt-4">
+          Tooltip Trigger Examples
+        </h6>
         <div class="text-center">
           <!-- CLICK-ONLY TOOLTIP (Custom Implementation) -->
           <div class="d-inline-block position-relative me-2 mb-2">
@@ -99,13 +103,17 @@
 
     <div class="main-card mb-3 card">
       <div class="card-body">
-        <h5 class="card-title">Popovers</h5>
+        <h5 class="card-title">
+          Popovers
+        </h5>
         <p class="text-muted mb-4">
           Click the buttons to see the popovers. Click outside or press ESC to
           close.
         </p>
 
-        <h6 class="mb-3">Basic Popovers (Click Triggered)</h6>
+        <h6 class="mb-3">
+          Basic Popovers (Click Triggered)
+        </h6>
         <div class="text-center mb-4">
           <!-- CLICK-ONLY POPOVER (Custom Implementation) -->
           <div class="d-inline-block position-relative me-2 mb-2">
@@ -117,7 +125,9 @@
               class="custom-popover popover-top"
               @click.stop
             >
-              <div class="popover-header">Basic Popover</div>
+              <div class="popover-header">
+                Basic Popover
+              </div>
               <div class="popover-body">
                 This popover appears on CLICK only!
               </div>
@@ -141,7 +151,9 @@
               class="custom-popover popover-right"
               @click.stop
             >
-              <div class="popover-header">HTML Content</div>
+              <div class="popover-header">
+                HTML Content
+              </div>
               <div class="popover-body">
                 <div class="text-center">
                   <strong>Rich HTML Content</strong><br />
@@ -160,12 +172,14 @@
           </div>
         </div>
 
-        <h6 class="mb-3">Placement Examples (Click to Open)</h6>
+        <h6 class="mb-3">
+          Placement Examples (Click to Open)
+        </h6>
         <div class="row">
           <div
-            class="col-md-4 py-2 text-center"
             v-for="placement in placements"
             :key="placement"
+            class="col-md-4 py-2 text-center"
           >
             <!-- CUSTOM CLICK-ONLY POPOVER FOR EACH PLACEMENT -->
             <div class="d-inline-block position-relative">
@@ -180,10 +194,11 @@
                 :class="['custom-popover', getPopoverClass(placement)]"
                 @click.stop
               >
-                <div class="popover-header">Popover {{ placement }}</div>
+                <div class="popover-header">
+                  Popover {{ placement }}
+                </div>
                 <div class="popover-body">
-                  Popover positioned at <strong>{{ placement }}</strong
-                  >. Click outside to close!
+                  Popover positioned at <strong>{{ placement }}</strong>. Click outside to close!
                 </div>
                 <div class="popover-arrow"></div>
               </div>
@@ -197,7 +212,9 @@
           </div>
         </div>
 
-        <h6 class="mb-3 mt-4">Different Trigger Examples</h6>
+        <h6 class="mb-3 mt-4">
+          Different Trigger Examples
+        </h6>
         <div class="text-center">
           <!-- HOVER-ONLY POPOVER (Bootstrap-Vue-Next - this works) -->
           <b-button id="popover-hover" variant="warning" class="me-2 mb-2">
@@ -226,7 +243,9 @@
               class="custom-popover popover-bottom"
               @click.stop
             >
-              <div class="popover-header">Focus Trigger</div>
+              <div class="popover-header">
+                Focus Trigger
+              </div>
               <div class="popover-body">
                 This popover appears on <strong>FOCUS</strong> only!
               </div>
@@ -244,7 +263,9 @@
               class="custom-popover popover-right"
               @click.stop
             >
-              <div class="popover-header">Click Trigger</div>
+              <div class="popover-header">
+                Click Trigger
+              </div>
               <div class="popover-body">
                 This popover appears on <strong>CLICK</strong> only!
               </div>
@@ -282,7 +303,9 @@
         <div class="row mt-4">
           <div class="col-md-6">
             <div class="alert alert-success">
-              <h6 class="mb-2">✅ Tooltip Triggers Fixed:</h6>
+              <h6 class="mb-2">
+                ✅ Tooltip Triggers Fixed:
+              </h6>
               <ul class="mb-0 small">
                 <li>
                   <strong>Hover tooltips:</strong> Work on mouse hover (default
@@ -299,7 +322,9 @@
           </div>
           <div class="col-md-6">
             <div class="alert alert-primary">
-              <h6 class="mb-2">✅ Popover Triggers Fixed:</h6>
+              <h6 class="mb-2">
+                ✅ Popover Triggers Fixed:
+              </h6>
               <ul class="mb-0 small">
                 <li>
                   <strong>Click popovers:</strong> Show on click, dismiss by
@@ -323,7 +348,9 @@
         </div>
 
         <div class="alert alert-info mt-3">
-          <h6 class="mb-2">💡 Implementation Guide:</h6>
+          <h6 class="mb-2">
+            💡 Implementation Guide:
+          </h6>
           <ul class="mb-0">
             <li>
               <strong>Hover behavior:</strong> <code>triggers="hover"</code> -

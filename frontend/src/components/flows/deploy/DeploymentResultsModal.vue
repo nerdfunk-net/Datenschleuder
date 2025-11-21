@@ -1,5 +1,10 @@
 <template>
-  <b-modal v-model="isVisible" title="Deployment Results" size="lg" hide-footer>
+  <b-modal
+    v-model="isVisible"
+    title="Deployment Results"
+    size="lg"
+    hide-footer
+  >
     <div class="deployment-results">
       <!-- Summary Stats -->
       <div class="results-summary">
@@ -8,8 +13,12 @@
             <i class="pe-7s-check"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ results.successCount }}</div>
-            <div class="stat-label">Successful</div>
+            <div class="stat-value">
+              {{ results.successCount }}
+            </div>
+            <div class="stat-label">
+              Successful
+            </div>
           </div>
         </div>
         <div class="stat-card failed">
@@ -17,8 +26,12 @@
             <i class="pe-7s-close"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ results.failCount }}</div>
-            <div class="stat-label">Failed</div>
+            <div class="stat-value">
+              {{ results.failCount }}
+            </div>
+            <div class="stat-label">
+              Failed
+            </div>
           </div>
         </div>
         <div class="stat-card total">
@@ -26,8 +39,12 @@
             <i class="pe-7s-network"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ results.total }}</div>
-            <div class="stat-label">Total</div>
+            <div class="stat-value">
+              {{ results.total }}
+            </div>
+            <div class="stat-label">
+              Total
+            </div>
           </div>
         </div>
       </div>
@@ -127,13 +144,18 @@
         <b-button
           v-if="results.failCount === 0"
           variant="success"
-          @click="handleDone"
           class="w-100"
+          @click="handleDone"
         >
           <i class="pe-7s-check"></i>
           Done - Start New Deployment
         </b-button>
-        <b-button v-else variant="primary" @click="handleReview" class="w-100">
+        <b-button
+          v-else
+          variant="primary"
+          class="w-100"
+          @click="handleReview"
+        >
           <i class="pe-7s-angle-left"></i>
           Review and Fix Issues
         </b-button>

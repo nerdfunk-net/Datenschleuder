@@ -3,7 +3,9 @@
     <div class="page-card">
       <!-- Wizard Header -->
       <div class="card-header">
-        <h2 class="card-title">Deploy Flows</h2>
+        <h2 class="card-title">
+          Deploy Flows
+        </h2>
         <div class="wizard-steps">
           <div
             v-for="(step, index) in steps"
@@ -14,8 +16,12 @@
               completed: currentStep > index,
             }"
           >
-            <div class="step-number">{{ index + 1 }}</div>
-            <div class="step-label">{{ step }}</div>
+            <div class="step-number">
+              {{ index + 1 }}
+            </div>
+            <div class="step-label">
+              {{ step }}
+            </div>
           </div>
         </div>
       </div>
@@ -24,13 +30,17 @@
       <div v-if="currentStep === 0" class="wizard-content">
         <div class="step-header">
           <h3>Step 1: Select Flows to Deploy</h3>
-          <p class="text-muted">Choose one or more flows from the list below</p>
+          <p class="text-muted">
+            Choose one or more flows from the list below
+          </p>
         </div>
 
         <!-- Loading State -->
         <div v-if="isLoading" class="text-center py-5">
-          <b-spinner variant="primary"></b-spinner>
-          <p class="mt-3 text-muted">Loading flows...</p>
+          <b-spinner variant="primary" />
+          <p class="mt-3 text-muted">
+            Loading flows...
+          </p>
         </div>
 
         <!-- Flows Table -->
@@ -77,8 +87,12 @@
         <!-- Empty State -->
         <div v-else class="empty-state">
           <i class="pe-7s-info display-1 text-muted"></i>
-          <h4 class="mt-3 text-muted">No Flows Available</h4>
-          <p class="text-muted">There are no flows available for deployment.</p>
+          <h4 class="mt-3 text-muted">
+            No Flows Available
+          </h4>
+          <p class="text-muted">
+            There are no flows available for deployment.
+          </p>
           <router-link to="/flows/manage" class="btn btn-primary mt-3">
             <i class="pe-7s-plus"></i>
             Manage Flows
@@ -94,8 +108,8 @@
           </b-button>
           <b-button
             variant="primary"
-            @click="goToNextStep"
             :disabled="selectedFlows.length === 0"
+            @click="goToNextStep"
           >
             Next: Choose Deployment Targets
             <i class="pe-7s-angle-right"></i>
@@ -107,7 +121,9 @@
       <div v-if="currentStep === 1" class="wizard-content">
         <div class="step-header">
           <h3>Step 2: Choose Deployment Targets</h3>
-          <p class="text-muted">Select where each flow should be deployed</p>
+          <p class="text-muted">
+            Select where each flow should be deployed
+          </p>
         </div>
 
         <div class="deployment-targets">
@@ -118,23 +134,15 @@
           >
             <div class="target-header">
               <h5>{{ getFlowName(flow) }}</h5>
-              <span class="text-muted"
-                >{{ flow.source }} → {{ flow.destination }}</span
-              >
+              <span class="text-muted">{{ flow.source }} → {{ flow.destination }}</span>
             </div>
 
             <div class="target-body">
               <div class="hierarchy-info">
                 <div class="hierarchy-item">
-                  <span class="label"
-                    >Top Hierarchy ({{ topHierarchyName }}):</span
-                  >
-                  <span class="value-badge source"
-                    >Source: {{ getTopHierarchyValue(flow, "source") }}</span
-                  >
-                  <span class="value-badge dest"
-                    >Dest: {{ getTopHierarchyValue(flow, "destination") }}</span
-                  >
+                  <span class="label">Top Hierarchy ({{ topHierarchyName }}):</span>
+                  <span class="value-badge source">Source: {{ getTopHierarchyValue(flow, "source") }}</span>
+                  <span class="value-badge dest">Dest: {{ getTopHierarchyValue(flow, "destination") }}</span>
                 </div>
               </div>
 
@@ -147,8 +155,8 @@
                         ? 'primary'
                         : 'outline-primary'
                     "
-                    @click="setDeploymentTarget(flow.id, 'source')"
                     class="target-btn"
+                    @click="setDeploymentTarget(flow.id, 'source')"
                   >
                     <i class="pe-7s-angle-right-circle"></i>
                     Source ({{ getTopHierarchyValue(flow, "source") }})
@@ -159,8 +167,8 @@
                         ? 'primary'
                         : 'outline-primary'
                     "
-                    @click="setDeploymentTarget(flow.id, 'destination')"
                     class="target-btn"
+                    @click="setDeploymentTarget(flow.id, 'destination')"
                   >
                     <i class="pe-7s-angle-left-circle"></i>
                     Destination ({{
@@ -173,8 +181,8 @@
                         ? 'primary'
                         : 'outline-primary'
                     "
-                    @click="setDeploymentTarget(flow.id, 'both')"
                     class="target-btn"
+                    @click="setDeploymentTarget(flow.id, 'both')"
                   >
                     <i class="pe-7s-refresh-2"></i>
                     Both
@@ -192,8 +200,8 @@
           </b-button>
           <b-button
             variant="primary"
-            @click="goToNextStep"
             :disabled="!allTargetsSelected"
+            @click="goToNextStep"
           >
             Next: Choose Process Groups
             <i class="pe-7s-angle-right"></i>
@@ -211,8 +219,10 @@
         </div>
 
         <div v-if="isLoadingPaths" class="text-center py-5">
-          <b-spinner variant="primary"></b-spinner>
-          <p class="mt-3 text-muted">Loading process groups...</p>
+          <b-spinner variant="primary" />
+          <p class="mt-3 text-muted">
+            Loading process groups...
+          </p>
         </div>
 
         <div v-else class="process-group-selection">
@@ -240,11 +250,13 @@
               <div class="form-group">
                 <label>Select Process Group:</label>
                 <select
-                  class="form-select"
                   v-model="deployment.selectedProcessGroupId"
+                  class="form-select"
                   @change="updateProcessGroupSelection(deployment)"
                 >
-                  <option value="">-- Select a process group --</option>
+                  <option value="">
+                    -- Select a process group --
+                  </option>
                   <option
                     v-for="pg in deployment.availablePaths"
                     :key="pg.id"
@@ -260,12 +272,10 @@
                 class="selected-info"
               >
                 <i class="pe-7s-check text-success"></i>
-                <span
-                  >Selected:
+                <span>Selected:
                   <strong>{{
                     getSelectedPathDisplay(deployment)
-                  }}</strong></span
-                >
+                  }}</strong></span>
               </div>
             </div>
           </div>
@@ -278,8 +288,8 @@
           </b-button>
           <b-button
             variant="primary"
-            @click="goToNextStep"
             :disabled="!allProcessGroupsSelected"
+            @click="goToNextStep"
           >
             Next: Settings
             <i class="pe-7s-angle-right"></i>
@@ -373,22 +383,34 @@
             <div class="summary-item">
               <i class="pe-7s-network"></i>
               <div>
-                <div class="summary-label">Total Flows</div>
-                <div class="summary-value">{{ selectedFlows.length }}</div>
+                <div class="summary-label">
+                  Total Flows
+                </div>
+                <div class="summary-value">
+                  {{ selectedFlows.length }}
+                </div>
               </div>
             </div>
             <div class="summary-item">
               <i class="pe-7s-server"></i>
               <div>
-                <div class="summary-label">Total Deployments</div>
-                <div class="summary-value">{{ deploymentConfigs.length }}</div>
+                <div class="summary-label">
+                  Total Deployments
+                </div>
+                <div class="summary-value">
+                  {{ deploymentConfigs.length }}
+                </div>
               </div>
             </div>
             <div class="summary-item">
               <i class="pe-7s-config"></i>
               <div>
-                <div class="summary-label">Instances Affected</div>
-                <div class="summary-value">{{ uniqueInstancesCount }}</div>
+                <div class="summary-label">
+                  Instances Affected
+                </div>
+                <div class="summary-value">
+                  {{ uniqueInstancesCount }}
+                </div>
               </div>
             </div>
           </div>
@@ -425,7 +447,9 @@
               </div>
             </div>
 
-            <h5 class="mt-4">Deployment Details</h5>
+            <h5 class="mt-4">
+              Deployment Details
+            </h5>
             <div
               v-for="deployment in deploymentConfigs"
               :key="deployment.key"
@@ -475,10 +499,10 @@
           </b-button>
           <b-button
             variant="success"
-            @click="deployFlows"
             :disabled="isDeploying"
+            @click="deployFlows"
           >
-            <b-spinner v-if="isDeploying" small class="me-2"></b-spinner>
+            <b-spinner v-if="isDeploying" small class="me-2" />
             <i v-else class="pe-7s-cloud-upload"></i>
             Deploy Now
           </b-button>

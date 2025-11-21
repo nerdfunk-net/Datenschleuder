@@ -2,9 +2,13 @@
   <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
     <div class="text-center">
       <div v-if="isProcessing" class="mb-4">
-        <b-spinner variant="primary" style="width: 3rem; height: 3rem"></b-spinner>
-        <h4 class="mt-4 text-dark">Completing sign-in...</h4>
-        <p class="text-secondary">Please wait while we authenticate you.</p>
+        <b-spinner variant="primary" style="width: 3rem; height: 3rem" />
+        <h4 class="mt-4 text-dark">
+          Completing sign-in...
+        </h4>
+        <p class="text-secondary">
+          Please wait while we authenticate you.
+        </p>
       </div>
 
       <div v-if="errorMessage" class="card shadow-sm" style="max-width: 500px">
@@ -12,8 +16,12 @@
           <div class="text-danger mb-3">
             <i class="pe-7s-attention" style="font-size: 3rem"></i>
           </div>
-          <h4 class="text-dark mb-3">Authentication Failed</h4>
-          <p class="text-secondary mb-4">{{ errorMessage }}</p>
+          <h4 class="text-dark mb-3">
+            Authentication Failed
+          </h4>
+          <p class="text-secondary mb-4">
+            {{ errorMessage }}
+          </p>
           <b-button variant="primary" size="lg" @click="redirectToLogin">
             <i class="pe-7s-back me-2"></i>
             Back to Login

@@ -1,30 +1,34 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
     <div class="content">
       <div class="row">
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Doughnut Chart</h5>
+              <h5 class="card-title mb-0">
+                Doughnut Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <doughnut></doughnut>
+                <doughnut />
               </div>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Radar Chart</h5>
+              <h5 class="card-title mb-0">
+                Radar Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <radar></radar>
+                <radar />
               </div>
             </div>
           </div>
@@ -32,21 +36,25 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Polar Area Chart</h5>
+              <h5 class="card-title mb-0">
+                Polar Area Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <polar></polar>
+                <polar />
               </div>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Pie Chart</h5>
+              <h5 class="card-title mb-0">
+                Pie Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <pie></pie>
+                <pie />
               </div>
             </div>
           </div>
@@ -56,21 +64,25 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Line Chart</h5>
+              <h5 class="card-title mb-0">
+                Line Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <lineeg></lineeg>
+                <lineeg />
               </div>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Area Chart</h5>
+              <h5 class="card-title mb-0">
+                Area Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <areaeg></areaeg>
+                <areaeg />
               </div>
             </div>
           </div>
@@ -78,21 +90,25 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Vertical Bar Chart</h5>
+              <h5 class="card-title mb-0">
+                Vertical Bar Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <bar></bar>
+                <bar />
               </div>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-header">
-              <h5 class="card-title mb-0">Horizontal Bar Chart</h5>
+              <h5 class="card-title mb-0">
+                Horizontal Bar Chart
+              </h5>
             </div>
             <div class="card-body">
               <div class="chart-container">
-                <barhoriz></barhoriz>
+                <barhoriz />
               </div>
             </div>
           </div>

@@ -2,7 +2,9 @@
   <div class="settings-page">
     <div class="page-card">
       <div class="card-header">
-        <h2 class="card-title">Profile Settings</h2>
+        <h2 class="card-title">
+          Profile Settings
+        </h2>
       </div>
 
       <div class="card-body">
@@ -30,14 +32,14 @@
             <div class="col-md-12">
               <label class="form-label">Username</label>
               <b-form-input v-model="settings.username" disabled />
-              <small class="form-text text-muted"
-                >Username cannot be changed</small
-              >
+              <small class="form-text text-muted">Username cannot be changed</small>
             </div>
 
             <div class="col-md-12">
               <hr class="my-4" />
-              <h5 class="mb-3">Change Password</h5>
+              <h5 class="mb-3">
+                Change Password
+              </h5>
               <b-alert v-if="isOIDCUser" variant="info" show>
                 <i class="pe-7s-info me-2"></i>
                 You are logged in via OIDC. Password changes must be made through your identity provider.
@@ -74,15 +76,16 @@
               type="button"
               variant="outline-secondary"
               @click="handleReset"
-              >Reset</b-button
             >
+              Reset
+            </b-button>
             <b-button
               type="submit"
               variant="primary"
               class="ms-2"
               :disabled="isSaving"
             >
-              <b-spinner v-if="isSaving" small class="me-2"></b-spinner>
+              <b-spinner v-if="isSaving" small class="me-2" />
               Save Settings
             </b-button>
           </div>

@@ -1,15 +1,17 @@
 <template>
   <div>
-    <div class="search-wrapper" v-bind:class="{ active: searchOpen() }">
+    <div class="search-wrapper" :class="{ active: searchOpen() }">
       <div class="input-holder">
         <input
+          v-model="searchQuery"
           type="text"
           class="search-input"
           placeholder="Type to search"
-          v-model="searchQuery"
           @keyup.enter="handleSearch"
         />
-        <button class="search-icon" @click="toggleSearch"><span /></button>
+        <button class="search-icon" @click="toggleSearch">
+          <span></span>
+        </button>
       </div>
       <div v-if="searchOpen()" class="close" @click="toggleSearch"></div>
     </div>

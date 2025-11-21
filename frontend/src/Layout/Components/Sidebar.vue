@@ -1,7 +1,7 @@
 <template>
   <div class="app-sidebar sidebar-shadow">
     <div class="app-header__logo">
-      <div class="logo-src" />
+      <div class="logo-src"></div>
       <div class="sidebar-header-controls">
         <button
           type="button"
@@ -19,7 +19,9 @@
       <div class="app-sidebar-scroll">
         <div class="sidebar-menu">
           <!-- Main Navigation -->
-          <div class="menu-header">Main Navigation</div>
+          <div class="menu-header">
+            Main Navigation
+          </div>
 
           <router-link to="/" class="menu-link">
             <div class="menu-link-content">
@@ -37,7 +39,9 @@
           </router-link>
 
           <!-- User Pages Section -->
-          <div class="menu-header">User Pages</div>
+          <div class="menu-header">
+            User Pages
+          </div>
 
           <div
             class="menu-item"
@@ -45,8 +49,8 @@
           >
             <div
               class="menu-link"
-              @click="toggleSubmenu('pages')"
               :class="{ active: isSubmenuActive('pages') }"
+              @click="toggleSubmenu('pages')"
             >
               <div class="menu-link-content">
                 <i class="metismenu-icon pe-7s-user"></i>
@@ -57,7 +61,7 @@
                 :class="{ 'rotate-minus-90': !submenus.pages }"
               ></i>
             </div>
-            <div class="menu-submenu" v-show="submenus.pages">
+            <div v-show="submenus.pages" class="menu-submenu">
               <router-link to="/pages/login-boxed" class="menu-sublink">
                 <i class="metismenu-icon"></i>
                 Login
@@ -77,7 +81,9 @@
           </div>
 
           <!-- UI Elements Section -->
-          <div class="menu-header">UI Elements</div>
+          <div class="menu-header">
+            UI Elements
+          </div>
 
           <div
             class="menu-item"
@@ -85,8 +91,8 @@
           >
             <div
               class="menu-link"
-              @click="toggleSubmenu('elements')"
               :class="{ active: isSubmenuActive('elements') }"
+              @click="toggleSubmenu('elements')"
             >
               <div class="menu-link-content">
                 <i class="metismenu-icon pe-7s-diamond"></i>
@@ -97,7 +103,7 @@
                 :class="{ 'rotate-minus-90': !submenus.elements }"
               ></i>
             </div>
-            <div class="menu-submenu" v-show="submenus.elements">
+            <div v-show="submenus.elements" class="menu-submenu">
               <router-link to="/elements/buttons-standard" class="menu-sublink">
                 <i class="metismenu-icon"></i>
                 Buttons
@@ -139,8 +145,8 @@
           >
             <div
               class="menu-link"
-              @click="toggleSubmenu('components')"
               :class="{ active: isSubmenuActive('components') }"
+              @click="toggleSubmenu('components')"
             >
               <div class="menu-link-content">
                 <i class="metismenu-icon pe-7s-plugin"></i>
@@ -151,7 +157,7 @@
                 :class="{ 'rotate-minus-90': !submenus.components }"
               ></i>
             </div>
-            <div class="menu-submenu" v-show="submenus.components">
+            <div v-show="submenus.components" class="menu-submenu">
               <router-link to="/components/tabs" class="menu-sublink">
                 <i class="metismenu-icon"></i>
                 Tabs
@@ -191,7 +197,9 @@
           </div>
 
           <!-- Tables & Widgets Section -->
-          <div class="menu-header">Tables & Widgets</div>
+          <div class="menu-header">
+            Tables & Widgets
+          </div>
 
           <router-link to="/tables/regular-tables" class="menu-link">
             <div class="menu-link-content">
@@ -208,7 +216,9 @@
           </router-link>
 
           <!-- Forms & Charts Section -->
-          <div class="menu-header">Forms & Charts</div>
+          <div class="menu-header">
+            Forms & Charts
+          </div>
 
           <div
             class="menu-item"
@@ -216,8 +226,8 @@
           >
             <div
               class="menu-link"
-              @click="toggleSubmenu('forms')"
               :class="{ active: isSubmenuActive('forms') }"
+              @click="toggleSubmenu('forms')"
             >
               <div class="menu-link-content">
                 <i class="metismenu-icon pe-7s-note"></i>
@@ -228,7 +238,7 @@
                 :class="{ 'rotate-minus-90': !submenus.forms }"
               ></i>
             </div>
-            <div class="menu-submenu" v-show="submenus.forms">
+            <div v-show="submenus.forms" class="menu-submenu">
               <router-link to="/forms/controls" class="menu-sublink">
                 <i class="metismenu-icon"></i>
                 Form Controls
@@ -255,6 +265,9 @@
 <script>
 export default {
   name: "Sidebar",
+  props: {
+    sidebarbg: String,
+  },
   data() {
     return {
       isOpen: false,
@@ -283,8 +296,21 @@ export default {
       };
     },
   },
-  props: {
-    sidebarbg: String,
+  watch: {
+    $route() {
+      // Update active submenu when route changes
+      this.initializeActiveStates();
+    },
+  },
+  mounted() {
+    this.$nextTick(function () {
+      window.addEventListener("resize", this.getWindowWidth);
+      this.getWindowWidth();
+      this.initializeActiveStates();
+    });
+  },
+  beforeUnmount() {
+    window.removeEventListener("resize", this.getWindowWidth);
   },
   methods: {
     toggleSubmenu(submenuName) {
@@ -347,22 +373,6 @@ export default {
       // Set isOpen state based on whether sidebar is closed
       const el = document.body;
       this.isOpen = el.classList.contains("closed-sidebar");
-    },
-  },
-  mounted() {
-    this.$nextTick(function () {
-      window.addEventListener("resize", this.getWindowWidth);
-      this.getWindowWidth();
-      this.initializeActiveStates();
-    });
-  },
-  beforeUnmount() {
-    window.removeEventListener("resize", this.getWindowWidth);
-  },
-  watch: {
-    $route() {
-      // Update active submenu when route changes
-      this.initializeActiveStates();
     },
   },
 };

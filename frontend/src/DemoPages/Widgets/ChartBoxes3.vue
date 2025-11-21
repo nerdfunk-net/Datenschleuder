@@ -1,20 +1,26 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
     <div class="row mt-4">
       <div class="col-lg-6 col-xl-4">
         <div class="card mb-3 widget-content">
           <div class="widget-content-wrapper">
             <div class="widget-content-left">
-              <div class="widget-heading">Total Orders</div>
-              <div class="widget-subheading">Last year expenses</div>
+              <div class="widget-heading">
+                Total Orders
+              </div>
+              <div class="widget-subheading">
+                Last year expenses
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-success"><span>1896</span></div>
+              <div class="widget-numbers text-success">
+                <span>1896</span>
+              </div>
             </div>
           </div>
         </div>
@@ -23,11 +29,17 @@
         <div class="card mb-3 widget-content">
           <div class="widget-content-wrapper">
             <div class="widget-content-left">
-              <div class="widget-heading">Clients</div>
-              <div class="widget-subheading">Total Clients Profit</div>
+              <div class="widget-heading">
+                Clients
+              </div>
+              <div class="widget-subheading">
+                Total Clients Profit
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-primary"><span>$ 568</span></div>
+              <div class="widget-numbers text-primary">
+                <span>$ 568</span>
+              </div>
             </div>
           </div>
         </div>
@@ -36,11 +48,17 @@
         <div class="card mb-3 widget-content">
           <div class="widget-content-wrapper">
             <div class="widget-content-left">
-              <div class="widget-heading">Products Sold</div>
-              <div class="widget-subheading">Total revenue streams</div>
+              <div class="widget-heading">
+                Products Sold
+              </div>
+              <div class="widget-subheading">
+                Total revenue streams
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-warning"><span>$14M</span></div>
+              <div class="widget-numbers text-warning">
+                <span>$14M</span>
+              </div>
             </div>
           </div>
         </div>
@@ -49,11 +67,17 @@
         <div class="card mb-3 widget-content">
           <div class="widget-content-wrapper">
             <div class="widget-content-left">
-              <div class="widget-heading">Followers</div>
-              <div class="widget-subheading">People Interested</div>
+              <div class="widget-heading">
+                Followers
+              </div>
+              <div class="widget-subheading">
+                People Interested
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-danger"><span>46%</span></div>
+              <div class="widget-numbers text-danger">
+                <span>46%</span>
+              </div>
             </div>
           </div>
         </div>
@@ -65,11 +89,17 @@
         <div class="card mb-3 widget-content bg-night-fade">
           <div class="widget-content-wrapper text-white">
             <div class="widget-content-left">
-              <div class="widget-heading">Total Orders</div>
-              <div class="widget-subheading">Last year expenses</div>
+              <div class="widget-heading">
+                Total Orders
+              </div>
+              <div class="widget-subheading">
+                Last year expenses
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-white"><span>1896</span></div>
+              <div class="widget-numbers text-white">
+                <span>1896</span>
+              </div>
             </div>
           </div>
         </div>
@@ -78,11 +108,17 @@
         <div class="card mb-3 widget-content bg-arielle-smile">
           <div class="widget-content-wrapper text-white">
             <div class="widget-content-left">
-              <div class="widget-heading">Clients</div>
-              <div class="widget-subheading">Total Clients Profit</div>
+              <div class="widget-heading">
+                Clients
+              </div>
+              <div class="widget-subheading">
+                Total Clients Profit
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-white"><span>$ 568</span></div>
+              <div class="widget-numbers text-white">
+                <span>$ 568</span>
+              </div>
             </div>
           </div>
         </div>
@@ -91,11 +127,17 @@
         <div class="card mb-3 widget-content bg-premium-dark">
           <div class="widget-content-wrapper text-white">
             <div class="widget-content-left">
-              <div class="widget-heading">Products Sold</div>
-              <div class="widget-subheading">Total revenue streams</div>
+              <div class="widget-heading">
+                Products Sold
+              </div>
+              <div class="widget-subheading">
+                Total revenue streams
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-warning"><span>$14M</span></div>
+              <div class="widget-numbers text-warning">
+                <span>$14M</span>
+              </div>
             </div>
           </div>
         </div>
@@ -104,11 +146,17 @@
         <div class="card mb-3 widget-content bg-happy-green">
           <div class="widget-content-wrapper text-white">
             <div class="widget-content-left">
-              <div class="widget-heading">Followers</div>
-              <div class="widget-subheading">People Interested</div>
+              <div class="widget-heading">
+                Followers
+              </div>
+              <div class="widget-subheading">
+                People Interested
+              </div>
             </div>
             <div class="widget-content-right">
-              <div class="widget-numbers text-dark"><span>46%</span></div>
+              <div class="widget-numbers text-dark">
+                <span>46%</span>
+              </div>
             </div>
           </div>
         </div>
@@ -121,11 +169,17 @@
           <div class="widget-content-outer">
             <div class="widget-content-wrapper">
               <div class="widget-content-left">
-                <div class="widget-heading">Total Orders</div>
-                <div class="widget-subheading">Last year expenses</div>
+                <div class="widget-heading">
+                  Total Orders
+                </div>
+                <div class="widget-subheading">
+                  Last year expenses
+                </div>
               </div>
               <div class="widget-content-right">
-                <div class="widget-numbers text-success">1896</div>
+                <div class="widget-numbers text-success">
+                  1896
+                </div>
               </div>
             </div>
             <div class="widget-progress-wrapper">
@@ -140,8 +194,12 @@
                 ></div>
               </div>
               <div class="progress-sub-label">
-                <div class="sub-label-left">YoY Growth</div>
-                <div class="sub-label-right">100%</div>
+                <div class="sub-label-left">
+                  YoY Growth
+                </div>
+                <div class="sub-label-right">
+                  100%
+                </div>
               </div>
             </div>
           </div>
@@ -152,11 +210,17 @@
           <div class="widget-content-outer">
             <div class="widget-content-wrapper">
               <div class="widget-content-left">
-                <div class="widget-heading">Clients</div>
-                <div class="widget-subheading">Total Clients Profit</div>
+                <div class="widget-heading">
+                  Clients
+                </div>
+                <div class="widget-subheading">
+                  Total Clients Profit
+                </div>
               </div>
               <div class="widget-content-right">
-                <div class="widget-numbers text-primary">$12.6k</div>
+                <div class="widget-numbers text-primary">
+                  $12.6k
+                </div>
               </div>
             </div>
             <div class="widget-progress-wrapper">
@@ -171,8 +235,12 @@
                 ></div>
               </div>
               <div class="progress-sub-label">
-                <div class="sub-label-left">Retention</div>
-                <div class="sub-label-right">100%</div>
+                <div class="sub-label-left">
+                  Retention
+                </div>
+                <div class="sub-label-right">
+                  100%
+                </div>
               </div>
             </div>
           </div>
@@ -183,11 +251,17 @@
           <div class="widget-content-outer">
             <div class="widget-content-wrapper">
               <div class="widget-content-left">
-                <div class="widget-heading">Products Sold</div>
-                <div class="widget-subheading">Total revenue streams</div>
+                <div class="widget-heading">
+                  Products Sold
+                </div>
+                <div class="widget-subheading">
+                  Total revenue streams
+                </div>
               </div>
               <div class="widget-content-right">
-                <div class="widget-numbers text-warning">$3M</div>
+                <div class="widget-numbers text-warning">
+                  $3M
+                </div>
               </div>
             </div>
             <div class="widget-progress-wrapper">
@@ -202,8 +276,12 @@
                 ></div>
               </div>
               <div class="progress-sub-label">
-                <div class="sub-label-left">Sales</div>
-                <div class="sub-label-right">100%</div>
+                <div class="sub-label-left">
+                  Sales
+                </div>
+                <div class="sub-label-right">
+                  100%
+                </div>
               </div>
             </div>
           </div>
@@ -214,11 +292,17 @@
           <div class="widget-content-outer">
             <div class="widget-content-wrapper">
               <div class="widget-content-left">
-                <div class="widget-heading">Followers</div>
-                <div class="widget-subheading">People Interested</div>
+                <div class="widget-heading">
+                  Followers
+                </div>
+                <div class="widget-subheading">
+                  People Interested
+                </div>
               </div>
               <div class="widget-content-right">
-                <div class="widget-numbers text-danger">45,9%</div>
+                <div class="widget-numbers text-danger">
+                  45,9%
+                </div>
               </div>
             </div>
             <div class="widget-progress-wrapper">
@@ -233,8 +317,12 @@
                 ></div>
               </div>
               <div class="progress-sub-label">
-                <div class="sub-label-left">Twitter Progress</div>
-                <div class="sub-label-right">100%</div>
+                <div class="sub-label-left">
+                  Twitter Progress
+                </div>
+                <div class="sub-label-right">
+                  100%
+                </div>
               </div>
             </div>
           </div>
@@ -248,11 +336,17 @@
           <div class="widget-content">
             <div class="widget-content-wrapper">
               <div class="widget-content-right ms-0 me-3">
-                <div class="widget-numbers text-success">1896</div>
+                <div class="widget-numbers text-success">
+                  1896
+                </div>
               </div>
               <div class="widget-content-left">
-                <div class="widget-heading">Total Orders</div>
-                <div class="widget-subheading">Last year expenses</div>
+                <div class="widget-heading">
+                  Total Orders
+                </div>
+                <div class="widget-subheading">
+                  Last year expenses
+                </div>
               </div>
             </div>
           </div>
@@ -261,11 +355,17 @@
           <div class="widget-content">
             <div class="widget-content-wrapper">
               <div class="widget-content-right ms-0 me-3">
-                <div class="widget-numbers text-warning">$ 14M</div>
+                <div class="widget-numbers text-warning">
+                  $ 14M
+                </div>
               </div>
               <div class="widget-content-left">
-                <div class="widget-heading">Products Sold</div>
-                <div class="widget-subheading">Total revenue streams</div>
+                <div class="widget-heading">
+                  Products Sold
+                </div>
+                <div class="widget-subheading">
+                  Total revenue streams
+                </div>
               </div>
             </div>
           </div>
@@ -274,11 +374,17 @@
           <div class="widget-content">
             <div class="widget-content-wrapper">
               <div class="widget-content-right ms-0 me-3">
-                <div class="widget-numbers text-danger">45.9%</div>
+                <div class="widget-numbers text-danger">
+                  45.9%
+                </div>
               </div>
               <div class="widget-content-left">
-                <div class="widget-heading">Followers</div>
-                <div class="widget-subheading">People Interested</div>
+                <div class="widget-heading">
+                  Followers
+                </div>
+                <div class="widget-subheading">
+                  People Interested
+                </div>
               </div>
             </div>
           </div>
@@ -296,11 +402,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Total Orders</div>
-                        <div class="widget-subheading">Last year expenses</div>
+                        <div class="widget-heading">
+                          Total Orders
+                        </div>
+                        <div class="widget-subheading">
+                          Last year expenses
+                        </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-success">1896</div>
+                        <div class="widget-numbers text-success">
+                          1896
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -311,13 +423,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Clients</div>
+                        <div class="widget-heading">
+                          Clients
+                        </div>
                         <div class="widget-subheading">
                           Total Clients Profit
                         </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-primary">$12.6k</div>
+                        <div class="widget-numbers text-primary">
+                          $12.6k
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -334,11 +450,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Followers</div>
-                        <div class="widget-subheading">People Interested</div>
+                        <div class="widget-heading">
+                          Followers
+                        </div>
+                        <div class="widget-subheading">
+                          People Interested
+                        </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-danger">45,9%</div>
+                        <div class="widget-numbers text-danger">
+                          45,9%
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -349,13 +471,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Products Sold</div>
+                        <div class="widget-heading">
+                          Products Sold
+                        </div>
                         <div class="widget-subheading">
                           Total revenue streams
                         </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-warning">$3M</div>
+                        <div class="widget-numbers text-warning">
+                          $3M
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -372,11 +498,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Total Orders</div>
-                        <div class="widget-subheading">Last year expenses</div>
+                        <div class="widget-heading">
+                          Total Orders
+                        </div>
+                        <div class="widget-subheading">
+                          Last year expenses
+                        </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-success">1896</div>
+                        <div class="widget-numbers text-success">
+                          1896
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -387,13 +519,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Clients</div>
+                        <div class="widget-heading">
+                          Clients
+                        </div>
                         <div class="widget-subheading">
                           Total Clients Profit
                         </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-primary">$12.6k</div>
+                        <div class="widget-numbers text-primary">
+                          $12.6k
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -412,11 +548,17 @@
             <div class="widget-content-outer">
               <div class="widget-content-wrapper">
                 <div class="widget-content-left">
-                  <div class="widget-heading">Total Orders</div>
-                  <div class="widget-subheading">Last year expenses</div>
+                  <div class="widget-heading">
+                    Total Orders
+                  </div>
+                  <div class="widget-subheading">
+                    Last year expenses
+                  </div>
                 </div>
                 <div class="widget-content-right">
-                  <div class="widget-numbers text-success">1896</div>
+                  <div class="widget-numbers text-success">
+                    1896
+                  </div>
                 </div>
               </div>
               <div class="widget-progress-wrapper">
@@ -431,8 +573,12 @@
                   ></div>
                 </div>
                 <div class="progress-sub-label">
-                  <div class="sub-label-left">YoY Growth</div>
-                  <div class="sub-label-right">100%</div>
+                  <div class="sub-label-left">
+                    YoY Growth
+                  </div>
+                  <div class="sub-label-right">
+                    100%
+                  </div>
                 </div>
               </div>
             </div>
@@ -443,11 +589,17 @@
             <div class="widget-content-outer">
               <div class="widget-content-wrapper">
                 <div class="widget-content-left">
-                  <div class="widget-heading">Clients</div>
-                  <div class="widget-subheading">Total Clients Profit</div>
+                  <div class="widget-heading">
+                    Clients
+                  </div>
+                  <div class="widget-subheading">
+                    Total Clients Profit
+                  </div>
                 </div>
                 <div class="widget-content-right">
-                  <div class="widget-numbers text-primary">$12.6k</div>
+                  <div class="widget-numbers text-primary">
+                    $12.6k
+                  </div>
                 </div>
               </div>
               <div class="widget-progress-wrapper">
@@ -462,8 +614,12 @@
                   ></div>
                 </div>
                 <div class="progress-sub-label">
-                  <div class="sub-label-left">Retention</div>
-                  <div class="sub-label-right">100%</div>
+                  <div class="sub-label-left">
+                    Retention
+                  </div>
+                  <div class="sub-label-right">
+                    100%
+                  </div>
                 </div>
               </div>
             </div>
@@ -474,11 +630,17 @@
             <div class="widget-content-outer">
               <div class="widget-content-wrapper">
                 <div class="widget-content-left">
-                  <div class="widget-heading">Products Sold</div>
-                  <div class="widget-subheading">Total revenue streams</div>
+                  <div class="widget-heading">
+                    Products Sold
+                  </div>
+                  <div class="widget-subheading">
+                    Total revenue streams
+                  </div>
                 </div>
                 <div class="widget-content-right">
-                  <div class="widget-numbers text-warning">$3M</div>
+                  <div class="widget-numbers text-warning">
+                    $3M
+                  </div>
                 </div>
               </div>
               <div class="widget-progress-wrapper">
@@ -493,8 +655,12 @@
                   ></div>
                 </div>
                 <div class="progress-sub-label">
-                  <div class="sub-label-left">Sales</div>
-                  <div class="sub-label-right">100%</div>
+                  <div class="sub-label-left">
+                    Sales
+                  </div>
+                  <div class="sub-label-right">
+                    100%
+                  </div>
                 </div>
               </div>
             </div>
@@ -505,11 +671,17 @@
             <div class="widget-content-outer">
               <div class="widget-content-wrapper">
                 <div class="widget-content-left">
-                  <div class="widget-heading">Followers</div>
-                  <div class="widget-subheading">People Interested</div>
+                  <div class="widget-heading">
+                    Followers
+                  </div>
+                  <div class="widget-subheading">
+                    People Interested
+                  </div>
                 </div>
                 <div class="widget-content-right">
-                  <div class="widget-numbers text-danger">45,9%</div>
+                  <div class="widget-numbers text-danger">
+                    45,9%
+                  </div>
                 </div>
               </div>
               <div class="widget-progress-wrapper">
@@ -524,8 +696,12 @@
                   ></div>
                 </div>
                 <div class="progress-sub-label">
-                  <div class="sub-label-left">Twitter Progress</div>
-                  <div class="sub-label-right">100%</div>
+                  <div class="sub-label-left">
+                    Twitter Progress
+                  </div>
+                  <div class="sub-label-right">
+                    100%
+                  </div>
                 </div>
               </div>
             </div>
@@ -541,11 +717,17 @@
             <div class="widget-content-outer">
               <div class="widget-content-wrapper">
                 <div class="widget-content-left">
-                  <div class="widget-heading">Total Orders</div>
-                  <div class="widget-subheading">Last year expenses</div>
+                  <div class="widget-heading">
+                    Total Orders
+                  </div>
+                  <div class="widget-subheading">
+                    Last year expenses
+                  </div>
                 </div>
                 <div class="widget-content-right">
-                  <div class="widget-numbers text-success">1896</div>
+                  <div class="widget-numbers text-success">
+                    1896
+                  </div>
                 </div>
               </div>
               <div class="widget-progress-wrapper">
@@ -560,8 +742,12 @@
                   ></div>
                 </div>
                 <div class="progress-sub-label">
-                  <div class="sub-label-left">YoY Growth</div>
-                  <div class="sub-label-right">100%</div>
+                  <div class="sub-label-left">
+                    YoY Growth
+                  </div>
+                  <div class="sub-label-right">
+                    100%
+                  </div>
                 </div>
               </div>
             </div>
@@ -572,11 +758,17 @@
             <div class="widget-content-outer">
               <div class="widget-content-wrapper">
                 <div class="widget-content-left">
-                  <div class="widget-heading">Products Sold</div>
-                  <div class="widget-subheading">Total revenue streams</div>
+                  <div class="widget-heading">
+                    Products Sold
+                  </div>
+                  <div class="widget-subheading">
+                    Total revenue streams
+                  </div>
                 </div>
                 <div class="widget-content-right">
-                  <div class="widget-numbers text-warning">$3M</div>
+                  <div class="widget-numbers text-warning">
+                    $3M
+                  </div>
                 </div>
               </div>
               <div class="widget-progress-wrapper">
@@ -591,8 +783,12 @@
                   ></div>
                 </div>
                 <div class="progress-sub-label">
-                  <div class="sub-label-left">Sales</div>
-                  <div class="sub-label-right">100%</div>
+                  <div class="sub-label-left">
+                    Sales
+                  </div>
+                  <div class="sub-label-right">
+                    100%
+                  </div>
                 </div>
               </div>
             </div>
@@ -603,11 +799,17 @@
             <div class="widget-content-outer">
               <div class="widget-content-wrapper">
                 <div class="widget-content-left">
-                  <div class="widget-heading">Followers</div>
-                  <div class="widget-subheading">People Interested</div>
+                  <div class="widget-heading">
+                    Followers
+                  </div>
+                  <div class="widget-subheading">
+                    People Interested
+                  </div>
                 </div>
                 <div class="widget-content-right">
-                  <div class="widget-numbers text-danger">45,9%</div>
+                  <div class="widget-numbers text-danger">
+                    45,9%
+                  </div>
                 </div>
               </div>
               <div class="widget-progress-wrapper">
@@ -622,8 +824,12 @@
                   ></div>
                 </div>
                 <div class="progress-sub-label">
-                  <div class="sub-label-left">Twitter Progress</div>
-                  <div class="sub-label-right">100%</div>
+                  <div class="sub-label-left">
+                    Twitter Progress
+                  </div>
+                  <div class="sub-label-right">
+                    100%
+                  </div>
                 </div>
               </div>
             </div>
@@ -641,11 +847,17 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Total Orders</div>
-                      <div class="widget-subheading">Last year expenses</div>
+                      <div class="widget-heading">
+                        Total Orders
+                      </div>
+                      <div class="widget-subheading">
+                        Last year expenses
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-success">1896</div>
+                      <div class="widget-numbers text-success">
+                        1896
+                      </div>
                     </div>
                   </div>
                   <div class="widget-progress-wrapper">
@@ -660,8 +872,12 @@
                       ></div>
                     </div>
                     <div class="progress-sub-label">
-                      <div class="sub-label-left">YoY Growth</div>
-                      <div class="sub-label-right">100%</div>
+                      <div class="sub-label-left">
+                        YoY Growth
+                      </div>
+                      <div class="sub-label-right">
+                        100%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -672,11 +888,17 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Clients</div>
-                      <div class="widget-subheading">Total Clients Profit</div>
+                      <div class="widget-heading">
+                        Clients
+                      </div>
+                      <div class="widget-subheading">
+                        Total Clients Profit
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-primary">$12.6k</div>
+                      <div class="widget-numbers text-primary">
+                        $12.6k
+                      </div>
                     </div>
                   </div>
                   <div class="widget-progress-wrapper">
@@ -691,8 +913,12 @@
                       ></div>
                     </div>
                     <div class="progress-sub-label">
-                      <div class="sub-label-left">Retention</div>
-                      <div class="sub-label-right">100%</div>
+                      <div class="sub-label-left">
+                        Retention
+                      </div>
+                      <div class="sub-label-right">
+                        100%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -703,11 +929,17 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Followers</div>
-                      <div class="widget-subheading">People Interested</div>
+                      <div class="widget-heading">
+                        Followers
+                      </div>
+                      <div class="widget-subheading">
+                        People Interested
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-danger">45,9%</div>
+                      <div class="widget-numbers text-danger">
+                        45,9%
+                      </div>
                     </div>
                   </div>
                   <div class="widget-progress-wrapper">
@@ -724,8 +956,12 @@
                       ></div>
                     </div>
                     <div class="progress-sub-label">
-                      <div class="sub-label-left">Twitter Progress</div>
-                      <div class="sub-label-right">100%</div>
+                      <div class="sub-label-left">
+                        Twitter Progress
+                      </div>
+                      <div class="sub-label-right">
+                        100%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -736,11 +972,17 @@
                 <div class="widget-content-outer">
                   <div class="widget-content-wrapper">
                     <div class="widget-content-left">
-                      <div class="widget-heading">Products Sold</div>
-                      <div class="widget-subheading">Total revenue streams</div>
+                      <div class="widget-heading">
+                        Products Sold
+                      </div>
+                      <div class="widget-subheading">
+                        Total revenue streams
+                      </div>
                     </div>
                     <div class="widget-content-right">
-                      <div class="widget-numbers text-warning">$3M</div>
+                      <div class="widget-numbers text-warning">
+                        $3M
+                      </div>
                     </div>
                   </div>
                   <div class="widget-progress-wrapper">
@@ -757,8 +999,12 @@
                       ></div>
                     </div>
                     <div class="progress-sub-label">
-                      <div class="sub-label-left">Sales</div>
-                      <div class="sub-label-right">100%</div>
+                      <div class="sub-label-left">
+                        Sales
+                      </div>
+                      <div class="sub-label-right">
+                        100%
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -776,11 +1022,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Total Orders</div>
-                        <div class="widget-subheading">Last year expenses</div>
+                        <div class="widget-heading">
+                          Total Orders
+                        </div>
+                        <div class="widget-subheading">
+                          Last year expenses
+                        </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-success">1896</div>
+                        <div class="widget-numbers text-success">
+                          1896
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -791,13 +1043,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Clients</div>
+                        <div class="widget-heading">
+                          Clients
+                        </div>
                         <div class="widget-subheading">
                           Total Clients Profit
                         </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-primary">$12.6k</div>
+                        <div class="widget-numbers text-primary">
+                          $12.6k
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -808,11 +1064,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Followers</div>
-                        <div class="widget-subheading">People Interested</div>
+                        <div class="widget-heading">
+                          Followers
+                        </div>
+                        <div class="widget-subheading">
+                          People Interested
+                        </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-danger">45,9%</div>
+                        <div class="widget-numbers text-danger">
+                          45,9%
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -823,13 +1085,17 @@
                   <div class="widget-content-outer">
                     <div class="widget-content-wrapper">
                       <div class="widget-content-left">
-                        <div class="widget-heading">Products Sold</div>
+                        <div class="widget-heading">
+                          Products Sold
+                        </div>
                         <div class="widget-subheading">
                           Total revenue streams
                         </div>
                       </div>
                       <div class="widget-content-right">
-                        <div class="widget-numbers text-warning">$3M</div>
+                        <div class="widget-numbers text-warning">
+                          $3M
+                        </div>
                       </div>
                     </div>
                   </div>

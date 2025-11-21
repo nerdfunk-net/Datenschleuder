@@ -1,10 +1,10 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <!-- Grid Rows Layout -->
@@ -24,9 +24,10 @@
             <b-row>
               <b-col md="6">
                 <div class="position-relative mb-3">
-                  <label for="gridEmail" class="form-label"
-                    >Email Address</label
-                  >
+                  <label
+                    for="gridEmail"
+                    class="form-label"
+                  >Email Address</label>
                   <b-form-input
                     id="gridEmail"
                     v-model="gridForm.email"
@@ -34,7 +35,7 @@
                     placeholder="Enter your email"
                     :state="getValidationState('email')"
                     required
-                  ></b-form-input>
+                  />
                   <b-form-invalid-feedback>
                     Please enter a valid email address.
                   </b-form-invalid-feedback>
@@ -50,7 +51,7 @@
                     placeholder="Enter password"
                     :state="getValidationState('password')"
                     required
-                  ></b-form-input>
+                  />
                   <b-form-invalid-feedback>
                     Password must be at least 6 characters.
                   </b-form-invalid-feedback>
@@ -65,7 +66,7 @@
                 v-model="gridForm.address"
                 placeholder="1234 Main St"
                 required
-              ></b-form-input>
+              />
             </div>
 
             <div class="position-relative mb-3">
@@ -74,7 +75,7 @@
                 id="gridAddress2"
                 v-model="gridForm.address2"
                 placeholder="Apartment, studio, or floor"
-              ></b-form-input>
+              />
             </div>
 
             <b-row>
@@ -85,7 +86,7 @@
                     id="gridCity"
                     v-model="gridForm.city"
                     required
-                  ></b-form-input>
+                  />
                 </div>
               </b-col>
               <b-col md="4">
@@ -96,7 +97,7 @@
                     v-model="gridForm.state"
                     :options="stateOptions"
                     required
-                  ></b-form-select>
+                  />
                 </div>
               </b-col>
               <b-col md="2">
@@ -107,7 +108,7 @@
                     v-model="gridForm.zip"
                     placeholder="12345"
                     required
-                  ></b-form-input>
+                  />
                 </div>
               </b-col>
             </b-row>
@@ -130,8 +131,8 @@
               <b-button
                 type="button"
                 variant="outline-secondary"
-                @click="resetGridForm"
                 class="mb-2"
+                @click="resetGridForm"
               >
                 <i class="fas fa-undo me-2"></i>
                 Reset
@@ -154,7 +155,7 @@
             Form fields arranged horizontally in a single row.
           </p>
 
-          <form @submit.prevent="submitInlineForm" class="mb-4">
+          <form class="mb-4" @submit.prevent="submitInlineForm">
             <div class="row align-items-end">
               <div class="col-md-5">
                 <label for="inlineEmail" class="form-label">Email</label>
@@ -164,7 +165,7 @@
                   type="email"
                   placeholder="Enter email"
                   required
-                ></b-form-input>
+                />
               </div>
               <div class="col-md-5">
                 <label for="inlinePassword" class="form-label">Password</label>
@@ -174,7 +175,7 @@
                   type="password"
                   placeholder="Enter password"
                   required
-                ></b-form-input>
+                />
               </div>
               <div class="col-md-2">
                 <b-button type="submit" variant="primary" class="w-100">
@@ -188,7 +189,9 @@
           <div class="divider mb-4"></div>
 
           <div class="mb-4">
-            <h6 class="mb-3">Inline Checkboxes</h6>
+            <h6 class="mb-3">
+              Inline Checkboxes
+            </h6>
             <div class="row">
               <div class="col-12">
                 <b-form-checkbox
@@ -226,7 +229,7 @@
                   type="email"
                   placeholder="Email"
                   required
-                ></b-form-input>
+                />
               </div>
               <div class="col-md-4">
                 <b-form-input
@@ -234,7 +237,7 @@
                   type="password"
                   placeholder="Password"
                   required
-                ></b-form-input>
+                />
               </div>
               <div class="col-md-4">
                 <b-button type="submit" variant="success" class="w-100">
@@ -264,9 +267,10 @@
 
           <form @submit.prevent="submitHorizontalForm">
             <b-row class="mb-3">
-              <label for="horizontalEmail" class="col-sm-3 col-form-label"
-                >Email Address</label
-              >
+              <label
+                for="horizontalEmail"
+                class="col-sm-3 col-form-label"
+              >Email Address</label>
               <b-col sm="9">
                 <b-form-input
                   id="horizontalEmail"
@@ -275,7 +279,7 @@
                   placeholder="Enter your email"
                   :state="getHorizontalValidationState('email')"
                   required
-                ></b-form-input>
+                />
                 <b-form-invalid-feedback>
                   Please enter a valid email address.
                 </b-form-invalid-feedback>
@@ -283,9 +287,10 @@
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalPassword" class="col-sm-3 col-form-label"
-                >Password</label
-              >
+              <label
+                for="horizontalPassword"
+                class="col-sm-3 col-form-label"
+              >Password</label>
               <b-col sm="9">
                 <b-form-input
                   id="horizontalPassword"
@@ -294,7 +299,7 @@
                   placeholder="Enter password"
                   :state="getHorizontalValidationState('password')"
                   required
-                ></b-form-input>
+                />
                 <b-form-invalid-feedback>
                   Password must be at least 6 characters.
                 </b-form-invalid-feedback>
@@ -302,23 +307,25 @@
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalSelect" class="col-sm-3 col-form-label"
-                >Department</label
-              >
+              <label
+                for="horizontalSelect"
+                class="col-sm-3 col-form-label"
+              >Department</label>
               <b-col sm="9">
                 <b-form-select
                   id="horizontalSelect"
                   v-model="horizontalForm.department"
                   :options="departmentOptions"
                   required
-                ></b-form-select>
+                />
               </b-col>
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalSelectMulti" class="col-sm-3 col-form-label"
-                >Skills</label
-              >
+              <label
+                for="horizontalSelectMulti"
+                class="col-sm-3 col-form-label"
+              >Skills</label>
               <b-col sm="9">
                 <b-form-select
                   id="horizontalSelectMulti"
@@ -326,41 +333,39 @@
                   :options="skillOptions"
                   multiple
                   :select-size="4"
-                ></b-form-select>
-                <small class="form-text text-muted"
-                  >Hold Ctrl/Cmd to select multiple options</small
-                >
+                />
+                <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple options</small>
               </b-col>
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalTextarea" class="col-sm-3 col-form-label"
-                >Bio</label
-              >
+              <label
+                for="horizontalTextarea"
+                class="col-sm-3 col-form-label"
+              >Bio</label>
               <b-col sm="9">
                 <b-form-textarea
                   id="horizontalTextarea"
                   v-model="horizontalForm.bio"
                   placeholder="Tell us about yourself..."
                   rows="4"
-                ></b-form-textarea>
+                />
               </b-col>
             </b-row>
 
             <b-row class="mb-3">
-              <label for="horizontalFile" class="col-sm-3 col-form-label"
-                >Resume</label
-              >
+              <label
+                for="horizontalFile"
+                class="col-sm-3 col-form-label"
+              >Resume</label>
               <b-col sm="9">
                 <b-form-file
                   id="horizontalFile"
                   v-model="horizontalForm.file"
                   accept=".pdf,.doc,.docx"
                   placeholder="Choose file or drop here..."
-                ></b-form-file>
-                <small class="form-text text-muted"
-                  >Upload your resume (PDF, DOC, or DOCX format)</small
-                >
+                />
+                <small class="form-text text-muted">Upload your resume (PDF, DOC, or DOCX format)</small>
               </b-col>
             </b-row>
 
@@ -374,7 +379,7 @@
                     v-model="horizontalForm.experience"
                     :options="experienceOptions"
                     stacked
-                  ></b-form-radio-group>
+                  />
                 </b-col>
               </b-row>
             </fieldset>
@@ -397,8 +402,8 @@
                   <b-button
                     type="button"
                     variant="outline-secondary"
-                    @click="resetHorizontalForm"
                     class="mb-2"
+                    @click="resetHorizontalForm"
                   >
                     <i class="fas fa-undo me-2"></i>
                     Reset
@@ -422,7 +427,9 @@
           <b-row>
             <b-col md="6">
               <div class="mb-4">
-                <h6 class="mb-3">Input Groups</h6>
+                <h6 class="mb-3">
+                  Input Groups
+                </h6>
                 <div class="mb-3">
                   <label for="websiteInput" class="form-label">Website</label>
                   <b-input-group>
@@ -433,7 +440,7 @@
                       id="websiteInput"
                       v-model="advancedForm.website"
                       placeholder="example.com"
-                    ></b-form-input>
+                    />
                   </b-input-group>
                 </div>
 
@@ -448,7 +455,7 @@
                       v-model="advancedForm.price"
                       type="number"
                       placeholder="0.00"
-                    ></b-form-input>
+                    />
                     <template #append>
                       <b-input-group-text>.00</b-input-group-text>
                     </template>
@@ -462,7 +469,7 @@
                       id="searchInput"
                       v-model="advancedForm.search"
                       placeholder="Search..."
-                    ></b-form-input>
+                    />
                     <template #append>
                       <b-button
                         variant="outline-secondary"
@@ -478,18 +485,21 @@
 
             <b-col md="6">
               <div class="mb-4">
-                <h6 class="mb-3">Form Controls</h6>
+                <h6 class="mb-3">
+                  Form Controls
+                </h6>
                 <div class="mb-3">
-                  <label for="rangeInput" class="form-label"
-                    >Range: {{ advancedForm.range }}</label
-                  >
+                  <label
+                    for="rangeInput"
+                    class="form-label"
+                  >Range: {{ advancedForm.range }}</label>
                   <b-form-input
                     id="rangeInput"
                     v-model="advancedForm.range"
                     type="range"
                     min="0"
                     max="100"
-                  ></b-form-input>
+                  />
                 </div>
 
                 <div class="mb-3">
@@ -498,7 +508,7 @@
                     id="colorInput"
                     v-model="advancedForm.color"
                     type="color"
-                  ></b-form-input>
+                  />
                 </div>
 
                 <div class="mb-3">
@@ -507,14 +517,16 @@
                     id="dateInput"
                     v-model="advancedForm.date"
                     type="date"
-                  ></b-form-input>
+                  />
                 </div>
               </div>
             </b-col>
           </b-row>
 
           <div class="alert alert-info">
-            <h6 class="mb-2">💡 Form Layout Tips:</h6>
+            <h6 class="mb-2">
+              💡 Form Layout Tips:
+            </h6>
             <ul class="mb-0">
               <li>
                 <strong>Grid Layout:</strong> Use rows and columns for complex

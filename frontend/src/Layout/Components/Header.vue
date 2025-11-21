@@ -1,6 +1,6 @@
 <template>
   <div class="app-header header-shadow">
-    <div class="logo-src" />
+    <div class="logo-src"></div>
     <div class="app-header__content">
       <div class="app-header-left">
         <SearchBox />

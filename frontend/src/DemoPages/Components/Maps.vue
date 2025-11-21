@@ -1,10 +1,10 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <b-row>
@@ -45,10 +45,8 @@
                   <p class="mb-0">
                     Google Maps is ready for configuration with your API key.
                   </p>
-                  <small class="text-muted"
-                    >Configure your Google Maps API key in the environment
-                    variables.</small
-                  >
+                  <small class="text-muted">Configure your Google Maps API key in the environment
+                    variables.</small>
                 </div>
                 <div v-if="mapError" class="alert alert-warning mt-3">
                   <h6>Google Maps Configuration Required</h6>
@@ -56,9 +54,7 @@
                     Please configure your Google Maps API key to enable full map
                     functionality.
                   </p>
-                  <small class="text-muted"
-                    >Add your API key to the environment configuration.</small
-                  >
+                  <small class="text-muted">Add your API key to the environment configuration.</small>
                 </div>
                 <div v-if="mapLoaded" class="alert alert-success mt-3">
                   <h6>Google Maps Active</h6>
@@ -88,10 +84,10 @@
                   class="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <div>
-                    <h6 class="mb-1">OpenStreetMap + Leaflet</h6>
-                    <small class="text-muted"
-                      >Free, open-source mapping solution</small
-                    >
+                    <h6 class="mb-1">
+                      OpenStreetMap + Leaflet
+                    </h6>
+                    <small class="text-muted">Free, open-source mapping solution</small>
                   </div>
                   <span class="badge bg-success rounded-pill">Active</span>
                 </div>
@@ -99,10 +95,10 @@
                   class="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <div>
-                    <h6 class="mb-1">Google Maps</h6>
-                    <small class="text-muted"
-                      >Commercial mapping with API key</small
-                    >
+                    <h6 class="mb-1">
+                      Google Maps
+                    </h6>
+                    <small class="text-muted">Commercial mapping with API key</small>
                   </div>
                   <span class="badge bg-warning rounded-pill">Config</span>
                 </div>
@@ -110,10 +106,10 @@
                   class="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <div>
-                    <h6 class="mb-1">Interactive Features</h6>
-                    <small class="text-muted"
-                      >Zoom, pan, markers, and popups</small
-                    >
+                    <h6 class="mb-1">
+                      Interactive Features
+                    </h6>
+                    <small class="text-muted">Zoom, pan, markers, and popups</small>
                   </div>
                   <span class="badge bg-primary rounded-pill">Both</span>
                 </div>
@@ -121,10 +117,10 @@
                   class="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <div>
-                    <h6 class="mb-1">Vue 3 Compatible</h6>
-                    <small class="text-muted"
-                      >Works with current Vue architecture</small
-                    >
+                    <h6 class="mb-1">
+                      Vue 3 Compatible
+                    </h6>
+                    <small class="text-muted">Works with current Vue architecture</small>
                   </div>
                   <span class="badge bg-info rounded-pill">Ready</span>
                 </div>
@@ -149,11 +145,15 @@
             </b-card-header>
             <b-card-body>
               <div class="alert alert-success">
-                <h6 class="mb-1">✅ Currently Active</h6>
+                <h6 class="mb-1">
+                  ✅ Currently Active
+                </h6>
                 <small>This demo is using OpenStreetMap with Leaflet</small>
               </div>
 
-              <h6 class="mb-3">Setup Steps:</h6>
+              <h6 class="mb-3">
+                Setup Steps:
+              </h6>
               <ol class="ps-3 mb-4">
                 <li>Install Leaflet: <code>npm install leaflet</code></li>
                 <li>Import Leaflet in your component</li>
@@ -161,7 +161,9 @@
                 <li>Add markers and controls</li>
               </ol>
 
-              <h6 class="mb-3">Advantages:</h6>
+              <h6 class="mb-3">
+                Advantages:
+              </h6>
               <ul class="ps-3 mb-4">
                 <li>✅ Free and open-source</li>
                 <li>✅ No API key required</li>
@@ -170,7 +172,9 @@
                 <li>✅ Large community support</li>
               </ul>
 
-              <h6 class="mb-3">Code Example:</h6>
+              <h6 class="mb-3">
+                Code Example:
+              </h6>
               <pre
                 class="bg-light p-3 rounded small"
               ><code>import L from 'leaflet';
@@ -204,11 +208,15 @@ L.marker([51.5, -0.09]).addTo(map)
             </b-card-header>
             <b-card-body>
               <div class="alert alert-warning">
-                <h6 class="mb-1">⚙️ Configuration Required</h6>
+                <h6 class="mb-1">
+                  ⚙️ Configuration Required
+                </h6>
                 <small>Add your Google Maps API key to activate</small>
               </div>
 
-              <h6 class="mb-3">Setup Steps:</h6>
+              <h6 class="mb-3">
+                Setup Steps:
+              </h6>
               <ol class="ps-3 mb-4">
                 <li>Get API key from Google Cloud Console</li>
                 <li>Enable Maps JavaScript API</li>
@@ -218,7 +226,9 @@ L.marker([51.5, -0.09]).addTo(map)
                 </li>
               </ol>
 
-              <h6 class="mb-3">Advantages:</h6>
+              <h6 class="mb-3">
+                Advantages:
+              </h6>
               <ul class="ps-3 mb-4">
                 <li>🚀 Advanced features (Street View, Places)</li>
                 <li>🎯 High-quality satellite imagery</li>
@@ -227,11 +237,15 @@ L.marker([51.5, -0.09]).addTo(map)
                 <li>🔧 Extensive customization</li>
               </ul>
 
-              <h6 class="mb-3">Environment Setup:</h6>
+              <h6 class="mb-3">
+                Environment Setup:
+              </h6>
               <pre class="bg-light p-3 rounded small"><code>// .env file
 VUE_APP_GOOGLE_MAPS_API_KEY=your_api_key_here</code></pre>
 
-              <h6 class="mb-3">Code Example:</h6>
+              <h6 class="mb-3">
+                Code Example:
+              </h6>
               <pre
                 class="bg-light p-3 rounded small"
               ><code>import { Loader } from '@googlemaps/js-api-loader';
@@ -270,8 +284,12 @@ const map = new Map(document.getElementById("map"), {
                   <thead>
                     <tr>
                       <th>Feature</th>
-                      <th class="text-center">OpenStreetMap + Leaflet</th>
-                      <th class="text-center">Google Maps</th>
+                      <th class="text-center">
+                        OpenStreetMap + Leaflet
+                      </th>
+                      <th class="text-center">
+                        Google Maps
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -336,7 +354,9 @@ const map = new Map(document.getElementById("map"), {
               <div class="row mt-4">
                 <div class="col-md-6">
                   <div class="alert alert-info">
-                    <h6 class="mb-2">🎯 Use OpenStreetMap + Leaflet when:</h6>
+                    <h6 class="mb-2">
+                      🎯 Use OpenStreetMap + Leaflet when:
+                    </h6>
                     <ul class="mb-0 ps-3">
                       <li>Building prototypes or demos</li>
                       <li>Working with limited budget</li>
@@ -347,7 +367,9 @@ const map = new Map(document.getElementById("map"), {
                 </div>
                 <div class="col-md-6">
                   <div class="alert alert-primary">
-                    <h6 class="mb-2">🚀 Use Google Maps when:</h6>
+                    <h6 class="mb-2">
+                      🚀 Use Google Maps when:
+                    </h6>
                     <ul class="mb-0 ps-3">
                       <li>Building production applications</li>
                       <li>Need advanced features</li>

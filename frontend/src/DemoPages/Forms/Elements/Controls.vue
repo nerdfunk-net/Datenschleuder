@@ -1,15 +1,17 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
     <div class="row">
       <div class="col-md-6">
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Controls Types</h5>
+            <h5 class="card-title">
+              Controls Types
+            </h5>
             <b-form>
               <div class="mb-3">
                 <label for="exampleEmail" class="form-label">Email</label>
@@ -17,7 +19,7 @@
                   id="exampleEmail"
                   type="email"
                   placeholder="with a placeholder"
-                ></b-form-input>
+                />
               </div>
               <div class="mb-3">
                 <label for="examplePassword" class="form-label">Password</label>
@@ -25,40 +27,45 @@
                   id="examplePassword"
                   type="password"
                   placeholder="password placeholder"
-                ></b-form-input>
+                />
               </div>
               <div class="mb-3">
                 <label for="exampleSelect" class="form-label">Select</label>
                 <b-form-select
                   id="exampleSelect"
                   :options="['1', '2', '3', '4', '5']"
-                ></b-form-select>
+                />
               </div>
               <div class="mb-3">
-                <label for="exampleSelectMulti" class="form-label"
-                  >Select Multiple</label
-                >
+                <label
+                  for="exampleSelectMulti"
+                  class="form-label"
+                >Select Multiple</label>
                 <b-form-select
                   id="exampleSelectMulti"
                   multiple
                   :options="['1', '2', '3', '4', '5']"
-                ></b-form-select>
+                />
               </div>
               <div class="mb-3">
                 <label for="exampleText" class="form-label">Text Area</label>
-                <b-form-textarea id="exampleText" rows="3"></b-form-textarea>
+                <b-form-textarea id="exampleText" rows="3" />
               </div>
               <div class="mb-3">
                 <label for="exampleFile" class="form-label">File</label>
-                <b-form-file id="exampleFile"></b-form-file>
+                <b-form-file id="exampleFile" />
                 <small class="form-text text-muted">
                   This is some placeholder block-level help text for the above
                   input. It's a bit lighter and easily wraps to a new line.
                 </small>
               </div>
-              <b-button variant="primary" type="submit" class="mt-1"
-                >Submit</b-button
+              <b-button
+                variant="primary"
+                type="submit"
+                class="mt-1"
               >
+                Submit
+              </b-button>
             </b-form>
           </div>
         </div>
@@ -66,42 +73,46 @@
       <div class="col-md-6">
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Sizing</h5>
+            <h5 class="card-title">
+              Sizing
+            </h5>
             <b-form>
               <b-form-input
                 size="lg"
                 placeholder="Large input"
                 class="mb-2"
-              ></b-form-input>
+              />
               <b-form-input
                 placeholder="Default input"
                 class="mb-2"
-              ></b-form-input>
+              />
               <b-form-input
                 size="sm"
                 placeholder="Small input"
                 class="mb-2"
-              ></b-form-input>
+              />
               <div class="divider"></div>
               <b-form-select
                 size="lg"
                 :options="['Large Select']"
                 class="mb-2"
-              ></b-form-select>
+              />
               <b-form-select
                 :options="['Default Select']"
                 class="mb-2"
-              ></b-form-select>
+              />
               <b-form-select
                 size="sm"
                 :options="['Small Select']"
-              ></b-form-select>
+              />
             </b-form>
           </div>
         </div>
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Checkboxes &amp; Radios</h5>
+            <h5 class="card-title">
+              Checkboxes &amp; Radios
+            </h5>
             <b-form>
               <b-form-radio-group
                 v-model="formData.radio"
@@ -122,7 +133,7 @@
                 ]"
                 name="radio1"
                 class="mb-3"
-              ></b-form-radio-group>
+              />
 
               <b-form-checkbox v-model="formData.checkbox">
                 Check me out
@@ -136,7 +147,9 @@
       <div class="col-md-6">
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Checkboxes</h5>
+            <h5 class="card-title">
+              Checkboxes
+            </h5>
             <b-form-checkbox-group
               v-model="formData.checkboxGroup"
               :options="[
@@ -148,12 +161,14 @@
                   disabled: true,
                 },
               ]"
-            ></b-form-checkbox-group>
+            />
           </div>
         </div>
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Inline</h5>
+            <h5 class="card-title">
+              Inline
+            </h5>
             <b-form-checkbox-group
               v-model="formData.inlineCheckboxes"
               :options="[
@@ -161,14 +176,16 @@
                 { text: 'and another one', value: 'inline2' },
               ]"
               stacked="false"
-            ></b-form-checkbox-group>
+            />
           </div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Radios</h5>
+            <h5 class="card-title">
+              Radios
+            </h5>
             <b-form-radio-group
               v-model="formData.customRadio"
               :options="[
@@ -181,18 +198,21 @@
                 },
               ]"
               name="customRadio"
-            ></b-form-radio-group>
+            />
           </div>
         </div>
         <div class="main-card mb-3 card">
           <div class="card-body">
-            <h5 class="card-title">Form Select</h5>
+            <h5 class="card-title">
+              Form Select
+            </h5>
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="exampleCustomSelect" class="form-label"
-                    >Form Select</label
-                  >
+                  <label
+                    for="exampleCustomSelect"
+                    class="form-label"
+                  >Form Select</label>
                   <b-form-select
                     id="exampleCustomSelect"
                     v-model="formData.customSelect"
@@ -204,12 +224,13 @@
                       { value: 'value4', text: 'Value 4' },
                       { value: 'value5', text: 'Value 5' },
                     ]"
-                  ></b-form-select>
+                  />
                 </div>
                 <div class="mb-3">
-                  <label for="exampleCustomMutlipleSelect" class="form-label"
-                    >Form Multiple Select</label
-                  >
+                  <label
+                    for="exampleCustomMutlipleSelect"
+                    class="form-label"
+                  >Form Multiple Select</label>
                   <b-form-select
                     id="exampleCustomMutlipleSelect"
                     v-model="formData.customMultiSelect"
@@ -222,14 +243,15 @@
                       { value: 'value4', text: 'Value 4' },
                       { value: 'value5', text: 'Value 5' },
                     ]"
-                  ></b-form-select>
+                  />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="exampleCustomSelectDisabled" class="form-label"
-                    >Form Select Disabled</label
-                  >
+                  <label
+                    for="exampleCustomSelectDisabled"
+                    class="form-label"
+                  >Form Select Disabled</label>
                   <b-form-select
                     id="exampleCustomSelectDisabled"
                     disabled
@@ -241,14 +263,13 @@
                       { value: 'value4', text: 'Value 4' },
                       { value: 'value5', text: 'Value 5' },
                     ]"
-                  ></b-form-select>
+                  />
                 </div>
                 <div class="mb-3">
                   <label
                     for="exampleCustomMutlipleSelectDisabled"
                     class="form-label"
-                    >Form Multiple Select Disabled</label
-                  >
+                  >Form Multiple Select Disabled</label>
                   <b-form-select
                     id="exampleCustomMutlipleSelectDisabled"
                     disabled
@@ -261,7 +282,7 @@
                       { value: 'value4', text: 'Value 4' },
                       { value: 'value5', text: 'Value 5' },
                     ]"
-                  ></b-form-select>
+                  />
                 </div>
               </div>
             </div>
@@ -274,27 +295,30 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Basic Input Groups</h5>
+              <h5 class="card-title">
+                Basic Input Groups
+              </h5>
 
               <!-- Basic prepend -->
               <b-input-group class="mb-3" prepend="@">
-                <b-form-input placeholder="Username"></b-form-input>
+                <b-form-input placeholder="Username" />
               </b-input-group>
 
               <!-- Basic append -->
               <b-input-group class="mb-3" append="@example.com">
-                <b-form-input placeholder="Recipient's username"></b-form-input>
+                <b-form-input placeholder="Recipient's username" />
               </b-input-group>
 
               <!-- With both prepend and append -->
               <b-input-group class="mb-3" prepend="$" append=".00">
-                <b-form-input placeholder="Amount" type="number"></b-form-input>
+                <b-form-input placeholder="Amount" type="number" />
               </b-input-group>
 
               <!-- With prepend slot -->
-              <label for="website-input" class="form-label"
-                >Your website URL</label
-              >
+              <label
+                for="website-input"
+                class="form-label"
+              >Your website URL</label>
               <b-input-group class="mb-3">
                 <template #prepend>
                   <b-input-group-text>https://</b-input-group-text>
@@ -302,18 +326,20 @@
                 <b-form-input
                   id="website-input"
                   placeholder="example.com"
-                ></b-form-input>
+                />
               </b-input-group>
 
               <!-- With textarea -->
               <b-input-group prepend="Comment">
-                <b-form-textarea rows="3"></b-form-textarea>
+                <b-form-textarea rows="3" />
               </b-input-group>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Input Groups with Checkboxes & Radios</h5>
+              <h5 class="card-title">
+                Input Groups with Checkboxes & Radios
+              </h5>
 
               <!-- Checkbox example -->
               <b-input-group class="mb-3">
@@ -330,7 +356,7 @@
                 <b-form-input
                   placeholder="Text input with checkbox"
                   aria-label="Text input with checkbox"
-                ></b-form-input>
+                />
               </b-input-group>
 
               <!-- Radio example -->
@@ -348,51 +374,65 @@
                 <b-form-input
                   placeholder="Text input with radio button"
                   aria-label="Text input with radio button"
-                ></b-form-input>
+                />
               </b-input-group>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Input Group Buttons</h5>
+              <h5 class="card-title">
+                Input Group Buttons
+              </h5>
 
               <!-- Button on left -->
               <b-input-group class="mb-3">
                 <template #prepend>
-                  <b-button variant="outline-secondary">Button</b-button>
+                  <b-button variant="outline-secondary">
+                    Button
+                  </b-button>
                 </template>
-                <b-form-input placeholder="Input with button"></b-form-input>
+                <b-form-input placeholder="Input with button" />
               </b-input-group>
 
               <!-- Button on right -->
               <b-input-group class="mb-3">
-                <b-form-input placeholder="Input with button"></b-form-input>
+                <b-form-input placeholder="Input with button" />
                 <template #append>
-                  <b-button variant="outline-secondary">Button</b-button>
+                  <b-button variant="outline-secondary">
+                    Button
+                  </b-button>
                 </template>
               </b-input-group>
 
               <!-- Multiple buttons prepend -->
               <b-input-group class="mb-3">
                 <template #prepend>
-                  <b-button variant="outline-secondary">Button</b-button>
-                  <b-button variant="outline-secondary">Button</b-button>
+                  <b-button variant="outline-secondary">
+                    Button
+                  </b-button>
+                  <b-button variant="outline-secondary">
+                    Button
+                  </b-button>
                 </template>
                 <b-form-input
                   placeholder="Input with multiple buttons"
-                ></b-form-input>
+                />
               </b-input-group>
 
               <!-- Buttons on both sides -->
               <b-input-group>
                 <template #prepend>
-                  <b-button variant="outline-secondary">Left</b-button>
+                  <b-button variant="outline-secondary">
+                    Left
+                  </b-button>
                 </template>
                 <b-form-input
                   placeholder="Input with buttons on both sides"
-                ></b-form-input>
+                />
                 <template #append>
-                  <b-button variant="outline-secondary">Right</b-button>
+                  <b-button variant="outline-secondary">
+                    Right
+                  </b-button>
                 </template>
               </b-input-group>
             </div>
@@ -401,27 +441,31 @@
         <div class="col-md-6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Input Group Sizing</h5>
+              <h5 class="card-title">
+                Input Group Sizing
+              </h5>
 
               <!-- Large input group -->
               <b-input-group size="lg" prepend="Large" class="mb-3">
-                <b-form-input placeholder="Large input group"></b-form-input>
+                <b-form-input placeholder="Large input group" />
               </b-input-group>
 
               <!-- Default input group -->
               <b-input-group prepend="Default" class="mb-3">
-                <b-form-input placeholder="Default input group"></b-form-input>
+                <b-form-input placeholder="Default input group" />
               </b-input-group>
 
               <!-- Small input group -->
               <b-input-group size="sm" prepend="Small" class="mb-3">
-                <b-form-input placeholder="Small input group"></b-form-input>
+                <b-form-input placeholder="Small input group" />
               </b-input-group>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Input Groups with Dropdowns</h5>
+              <h5 class="card-title">
+                Input Groups with Dropdowns
+              </h5>
 
               <!-- Dropdown prepend -->
               <b-input-group class="mb-3">
@@ -429,21 +473,21 @@
                   <b-dropdown text="Dropdown" variant="outline-secondary">
                     <b-dropdown-item>Action</b-dropdown-item>
                     <b-dropdown-item>Another action</b-dropdown-item>
-                    <b-dropdown-divider></b-dropdown-divider>
+                    <b-dropdown-divider />
                     <b-dropdown-item>Something else here</b-dropdown-item>
                   </b-dropdown>
                 </template>
-                <b-form-input placeholder="Input with dropdown"></b-form-input>
+                <b-form-input placeholder="Input with dropdown" />
               </b-input-group>
 
               <!-- Dropdown append -->
               <b-input-group class="mb-3">
-                <b-form-input placeholder="Input with dropdown"></b-form-input>
+                <b-form-input placeholder="Input with dropdown" />
                 <template #append>
                   <b-dropdown text="Dropdown" variant="outline-secondary">
                     <b-dropdown-item>Action</b-dropdown-item>
                     <b-dropdown-item>Another action</b-dropdown-item>
-                    <b-dropdown-divider></b-dropdown-divider>
+                    <b-dropdown-divider />
                     <b-dropdown-item>Something else here</b-dropdown-item>
                   </b-dropdown>
                 </template>
@@ -455,46 +499,52 @@
                   <b-input-group-text>$</b-input-group-text>
                   <b-input-group-text>0.00</b-input-group-text>
                 </template>
-                <b-form-input placeholder="Amount" type="number"></b-form-input>
+                <b-form-input placeholder="Amount" type="number" />
               </b-input-group>
             </div>
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Select Input Groups</h5>
+              <h5 class="card-title">
+                Select Input Groups
+              </h5>
 
               <!-- Select with prepend text -->
               <b-input-group prepend="Options" class="mb-3">
                 <b-form-select
                   :options="['Choose...', 'One', 'Two', 'Three']"
-                ></b-form-select>
+                />
               </b-input-group>
 
               <!-- Select with append text -->
               <b-input-group append="Options" class="mb-3">
                 <b-form-select
                   :options="['Choose...', 'One', 'Two', 'Three']"
-                ></b-form-select>
+                />
               </b-input-group>
 
               <!-- Select with button -->
               <b-input-group class="mb-3">
                 <b-form-select
                   :options="['Choose...', 'One', 'Two', 'Three']"
-                ></b-form-select>
+                />
                 <template #append>
-                  <b-button variant="outline-secondary">Button</b-button>
+                  <b-button variant="outline-secondary">
+                    Button
+                  </b-button>
                 </template>
               </b-input-group>
 
               <!-- Button with select -->
               <b-input-group>
                 <template #prepend>
-                  <b-button variant="outline-secondary">Button</b-button>
+                  <b-button variant="outline-secondary">
+                    Button
+                  </b-button>
                 </template>
                 <b-form-select
                   :options="['Choose...', 'One', 'Two', 'Three']"
-                ></b-form-select>
+                />
               </b-input-group>
             </div>
           </div>

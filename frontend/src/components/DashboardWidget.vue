@@ -14,7 +14,9 @@
         </div>
         <div class="widget-content-right flex-grow-1">
           <div class="widget-chart-content">
-            <div class="widget-subheading">{{ stat.label }}</div>
+            <div class="widget-subheading">
+              {{ stat.label }}
+            </div>
             <div class="widget-numbers fs-1 fw-bold" :class="valueClass">
               {{ stat.value }}
             </div>

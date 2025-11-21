@@ -3,7 +3,9 @@
     <div class="page-card">
       <!-- Header -->
       <div class="card-header">
-        <h2 class="card-title">Registry Flows</h2>
+        <h2 class="card-title">
+          Registry Flows
+        </h2>
         <div v-if="isAdmin" class="header-actions">
           <b-button variant="outline-secondary" @click="showImportModal = true">
             <i class="pe-7s-upload"></i> Import Flow
@@ -23,7 +25,7 @@
               v-model="selectedFilterInstance"
               :options="filterInstanceOptions"
               @change="applyInstanceFilter"
-            ></b-form-select>
+            />
           </div>
           <div class="col-md-8 text-end">
             <small class="text-muted">
@@ -36,8 +38,10 @@
 
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-5">
-        <b-spinner variant="primary"></b-spinner>
-        <p class="mt-3 text-muted">Loading registry flows...</p>
+        <b-spinner variant="primary" />
+        <p class="mt-3 text-muted">
+          Loading registry flows...
+        </p>
       </div>
 
       <!-- Table -->
@@ -50,7 +54,9 @@
               <th>Registry</th>
               <th>Bucket</th>
               <th>Description</th>
-              <th class="text-end">Actions</th>
+              <th class="text-end">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -120,8 +126,8 @@
                   <b-button
                     size="sm"
                     variant="outline-danger"
-                    @click="handleDelete(flow)"
                     title="Remove"
+                    @click="handleDelete(flow)"
                   >
                     <i class="pe-7s-trash"></i>
                   </b-button>
@@ -152,7 +158,9 @@
       <div class="add-flow-content">
         <!-- Step 1: Select NiFi Instance -->
         <div class="selection-step">
-          <h6 class="step-title">1. Select NiFi Instance</h6>
+          <h6 class="step-title">
+            1. Select NiFi Instance
+          </h6>
           <b-form-select
             v-model="selectedInstance"
             :options="instanceOptions"
@@ -160,18 +168,23 @@
             @change="onInstanceChange"
           >
             <template #first>
-              <b-form-select-option :value="null" disabled
-                >-- Select NiFi Instance --</b-form-select-option
+              <b-form-select-option
+                :value="null"
+                disabled
               >
+                -- Select NiFi Instance --
+              </b-form-select-option>
             </template>
           </b-form-select>
         </div>
 
         <!-- Step 2: Select Bucket -->
         <div v-if="selectedInstance" class="selection-step">
-          <h6 class="step-title">2. Select Bucket</h6>
+          <h6 class="step-title">
+            2. Select Bucket
+          </h6>
           <div v-if="loadingBuckets" class="text-center py-3">
-            <b-spinner small variant="primary"></b-spinner>
+            <b-spinner small variant="primary" />
             <span class="ms-2">Loading buckets...</span>
           </div>
           <b-form-select
@@ -182,18 +195,23 @@
             @change="onBucketChange"
           >
             <template #first>
-              <b-form-select-option :value="null" disabled
-                >-- Select Bucket --</b-form-select-option
+              <b-form-select-option
+                :value="null"
+                disabled
               >
+                -- Select Bucket --
+              </b-form-select-option>
             </template>
           </b-form-select>
         </div>
 
         <!-- Step 3: Select Flows -->
         <div v-if="selectedBucket" class="selection-step">
-          <h6 class="step-title">3. Select Flows</h6>
+          <h6 class="step-title">
+            3. Select Flows
+          </h6>
           <div v-if="loadingFlows" class="text-center py-3">
-            <b-spinner small variant="primary"></b-spinner>
+            <b-spinner small variant="primary" />
             <span class="ms-2">Loading flows...</span>
           </div>
           <div v-else class="flows-list">
@@ -210,7 +228,9 @@
             >
               <b-form-checkbox v-model="selectedFlows" :value="flow">
                 <div class="flow-info">
-                  <div class="flow-name">{{ flow.name }}</div>
+                  <div class="flow-name">
+                    {{ flow.name }}
+                  </div>
                   <div class="flow-desc">
                     {{ flow.description || "No description" }}
                   </div>
@@ -222,16 +242,20 @@
       </div>
 
       <template #footer>
-        <b-button variant="secondary" @click="closeModal" size="sm"
-          >Cancel</b-button
+        <b-button
+          variant="secondary"
+          size="sm"
+          @click="closeModal"
         >
+          Cancel
+        </b-button>
         <b-button
           variant="primary"
-          @click="saveFlows"
           size="sm"
           :disabled="selectedFlows.length === 0 || isSaving"
+          @click="saveFlows"
         >
-          <b-spinner v-if="isSaving" small class="me-1"></b-spinner>
+          <b-spinner v-if="isSaving" small class="me-1" />
           {{ isSaving ? "Saving..." : `Save ${selectedFlows.length} Flow(s)` }}
         </b-button>
       </template>
@@ -247,7 +271,9 @@
       <div class="import-flow-content">
         <!-- Step 1: Select NiFi Instance -->
         <div class="selection-step">
-          <h6 class="step-title">1. Select NiFi Instance</h6>
+          <h6 class="step-title">
+            1. Select NiFi Instance
+          </h6>
           <b-form-select
             v-model="importSelectedInstance"
             :options="instanceOptions"
@@ -255,18 +281,23 @@
             @change="onImportInstanceChange"
           >
             <template #first>
-              <b-form-select-option :value="null" disabled
-                >-- Select NiFi Instance --</b-form-select-option
+              <b-form-select-option
+                :value="null"
+                disabled
               >
+                -- Select NiFi Instance --
+              </b-form-select-option>
             </template>
           </b-form-select>
         </div>
 
         <!-- Step 2: Select Registry -->
         <div v-if="importSelectedInstance" class="selection-step">
-          <h6 class="step-title">2. Select Registry</h6>
+          <h6 class="step-title">
+            2. Select Registry
+          </h6>
           <div v-if="loadingImportRegistries" class="text-center py-3">
-            <b-spinner small variant="primary"></b-spinner>
+            <b-spinner small variant="primary" />
             <span class="ms-2">Loading registries...</span>
           </div>
           <b-form-select
@@ -277,18 +308,23 @@
             @change="onImportRegistryChange"
           >
             <template #first>
-              <b-form-select-option :value="null" disabled
-                >-- Select Registry --</b-form-select-option
+              <b-form-select-option
+                :value="null"
+                disabled
               >
+                -- Select Registry --
+              </b-form-select-option>
             </template>
           </b-form-select>
         </div>
 
         <!-- Step 3: Select Bucket -->
         <div v-if="importSelectedRegistry" class="selection-step">
-          <h6 class="step-title">3. Select Bucket</h6>
+          <h6 class="step-title">
+            3. Select Bucket
+          </h6>
           <div v-if="loadingImportBuckets" class="text-center py-3">
-            <b-spinner small variant="primary"></b-spinner>
+            <b-spinner small variant="primary" />
             <span class="ms-2">Loading buckets...</span>
           </div>
           <b-form-select
@@ -298,22 +334,29 @@
             size="sm"
           >
             <template #first>
-              <b-form-select-option :value="null" disabled
-                >-- Select Bucket --</b-form-select-option
+              <b-form-select-option
+                :value="null"
+                disabled
               >
+                -- Select Bucket --
+              </b-form-select-option>
             </template>
           </b-form-select>
         </div>
 
         <!-- Step 4: Import Mode -->
         <div v-if="importSelectedBucket" class="selection-step">
-          <h6 class="step-title">4. Import Mode</h6>
+          <h6 class="step-title">
+            4. Import Mode
+          </h6>
           <b-form-radio-group v-model="importMode" :options="importModeOptions" />
         </div>
 
         <!-- Step 5: Flow Name (for new flow) -->
         <div v-if="importSelectedBucket && importMode === 'new'" class="selection-step">
-          <h6 class="step-title">5. Flow Name</h6>
+          <h6 class="step-title">
+            5. Flow Name
+          </h6>
           <b-form-input
             v-model="importFlowName"
             placeholder="Enter flow name for new flow"
@@ -323,9 +366,11 @@
 
         <!-- Step 5/6: Existing Flow (for existing flow) -->
         <div v-if="importSelectedBucket && importMode === 'existing'" class="selection-step">
-          <h6 class="step-title">5. Select Existing Flow</h6>
+          <h6 class="step-title">
+            5. Select Existing Flow
+          </h6>
           <div v-if="loadingImportFlows" class="text-center py-3">
-            <b-spinner small variant="primary"></b-spinner>
+            <b-spinner small variant="primary" />
             <span class="ms-2">Loading flows...</span>
           </div>
           <b-form-select
@@ -335,16 +380,21 @@
             size="sm"
           >
             <template #first>
-              <b-form-select-option :value="null" disabled
-                >-- Select Flow --</b-form-select-option
+              <b-form-select-option
+                :value="null"
+                disabled
               >
+                -- Select Flow --
+              </b-form-select-option>
             </template>
           </b-form-select>
         </div>
 
         <!-- Step 6/7: File Upload -->
         <div v-if="importSelectedBucket && ((importMode === 'new' && importFlowName) || (importMode === 'existing' && importSelectedFlow))" class="selection-step">
-          <h6 class="step-title">{{ importMode === 'new' ? '6' : '6' }}. Select File</h6>
+          <h6 class="step-title">
+            {{ importMode === 'new' ? '6' : '6' }}. Select File
+          </h6>
           <b-form-file
             v-model="importFile"
             placeholder="Choose a JSON or YAML file..."
@@ -355,16 +405,20 @@
       </div>
 
       <template #footer>
-        <b-button variant="secondary" @click="closeImportModal" size="sm"
-          >Cancel</b-button
+        <b-button
+          variant="secondary"
+          size="sm"
+          @click="closeImportModal"
         >
+          Cancel
+        </b-button>
         <b-button
           variant="primary"
-          @click="importFlow"
           size="sm"
           :disabled="!canImport || isImporting"
+          @click="importFlow"
         >
-          <b-spinner v-if="isImporting" small class="me-1"></b-spinner>
+          <b-spinner v-if="isImporting" small class="me-1" />
           {{ isImporting ? "Importing..." : "Import Flow" }}
         </b-button>
       </template>

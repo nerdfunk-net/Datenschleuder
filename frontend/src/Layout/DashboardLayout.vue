@@ -5,9 +5,10 @@
       <div class="ds-sidebar-header">
         <div class="ds-logo">
           <i class="pe-7s-server"></i>
-          <span v-if="!isSidebarCollapsed" class="ds-logo-text"
-            >Datenschleuder</span
-          >
+          <span
+            v-if="!isSidebarCollapsed"
+            class="ds-logo-text"
+          >Datenschleuder</span>
         </div>
         <button class="ds-toggle-btn" @click="toggleSidebar">
           <i
@@ -168,7 +169,9 @@
       <!-- Top Header -->
       <header class="ds-top-header">
         <div class="ds-header-content">
-          <h1 class="ds-page-title">{{ pageTitle }}</h1>
+          <h1 class="ds-page-title">
+            {{ pageTitle }}
+          </h1>
           <div class="ds-header-actions">
             <span class="ds-user-badge">
               <i class="pe-7s-user"></i>
@@ -181,7 +184,7 @@
 
       <!-- Page Content -->
       <div class="ds-content-wrapper">
-        <router-view></router-view>
+        <router-view />
       </div>
     </div>
   </div>

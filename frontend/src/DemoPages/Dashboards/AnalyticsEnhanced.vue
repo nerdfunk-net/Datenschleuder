@@ -3,7 +3,7 @@
     <!-- Page Header with Gradient Background -->
     <div class="page-header-wrapper mb-4">
       <div class="page-header-gradient">
-        <page-title
+        <PageTitle
           :heading="heading"
           :subheading="subheading"
           :icon="icon"
@@ -12,12 +12,16 @@
 
         <!-- Quick Stats Summary -->
         <div class="row g-3 mt-3">
-          <div class="col-6 col-md-3" v-for="stat in quickStats" :key="stat.id">
+          <div v-for="stat in quickStats" :key="stat.id" class="col-6 col-md-3">
             <div class="quick-stat-card">
               <div class="d-flex align-items-start">
                 <div class="stat-content flex-grow-1">
-                  <div class="stat-value">{{ stat.value }}</div>
-                  <div class="stat-label">{{ stat.label }}</div>
+                  <div class="stat-value">
+                    {{ stat.value }}
+                  </div>
+                  <div class="stat-label">
+                    {{ stat.label }}
+                  </div>
                   <div class="stat-trend mt-2">
                     <span
                       :class="
@@ -75,7 +79,7 @@
             </div>
           </div>
           <div class="card-body">
-            <line-chart-component
+            <LineChartComponent
               :data="revenueChartData"
               :options="revenueChartOptions"
               :height="300"
@@ -85,19 +89,25 @@
             <div class="row text-center mt-4">
               <div class="col-4">
                 <div class="revenue-stat">
-                  <h5 class="mb-1 text-success">$48,965</h5>
+                  <h5 class="mb-1 text-success">
+                    $48,965
+                  </h5>
                   <small class="text-muted">Total Revenue</small>
                 </div>
               </div>
               <div class="col-4">
                 <div class="revenue-stat">
-                  <h5 class="mb-1 text-primary">2,415</h5>
+                  <h5 class="mb-1 text-primary">
+                    2,415
+                  </h5>
                   <small class="text-muted">New Customers</small>
                 </div>
               </div>
               <div class="col-4">
                 <div class="revenue-stat">
-                  <h5 class="mb-1 text-info">$20.25</h5>
+                  <h5 class="mb-1 text-info">
+                    $20.25
+                  </h5>
                   <small class="text-muted">Avg. Order Value</small>
                 </div>
               </div>
@@ -111,16 +121,20 @@
         <!-- Performance Score -->
         <div class="main-card mb-3 card shadow-sm border-0">
           <div class="card-body">
-            <h6 class="card-title mb-4">Performance Score</h6>
+            <h6 class="card-title mb-4">
+              Performance Score
+            </h6>
             <div class="performance-score-wrapper text-center">
               <div class="score-circle mb-3 position-relative">
-                <doughnut-chart-component
+                <DoughnutChartComponent
                   :data="performanceScoreData"
                   :options="performanceScoreOptions"
                   :height="180"
                 />
                 <div class="score-overlay">
-                  <h2 class="mb-0 text-success">92</h2>
+                  <h2 class="mb-0 text-success">
+                    92
+                  </h2>
                   <small class="text-muted">Excellent</small>
                 </div>
               </div>
@@ -175,15 +189,17 @@
           <div class="card-body p-0">
             <div class="activity-feed">
               <div
-                class="activity-item"
                 v-for="activity in recentActivities"
                 :key="activity.id"
+                class="activity-item"
               >
                 <div class="activity-icon" :class="`bg-${activity.type}`">
                   <font-awesome-icon :icon="activity.icon" class="text-white" />
                 </div>
                 <div class="activity-content">
-                  <p class="mb-1">{{ activity.description }}</p>
+                  <p class="mb-1">
+                    {{ activity.description }}
+                  </p>
                   <small class="text-muted">{{ activity.time }}</small>
                 </div>
               </div>
@@ -205,7 +221,7 @@
             </div>
           </div>
           <div class="card-body">
-            <pie-chart-component
+            <PieChartComponent
               :data="salesByCategoryData"
               :options="salesByCategoryOptions"
               :height="250"
@@ -239,7 +255,12 @@
               Top Products
             </div>
             <div class="btn-actions-pane-right">
-              <b-dropdown variant="link" no-caret right size="sm">
+              <b-dropdown
+                variant="link"
+                no-caret
+                right
+                size="sm"
+              >
                 <template #button-content>
                   <font-awesome-icon icon="ellipsis-vertical" />
                 </template>
@@ -253,9 +274,15 @@
               <table class="table table-hover mb-0">
                 <thead>
                   <tr>
-                    <th class="border-0 ps-3">Product</th>
-                    <th class="border-0 text-center">Sales</th>
-                    <th class="border-0 text-end pe-3">Revenue</th>
+                    <th class="border-0 ps-3">
+                      Product
+                    </th>
+                    <th class="border-0 text-center">
+                      Sales
+                    </th>
+                    <th class="border-0 text-end pe-3">
+                      Revenue
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -269,7 +296,9 @@
                           {{ product.name.charAt(0) }}
                         </div>
                         <div>
-                          <div class="fw-medium">{{ product.name }}</div>
+                          <div class="fw-medium">
+                            {{ product.name }}
+                          </div>
                           <small class="text-muted">{{
                             product.category
                           }}</small>
@@ -306,8 +335,12 @@
               <div class="insight-card mb-3">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <h3 class="mb-1">8,234</h3>
-                    <p class="text-muted mb-0">Total Customers</p>
+                    <h3 class="mb-1">
+                      8,234
+                    </h3>
+                    <p class="text-muted mb-0">
+                      Total Customers
+                    </p>
                   </div>
                   <div
                     class="insight-icon bg-primary bg-opacity-10 text-primary"
@@ -325,8 +358,12 @@
               <div class="insight-card mb-3">
                 <div class="d-flex justify-content-between align-items-start">
                   <div>
-                    <h3 class="mb-1">1,893</h3>
-                    <p class="text-muted mb-0">Active Users</p>
+                    <h3 class="mb-1">
+                      1,893
+                    </h3>
+                    <p class="text-muted mb-0">
+                      Active Users
+                    </p>
                   </div>
                   <div
                     class="insight-icon bg-success bg-opacity-10 text-success"
@@ -342,7 +379,9 @@
               </div>
 
               <div class="customer-satisfaction">
-                <h6 class="mb-3">Customer Satisfaction</h6>
+                <h6 class="mb-3">
+                  Customer Satisfaction
+                </h6>
                 <div class="satisfaction-bar">
                   <div class="d-flex justify-content-between mb-2">
                     <small class="text-muted">Overall Rating</small>

@@ -17,7 +17,9 @@
             <i class="pe-7s-add-user text-white" style="font-size: 3rem"></i>
           </div>
         </div>
-        <h2 class="text-white text-center mb-3 fw-bold">Join ArchitectUI</h2>
+        <h2 class="text-white text-center mb-3 fw-bold">
+          Join ArchitectUI
+        </h2>
         <p class="text-white-50 text-center mb-0 fs-5">
           Create your account and start building amazing dashboards in minutes
         </p>
@@ -61,12 +63,16 @@
           >
             <i class="pe-7s-add-user text-white" style="font-size: 2rem"></i>
           </div>
-          <h4 class="text-success fw-bold mb-0">Join ArchitectUI</h4>
+          <h4 class="text-success fw-bold mb-0">
+            Join ArchitectUI
+          </h4>
         </div>
 
         <!-- Register Header -->
         <div class="text-center mb-4">
-          <h2 class="fw-bold text-dark mb-2">Create your account</h2>
+          <h2 class="fw-bold text-dark mb-2">
+            Create your account
+          </h2>
           <p class="text-secondary mb-0">
             It only takes a
             <span class="text-success fw-medium">few seconds</span> to get
@@ -78,9 +84,10 @@
         <form>
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="email" class="form-label text-dark fw-medium mb-2"
-                >Email address</label
-              >
+              <label
+                for="email"
+                class="form-label text-dark fw-medium mb-2"
+              >Email address</label>
               <b-form-input
                 id="email"
                 type="email"
@@ -91,9 +98,10 @@
               />
             </div>
             <div class="col-md-6 mb-3">
-              <label for="username" class="form-label text-dark fw-medium mb-2"
-                >Username</label
-              >
+              <label
+                for="username"
+                class="form-label text-dark fw-medium mb-2"
+              >Username</label>
               <b-form-input
                 id="username"
                 type="text"
@@ -107,9 +115,10 @@
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="password" class="form-label text-dark fw-medium mb-2"
-                >Password</label
-              >
+              <label
+                for="password"
+                class="form-label text-dark fw-medium mb-2"
+              >Password</label>
               <b-form-input
                 id="password"
                 type="password"
@@ -123,8 +132,7 @@
               <label
                 for="confirm-password"
                 class="form-label text-dark fw-medium mb-2"
-                >Confirm Password</label
-              >
+              >Confirm Password</label>
               <b-form-input
                 id="confirm-password"
                 type="password"
@@ -142,8 +150,9 @@
               <b-link
                 href="javascript:void(0);"
                 class="text-success text-decoration-none fw-medium"
-                >Terms and Conditions</b-link
               >
+                Terms and Conditions
+              </b-link>
             </b-form-checkbox>
           </div>
 

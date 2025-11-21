@@ -19,16 +19,14 @@ export default [
     ],
   },
 
-  // TypeScript and Vue files configuration
+  // TypeScript files configuration
   {
-    files: ['**/*.{ts,tsx,vue}'],
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.json',
-        extraFileExtensions: ['.vue'],
       },
       globals: {
         // Browser globals
@@ -40,6 +38,13 @@ export default [
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
         fetch: 'readonly',
+        // TypeScript lib types
+        RequestInit: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        Headers: 'readonly',
+        FormData: 'readonly',
+        URLSearchParams: 'readonly',
         // Node globals
         process: 'readonly',
         __dirname: 'readonly',
@@ -80,6 +85,26 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        fetch: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        prompt: 'readonly',
+        // Node/Vite globals
+        process: 'readonly',
+        import: 'readonly',
+      },
     },
     rules: {
       // Vue rules
@@ -87,7 +112,14 @@ export default [
       'vue/no-v-html': 'warn',
       'vue/require-default-prop': 'off',
       'vue/require-explicit-emits': 'warn',
+      'vue/require-prop-types': 'warn',
+      'vue/no-reserved-component-names': 'warn',
+      'vue/no-lone-template': 'warn',
       'vue/component-name-in-template-casing': ['warn', 'PascalCase'],
+
+      // Allow console in Vue files
+      'no-console': 'off',
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       'vue/html-self-closing': [
         'warn',
         {

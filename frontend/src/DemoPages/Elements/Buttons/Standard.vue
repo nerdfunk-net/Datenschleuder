@@ -1,16 +1,18 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
     <div class="content">
       <b-row>
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Solid</h5>
+              <h5 class="card-title">
+                Solid
+              </h5>
               <template
                 v-for="variant in [
                   'primary',
@@ -37,7 +39,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Color Transition</h5>
+              <h5 class="card-title">
+                Color Transition
+              </h5>
               <template
                 v-for="variant in [
                   'outline-primary',
@@ -64,7 +68,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Color Transition no Borders</h5>
+              <h5 class="card-title">
+                Color Transition no Borders
+              </h5>
               <template
                 v-for="variant in [
                   'outline-primary',
@@ -94,7 +100,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Hover Shine</h5>
+              <h5 class="card-title">
+                Hover Shine
+              </h5>
               <template
                 v-for="variant in [
                   'primary',
@@ -124,7 +132,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Active State</h5>
+              <h5 class="card-title">
+                Active State
+              </h5>
               <template
                 v-for="variant in [
                   'primary',
@@ -151,7 +161,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Disabled</h5>
+              <h5 class="card-title">
+                Disabled
+              </h5>
               <template
                 v-for="variant in [
                   'primary',
@@ -178,7 +190,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Block Level</h5>
+              <h5 class="card-title">
+                Block Level
+              </h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
                 <div class="d-grid gap-2 mb-2">
                   <b-button variant="primary" :size="size">
@@ -192,7 +206,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Wider</h5>
+              <h5 class="card-title">
+                Wider
+              </h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
                 <b-button
                   class="btn-wide me-2 mb-2"
@@ -206,7 +222,9 @@
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Sizing</h5>
+              <h5 class="card-title">
+                Sizing
+              </h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
                 <b-button class="me-2 mb-2" variant="primary" :size="size">
                   Button {{ size }}
@@ -218,16 +236,18 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Checkbox Buttons</h5>
+              <h5 class="card-title">
+                Checkbox Buttons
+              </h5>
               <template>
                 <div class="text-center">
                   <b-form-checkbox-group
-                    buttons
                     v-model="selected"
+                    buttons
                     name="buttons1"
                     :options="options"
-                  ></b-form-checkbox-group>
-                  <div class="divider" />
+                  />
+                  <div class="divider"></div>
                   <b-form-checkbox-group
                     v-model="selected"
                     buttons
@@ -235,15 +255,14 @@
                     size="lg"
                     name="buttons2"
                     :options="options"
-                  >
-                  </b-form-checkbox-group>
-                  <div class="divider" />
+                  />
+                  <div class="divider"></div>
                   <b-form-checkbox-group
-                    buttons
                     v-model="selected"
+                    buttons
                     stacked
                     :options="options"
-                  ></b-form-checkbox-group>
+                  />
                 </div>
               </template>
             </div>
@@ -252,32 +271,34 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Radio Buttons</h5>
+              <h5 class="card-title">
+                Radio Buttons
+              </h5>
               <template>
                 <div class="text-center">
                   <b-form-radio-group
                     id="btnradios1"
-                    buttons
                     v-model="selected2"
+                    buttons
                     :options="options2"
                     name="radiosBtnDefault"
                   />
-                  <div class="divider" />
+                  <div class="divider"></div>
                   <b-form-radio-group
                     id="btnradios2"
+                    v-model="selected2"
                     buttons
                     button-variant="outline-primary"
                     size="lg"
-                    v-model="selected2"
                     :options="options2"
                     name="radioBtnOutline"
                   />
-                  <div class="divider" />
+                  <div class="divider"></div>
                   <b-form-radio-group
                     id="btnradios3"
+                    v-model="selected2"
                     buttons
                     stacked
-                    v-model="selected2"
                     :options="options2"
                     name="radioBtnStacked"
                   />

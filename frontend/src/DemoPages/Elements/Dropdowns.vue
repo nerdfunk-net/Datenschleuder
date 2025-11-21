@@ -1,17 +1,19 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
 
     <div class="content">
       <b-row>
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Basic</h5>
+              <h5 class="card-title">
+                Basic
+              </h5>
               <template
                 v-for="variant in [
                   'primary',
@@ -38,7 +40,7 @@
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
                   <b-dropdown-item>Actions</b-dropdown-item>
-                  <b-dropdown-divider></b-dropdown-divider>
+                  <b-dropdown-divider />
                   <b-dropdown-item>Dividers</b-dropdown-item>
                 </b-dropdown>
               </template>
@@ -46,7 +48,9 @@
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Split Dropdowns</h5>
+              <h5 class="card-title">
+                Split Dropdowns
+              </h5>
               <template
                 v-for="variant in [
                   'primary',
@@ -74,7 +78,7 @@
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
                   <b-dropdown-item>Actions</b-dropdown-item>
-                  <b-dropdown-divider></b-dropdown-divider>
+                  <b-dropdown-divider />
                   <b-dropdown-item>Dividers</b-dropdown-item>
                 </b-dropdown>
               </template>
@@ -82,7 +86,9 @@
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Split Outline Dropdowns</h5>
+              <h5 class="card-title">
+                Split Outline Dropdowns
+              </h5>
               <template
                 v-for="variant in [
                   'outline-primary',
@@ -110,7 +116,7 @@
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
                   <b-dropdown-item>Actions</b-dropdown-item>
-                  <b-dropdown-divider></b-dropdown-divider>
+                  <b-dropdown-divider />
                   <b-dropdown-item>Dividers</b-dropdown-item>
                 </b-dropdown>
               </template>
@@ -120,7 +126,9 @@
         <b-col lg="6">
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Outline</h5>
+              <h5 class="card-title">
+                Outline
+              </h5>
               <template
                 v-for="variant in [
                   'outline-primary',
@@ -147,7 +155,7 @@
                   <b-dropdown-item>Settings</b-dropdown-item>
                   <b-dropdown-header>Header</b-dropdown-header>
                   <b-dropdown-item>Actions</b-dropdown-item>
-                  <b-dropdown-divider></b-dropdown-divider>
+                  <b-dropdown-divider />
                   <b-dropdown-item>Dividers</b-dropdown-item>
                 </b-dropdown>
               </template>
@@ -155,7 +163,9 @@
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Sizing</h5>
+              <h5 class="card-title">
+                Sizing
+              </h5>
               <template v-for="size in ['sm', '', 'lg']" :key="size">
                 <b-dropdown
                   no-flip
@@ -170,7 +180,9 @@
                   <button type="button" tabindex="0" class="dropdown-item">
                     Settings
                   </button>
-                  <h6 tabindex="-1" class="dropdown-header">Header</h6>
+                  <h6 tabindex="-1" class="dropdown-header">
+                    Header
+                  </h6>
                   <button type="button" tabindex="0" class="dropdown-item">
                     Actions
                   </button>
@@ -184,23 +196,25 @@
           </div>
           <div class="main-card mb-3 card">
             <div class="card-body">
-              <h5 class="card-title">Split Sizing</h5>
+              <h5 class="card-title">
+                Split Sizing
+              </h5>
               <b-dropdown
-                no-flip
                 id="ddown-lg"
+                no-flip
                 size="lg"
                 text="Large"
                 class="m-2"
               >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button
-                  >Something else here</b-dropdown-item-button
-                >
+                <b-dropdown-item-button>
+                  Something else here
+                </b-dropdown-item-button>
               </b-dropdown>
               <b-dropdown
-                no-flip
                 id="ddown-lg-split"
+                no-flip
                 size="lg"
                 split
                 text="Large Split"
@@ -208,27 +222,27 @@
               >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button
-                  >Something else here...</b-dropdown-item-button
-                >
+                <b-dropdown-item-button>
+                  Something else here...
+                </b-dropdown-item-button>
               </b-dropdown>
               <br />
               <b-dropdown
-                no-flip
                 id="ddown-sm"
+                no-flip
                 size="sm"
                 text="Small"
                 class="m-2"
               >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button
-                  >Something else here...</b-dropdown-item-button
-                >
+                <b-dropdown-item-button>
+                  Something else here...
+                </b-dropdown-item-button>
               </b-dropdown>
               <b-dropdown
-                no-flip
                 id="ddown-sm-split"
+                no-flip
                 size="sm"
                 split
                 text="Small Split"
@@ -236,9 +250,9 @@
               >
                 <b-dropdown-item-button>Action</b-dropdown-item-button>
                 <b-dropdown-item-button>Another action</b-dropdown-item-button>
-                <b-dropdown-item-button
-                  >Something else here...</b-dropdown-item-button
-                >
+                <b-dropdown-item-button>
+                  Something else here...
+                </b-dropdown-item-button>
               </b-dropdown>
             </div>
           </div>

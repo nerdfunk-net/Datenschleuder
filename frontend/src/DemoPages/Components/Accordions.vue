@@ -1,10 +1,10 @@
 <template>
   <div>
-    <page-title
+    <PageTitle
       :heading="heading"
       :subheading="subheading"
       :icon="icon"
-    ></page-title>
+    />
     <b-row>
       <b-col md="6">
         <b-card class="main-card mb-3">
@@ -21,9 +21,9 @@
               Basic collapse functionality with toggle buttons.
             </p>
             <b-button
-              @click="toggleCollapse('collapse1')"
               variant="primary"
               class="mb-3"
+              @click="toggleCollapse('collapse1')"
             >
               <i
                 class="fas fa-chevron-down"
@@ -31,16 +31,16 @@
               ></i>
               Toggle Collapse
             </b-button>
-            <b-collapse :visible="collapseStates.collapse1" id="collapse1">
+            <b-collapse id="collapse1" :visible="collapseStates.collapse1">
               <b-card class="border-primary">
                 <p class="card-text">
                   This is a collapsible content area. You can put any content
                   here including text, images, forms, or other components.
                 </p>
                 <b-button
-                  @click="toggleCollapse('collapse1_inner')"
                   size="sm"
                   variant="outline-primary"
+                  @click="toggleCollapse('collapse1_inner')"
                 >
                   <i
                     class="fas fa-chevron-down"
@@ -49,15 +49,13 @@
                   Toggle Nested Collapse
                 </b-button>
                 <b-collapse
-                  :visible="collapseStates.collapse1_inner"
                   id="collapse1_inner"
+                  :visible="collapseStates.collapse1_inner"
                   class="mt-2"
                 >
                   <b-card class="border-success">
-                    <small class="text-muted"
-                      >Nested collapse content - collapsible components can be
-                      nested!</small
-                    >
+                    <small class="text-muted">Nested collapse content - collapsible components can be
+                      nested!</small>
                   </b-card>
                 </b-collapse>
               </b-card>
@@ -79,21 +77,23 @@
               Control multiple collapse elements simultaneously.
             </p>
             <b-button
-              @click="toggleMultipleCollapse(['collapseA', 'collapseB'])"
               variant="success"
               class="mb-3"
+              @click="toggleMultipleCollapse(['collapseA', 'collapseB'])"
             >
               <i class="fas fa-expand-alt"></i>
               Toggle Both Sections
             </b-button>
             <b-collapse
-              :visible="collapseStates.collapseA"
               id="collapseA"
+              :visible="collapseStates.collapseA"
               class="mb-2"
             >
               <b-card class="border-success">
                 <b-card-header class="py-2">
-                  <h6 class="mb-0">Section A</h6>
+                  <h6 class="mb-0">
+                    Section A
+                  </h6>
                 </b-card-header>
                 <b-card-body>
                   <p class="mb-0">
@@ -103,10 +103,12 @@
                 </b-card-body>
               </b-card>
             </b-collapse>
-            <b-collapse :visible="collapseStates.collapseB" id="collapseB">
+            <b-collapse id="collapseB" :visible="collapseStates.collapseB">
               <b-card class="border-success">
                 <b-card-header class="py-2">
-                  <h6 class="mb-0">Section B</h6>
+                  <h6 class="mb-0">
+                    Section B
+                  </h6>
                 </b-card-header>
                 <b-card-body>
                   <p class="mb-0">
@@ -135,9 +137,9 @@
               Collapse element that starts in the open state.
             </p>
             <b-button
-              @click="toggleCollapse('collapse3')"
               variant="warning"
               class="mb-3"
+              @click="toggleCollapse('collapse3')"
             >
               <i
                 class="fas fa-chevron-down"
@@ -145,10 +147,12 @@
               ></i>
               Toggle (Starts Open)
             </b-button>
-            <b-collapse :visible="collapseStates.collapse3" id="collapse3">
+            <b-collapse id="collapse3" :visible="collapseStates.collapse3">
               <b-card class="border-warning">
                 <div class="alert alert-warning mb-0">
-                  <h6 class="mb-1">👋 Initially Visible</h6>
+                  <h6 class="mb-1">
+                    👋 Initially Visible
+                  </h6>
                   <p class="mb-0">
                     This collapse element starts in the open state by default.
                     The <code>visible</code> prop was set to
@@ -182,10 +186,10 @@
               <b-card no-body class="mb-1 accordion-item">
                 <b-card-header class="p-0" role="tab">
                   <b-button
-                    @click="toggleAccordion('accordion1')"
                     class="accordion-header w-100 text-start"
                     :class="{ 'accordion-active': accordionStates.accordion1 }"
                     variant="light"
+                    @click="toggleAccordion('accordion1')"
                   >
                     <div
                       class="ps-3 pe-3 py-2 d-flex justify-content-between align-items-center"
@@ -202,13 +206,15 @@
                   </b-button>
                 </b-card-header>
                 <b-collapse
-                  :visible="accordionStates.accordion1"
                   id="accordion1"
+                  :visible="accordionStates.accordion1"
                   role="tabpanel"
                 >
                   <b-card-body>
                     <div class="alert alert-info">
-                      <h6 class="mb-2">🚀 Welcome to Accordions!</h6>
+                      <h6 class="mb-2">
+                        🚀 Welcome to Accordions!
+                      </h6>
                       <p class="mb-0">
                         This panel starts open by default. Accordions are
                         perfect for organizing content in a space-efficient way.
@@ -221,10 +227,10 @@
               <b-card no-body class="mb-1 accordion-item">
                 <b-card-header class="p-0" role="tab">
                   <b-button
-                    @click="toggleAccordion('accordion2')"
                     class="accordion-header w-100 text-start"
                     :class="{ 'accordion-active': accordionStates.accordion2 }"
                     variant="light"
+                    @click="toggleAccordion('accordion2')"
                   >
                     <div
                       class="ps-3 pe-3 py-2 d-flex justify-content-between align-items-center"
@@ -241,8 +247,8 @@
                   </b-button>
                 </b-card-header>
                 <b-collapse
-                  :visible="accordionStates.accordion2"
                   id="accordion2"
+                  :visible="accordionStates.accordion2"
                   role="tabpanel"
                 >
                   <b-card-body>
@@ -262,10 +268,10 @@
               <b-card no-body class="mb-1 accordion-item">
                 <b-card-header class="p-0" role="tab">
                   <b-button
-                    @click="toggleAccordion('accordion3')"
                     class="accordion-header w-100 text-start"
                     :class="{ 'accordion-active': accordionStates.accordion3 }"
                     variant="light"
+                    @click="toggleAccordion('accordion3')"
                   >
                     <div
                       class="ps-3 pe-3 py-2 d-flex justify-content-between align-items-center"
@@ -282,8 +288,8 @@
                   </b-button>
                 </b-card-header>
                 <b-collapse
-                  :visible="accordionStates.accordion3"
                   id="accordion3"
+                  :visible="accordionStates.accordion3"
                   role="tabpanel"
                 >
                   <b-card-body>
@@ -319,14 +325,14 @@
             </p>
             <div role="tablist" class="faq-container">
               <div
-                class="faq-item mb-2"
                 v-for="(faq, index) in faqs"
                 :key="index"
+                class="faq-item mb-2"
               >
                 <div
-                  @click="toggleFaq(index)"
                   class="faq-question p-3 border rounded cursor-pointer d-flex justify-content-between align-items-center"
                   :class="{ 'faq-active': faq.isOpen }"
+                  @click="toggleFaq(index)"
                 >
                   <div class="faq-question-text">
                     <strong>{{ faq.question }}</strong>
@@ -338,7 +344,7 @@
                     ></i>
                   </div>
                 </div>
-                <b-collapse :visible="faq.isOpen" :id="'faq-' + index">
+                <b-collapse :id="'faq-' + index" :visible="faq.isOpen">
                   <div
                     class="faq-answer p-3 border-start border-end border-bottom rounded-bottom"
                   >

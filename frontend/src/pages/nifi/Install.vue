@@ -11,8 +11,8 @@
     <div class="card mb-4">
       <div 
         class="card-header d-flex justify-content-between align-items-center"
-        @click="sourceCollapsed = !sourceCollapsed"
         style="cursor: pointer;"
+        @click="sourceCollapsed = !sourceCollapsed"
       >
         <h5 class="mb-0">
           <i :class="sourceCollapsed ? 'pe-7s-angle-right' : 'pe-7s-angle-down'" class="me-2"></i>
@@ -22,17 +22,17 @@
           <b-button
             variant="light"
             size="sm"
-            @click="checkSourcePath"
             :disabled="!sourceInstance || loadingSourcePath"
             title="Reload and re-check source path status"
+            @click="checkSourcePath"
           >
-            <b-spinner v-if="loadingSourcePath" small></b-spinner>
+            <b-spinner v-if="loadingSourcePath" small />
             <i v-else class="pe-7s-refresh-2"></i>
             Reload paths
           </b-button>
         </div>
       </div>
-      <b-collapse v-model="sourceCollapsed" id="source-collapse">
+      <b-collapse id="source-collapse" v-model="sourceCollapsed">
         <div class="card-body">
           <p class="text-muted">
             Check if source process groups exist for the flow hierarchy. The last
@@ -48,66 +48,67 @@
             />
           </div>
 
-        <div v-if="sourceStatus" class="status-section">
-          <h6>Status:</h6>
-          <div
-            v-for="(status, index) in sourceStatus"
-            :key="index"
-            class="status-item"
-          >
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="status-info">
-                <i
-                  :class="
-                    status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
-                  "
-                ></i>
-                <span>{{ status.path }}</span>
-                <span v-if="status.exists" class="badge bg-success ms-2"
-                  >Exists</span
-                >
-                <span v-else class="badge bg-danger ms-2">Missing</span>
-              </div>
+          <div v-if="sourceStatus" class="status-section">
+            <h6>Status:</h6>
+            <div
+              v-for="(status, index) in sourceStatus"
+              :key="index"
+              class="status-item"
+            >
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="status-info">
+                  <i
+                    :class="
+                      status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
+                    "
+                  ></i>
+                  <span>{{ status.path }}</span>
+                  <span
+                    v-if="status.exists"
+                    class="badge bg-success ms-2"
+                  >Exists</span>
+                  <span v-else class="badge bg-danger ms-2">Missing</span>
+                </div>
               
-              <!-- Individual deployment controls for missing paths -->
-              <div v-if="!status.exists" class="deploy-controls d-flex align-items-center gap-2">
-                <b-form-select
-                  v-model="selectedSourceParameters[status.path]"
-                  :options="sourceParameterOptions"
-                  size="sm"
-                  style="min-width: 140px; max-width: 140px;"
-                  :disabled="!sourceParameterContexts.length"
-                  title="Select parameter context (optional)"
-                />
-                <b-form-select
-                  v-model="selectedSourceFlows[status.path]"
-                  :options="sourceFlowOptions"
-                  size="sm"
-                  style="min-width: 250px; max-width: 250px;"
-                  :disabled="!sourceRegistryFlows.length"
-                  title="Select flow to deploy"
-                />
-                <b-button
-                  variant="success"
-                  size="sm"
-                  class="deploy-btn"
-                  @click="deployFlow(status.path, sourceInstance!, 'source')"
-                  :disabled="!selectedSourceFlows[status.path] || deployingPaths.has(status.path)"
-                  title="Deploy flow to this path"
-                >
-                  <b-spinner v-if="deployingPaths.has(status.path)" small></b-spinner>
-                  <i v-else class="pe-7s-plus"></i>
-                </b-button>
+                <!-- Individual deployment controls for missing paths -->
+                <div v-if="!status.exists" class="deploy-controls d-flex align-items-center gap-2">
+                  <b-form-select
+                    v-model="selectedSourceParameters[status.path]"
+                    :options="sourceParameterOptions"
+                    size="sm"
+                    style="min-width: 140px; max-width: 140px;"
+                    :disabled="!sourceParameterContexts.length"
+                    title="Select parameter context (optional)"
+                  />
+                  <b-form-select
+                    v-model="selectedSourceFlows[status.path]"
+                    :options="sourceFlowOptions"
+                    size="sm"
+                    style="min-width: 250px; max-width: 250px;"
+                    :disabled="!sourceRegistryFlows.length"
+                    title="Select flow to deploy"
+                  />
+                  <b-button
+                    variant="success"
+                    size="sm"
+                    class="deploy-btn"
+                    :disabled="!selectedSourceFlows[status.path] || deployingPaths.has(status.path)"
+                    title="Deploy flow to this path"
+                    @click="deployFlow(status.path, sourceInstance!, 'source')"
+                  >
+                    <b-spinner v-if="deployingPaths.has(status.path)" small />
+                    <i v-else class="pe-7s-plus"></i>
+                  </b-button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div v-if="!sourceRegistryFlows.length && sourceMissingCount > 0" class="alert alert-info mt-3">
-            <i class="pe-7s-info me-2"></i>
-            No registry flows found for this instance. Please add some flows in the Registry section first.
+            <div v-if="!sourceRegistryFlows.length && sourceMissingCount > 0" class="alert alert-info mt-3">
+              <i class="pe-7s-info me-2"></i>
+              No registry flows found for this instance. Please add some flows in the Registry section first.
+            </div>
           </div>
         </div>
-      </div>
       </b-collapse>
     </div>
 
@@ -115,8 +116,8 @@
     <div class="card">
       <div 
         class="card-header d-flex justify-content-between align-items-center"
-        @click="destinationCollapsed = !destinationCollapsed"
         style="cursor: pointer;"
+        @click="destinationCollapsed = !destinationCollapsed"
       >
         <h5 class="mb-0">
           <i :class="destinationCollapsed ? 'pe-7s-angle-right' : 'pe-7s-angle-down'" class="me-2"></i>
@@ -126,17 +127,17 @@
           <b-button
             variant="light"
             size="sm"
-            @click="checkDestinationPath"
             :disabled="!destinationInstance || loadingDestinationPath"
             title="Reload and re-check destination path status"
+            @click="checkDestinationPath"
           >
-            <b-spinner v-if="loadingDestinationPath" small></b-spinner>
+            <b-spinner v-if="loadingDestinationPath" small />
             <i v-else class="pe-7s-refresh-2"></i>
             Reload paths
           </b-button>
         </div>
       </div>
-      <b-collapse v-model="destinationCollapsed" id="destination-collapse">
+      <b-collapse id="destination-collapse" v-model="destinationCollapsed">
         <div class="card-body">
           <p class="text-muted">
             Check if destination process groups exist for the flow hierarchy. The
@@ -159,59 +160,60 @@
               :key="index"
               class="status-item"
             >
-            <div class="d-flex align-items-center justify-content-between">
-              <div class="status-info">
-                <i
-                  :class="
-                    status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
-                  "
-                ></i>
-                <span>{{ status.path }}</span>
-                <span v-if="status.exists" class="badge bg-success ms-2"
-                  >Exists</span
-                >
-                <span v-else class="badge bg-danger ms-2">Missing</span>
-              </div>
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="status-info">
+                  <i
+                    :class="
+                      status.exists ? 'pe-7s-check text-success' : 'pe-7s-close-circle text-danger'
+                    "
+                  ></i>
+                  <span>{{ status.path }}</span>
+                  <span
+                    v-if="status.exists"
+                    class="badge bg-success ms-2"
+                  >Exists</span>
+                  <span v-else class="badge bg-danger ms-2">Missing</span>
+                </div>
               
-              <!-- Individual deployment controls for missing paths -->
-              <div v-if="!status.exists" class="deploy-controls d-flex align-items-center gap-2">
-                <b-form-select
-                  v-model="selectedDestinationParameters[status.path]"
-                  :options="destinationParameterOptions"
-                  size="sm"
-                  style="min-width: 140px; max-width: 140px;"
-                  :disabled="!destinationParameterContexts.length"
-                  title="Select parameter context (optional)"
-                />
-                <b-form-select
-                  v-model="selectedDestinationFlows[status.path]"
-                  :options="destinationFlowOptions"
-                  size="sm"
-                  style="min-width: 250px; max-width: 250px;"
-                  :disabled="!destinationRegistryFlows.length"
-                  title="Select flow to deploy"
-                />
-                <b-button
-                  variant="success"
-                  size="sm"
-                  class="deploy-btn"
-                  @click="deployFlow(status.path, destinationInstance!, 'destination')"
-                  :disabled="!selectedDestinationFlows[status.path] || deployingPaths.has(status.path)"
-                  title="Deploy flow to this path"
-                >
-                  <b-spinner v-if="deployingPaths.has(status.path)" small></b-spinner>
-                  <i v-else class="pe-7s-plus"></i>
-                </b-button>
+                <!-- Individual deployment controls for missing paths -->
+                <div v-if="!status.exists" class="deploy-controls d-flex align-items-center gap-2">
+                  <b-form-select
+                    v-model="selectedDestinationParameters[status.path]"
+                    :options="destinationParameterOptions"
+                    size="sm"
+                    style="min-width: 140px; max-width: 140px;"
+                    :disabled="!destinationParameterContexts.length"
+                    title="Select parameter context (optional)"
+                  />
+                  <b-form-select
+                    v-model="selectedDestinationFlows[status.path]"
+                    :options="destinationFlowOptions"
+                    size="sm"
+                    style="min-width: 250px; max-width: 250px;"
+                    :disabled="!destinationRegistryFlows.length"
+                    title="Select flow to deploy"
+                  />
+                  <b-button
+                    variant="success"
+                    size="sm"
+                    class="deploy-btn"
+                    :disabled="!selectedDestinationFlows[status.path] || deployingPaths.has(status.path)"
+                    title="Deploy flow to this path"
+                    @click="deployFlow(status.path, destinationInstance!, 'destination')"
+                  >
+                    <b-spinner v-if="deployingPaths.has(status.path)" small />
+                    <i v-else class="pe-7s-plus"></i>
+                  </b-button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div v-if="!destinationRegistryFlows.length && destinationMissingCount > 0" class="alert alert-info mt-3">
-            <i class="pe-7s-info me-2"></i>
-            No registry flows found for this instance. Please add some flows in the Registry section first.
+            <div v-if="!destinationRegistryFlows.length && destinationMissingCount > 0" class="alert alert-info mt-3">
+              <i class="pe-7s-info me-2"></i>
+              No registry flows found for this instance. Please add some flows in the Registry section first.
+            </div>
           </div>
         </div>
-      </div>
       </b-collapse>
     </div>
   </div>

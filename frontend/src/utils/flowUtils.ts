@@ -7,7 +7,11 @@ export function getFlowName(flow: Flow, hierarchyConfig: HierarchyAttribute[]): 
   // Try to get the first hierarchy attribute value as the name
   if (hierarchyConfig.length > 0) {
     const firstAttr = hierarchyConfig[0].name.toLowerCase()
-    return flow[`src_${firstAttr}`] || flow[firstAttr] || `Flow ${flow.id}`
+    const srcValue = flow[`src_${firstAttr}`]
+    const attrValue = flow[firstAttr]
+    return (typeof srcValue === 'string' ? srcValue : null) || 
+           (typeof attrValue === 'string' ? attrValue : null) || 
+           `Flow ${flow.id}`
   }
   return `Flow ${flow.id}`
 }
@@ -24,7 +28,8 @@ export function getTopHierarchyValue(
 
   const topAttr = hierarchyConfig[0].name.toLowerCase()
   const prefix = side === 'source' ? 'src_' : 'dest_'
-  return flow[`${prefix}${topAttr}`] || 'N/A'
+  const value = flow[`${prefix}${topAttr}`]
+  return typeof value === 'string' ? value : 'N/A'
 }
 
 /**
@@ -32,12 +37,12 @@ export function getTopHierarchyValue(
  */
 export function getTemplateName(
   templateId: number | null,
-  registryFlows: any[]
+  registryFlows: Array<Record<string, unknown>>
 ): string | null {
   if (!templateId) return null
 
   const template = registryFlows.find((rf) => rf.id === templateId)
-  return template ? template.flow_name : `Template ID ${templateId}`
+  return template ? String(template.flow_name) : `Template ID ${templateId}`
 }
 
 /**
@@ -46,7 +51,7 @@ export function getTemplateName(
 export async function getInstanceIdForHierarchyValue(
   hierarchyValue: string,
   topHierarchyAttr: string,
-  nifiInstances: any[]
+  nifiInstances: Array<Record<string, unknown>>
 ): Promise<number | null> {
   try {
     // Find the instance that matches the hierarchy attribute and value
@@ -57,10 +62,10 @@ export async function getInstanceIdForHierarchyValue(
     )
 
     if (instance) {
-      console.log(
+      console.warn(
         `Found NiFi instance ${instance.id} for ${topHierarchyAttr}=${hierarchyValue}`
       )
-      return instance.id
+      return Number(instance.id)
     }
 
     console.warn(`No NiFi instance found for ${topHierarchyAttr}=${hierarchyValue}`)

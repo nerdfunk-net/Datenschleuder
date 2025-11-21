@@ -24,6 +24,7 @@
             :text="slide.text"
             :alt="slide.alt"
           >
+            <!-- eslint-disable-next-line vue/no-v-html -->
             <div v-if="slide.customContent" v-html="slide.customContent"></div>
           </b-carousel-slide>
         </b-carousel>

@@ -19,6 +19,15 @@ export default [
     ],
   },
 
+  // TypeScript declaration files - more lenient rules
+  {
+    files: ['**/*.d.ts'],
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+
   // TypeScript files configuration
   {
     files: ['**/*.{ts,tsx}'],
@@ -101,6 +110,23 @@ export default [
         alert: 'readonly',
         confirm: 'readonly',
         prompt: 'readonly',
+        // DOM Event types
+        Event: 'readonly',
+        MouseEvent: 'readonly',
+        KeyboardEvent: 'readonly',
+        DragEvent: 'readonly',
+        FocusEvent: 'readonly',
+        InputEvent: 'readonly',
+        // DOM Element types
+        HTMLElement: 'readonly',
+        HTMLTableCellElement: 'readonly',
+        Element: 'readonly',
+        Node: 'readonly',
+        // Browser API types
+        File: 'readonly',
+        FileList: 'readonly',
+        FormData: 'readonly',
+        Blob: 'readonly',
         // Node/Vite globals
         process: 'readonly',
         import: 'readonly',
@@ -147,6 +173,19 @@ export default [
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        fetch: 'readonly',
+        // Node globals
         process: 'readonly',
         __dirname: 'readonly',
         import: 'readonly',

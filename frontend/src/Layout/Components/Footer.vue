@@ -116,7 +116,7 @@
 import { defineComponent, ref, onMounted, onUnmounted } from "vue";
 
 export default defineComponent({
-  name: "Footer",
+  name: "AppFooter",
   setup() {
     const activeDropdown = ref(null);
 

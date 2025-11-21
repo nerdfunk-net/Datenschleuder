@@ -192,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, reactive } from "vue";
+import { ref, onMounted, reactive } from "vue";
 import { apiRequest } from "@/utils/api";
 import { useAuth } from "@/composables/useAuth";
 
@@ -252,7 +252,7 @@ const settings = ref<DeploymentSettings>({
 
 const loadHierarchy = async () => {
   try {
-    const data = await apiRequest("/api/settings/hierarchy");
+    const data = await apiRequest("/api/settings/hierarchy") as any;
     if (data.hierarchy && data.hierarchy.length > 0) {
       // Get the top hierarchy attribute name
       topHierarchyName.value = data.hierarchy[0].name;
@@ -265,7 +265,7 @@ const loadHierarchy = async () => {
 const loadInstances = async () => {
   loadingInstances.value = true;
   try {
-    const data = await apiRequest("/api/nifi-instances/");
+    const data = await apiRequest("/api/nifi-instances/") as any;
     instances.value = data;
 
     // Initialize path settings for each instance if not already set
@@ -287,7 +287,7 @@ const loadInstances = async () => {
 const loadPathsForInstance = async (instanceId: number) => {
   loadingPaths[instanceId] = true;
   try {
-    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-all-paths`);
+    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-all-paths`) as any;
     if (data.process_groups) {
       instancePaths[instanceId] = data.process_groups;
     }
@@ -378,7 +378,7 @@ const updateDestPath = (instanceId: number, pgId: string) => {
 
 const loadSettings = async () => {
   try {
-    const data = await apiRequest("/api/settings/deploy");
+    const data = await apiRequest("/api/settings/deploy") as any;
 
     // Convert string keys to numbers since JSON serialization converts numeric keys to strings
     const paths: {

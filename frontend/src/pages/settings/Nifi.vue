@@ -298,7 +298,7 @@ const hierarchyValueOptions = computed(() => {
 
 const loadCertificates = async () => {
   try {
-    const data = await apiRequest("/api/authentication/get-certificates");
+    const data = await apiRequest("/api/authentication/get-certificates") as any;
     certificates.value = data.certificates || [];
   } catch (error) {
     console.error("Error loading certificates:", error);
@@ -315,7 +315,7 @@ const authMethodOptions = computed(() => {
 
 const loadHierarchy = async () => {
   try {
-    const data = await apiRequest("/api/settings/hierarchy");
+    const data = await apiRequest("/api/settings/hierarchy") as any;
     hierarchyConfig.value = data.hierarchy || [];
 
     // Load values for top hierarchy
@@ -323,7 +323,7 @@ const loadHierarchy = async () => {
       const topAttr = hierarchyConfig.value[0];
       const valuesData = await apiRequest(
         `/api/settings/hierarchy/values/${encodeURIComponent(topAttr.name)}`,
-      );
+      ) as any;
       topAttr.values = valuesData.values || [];
     }
   } catch (error) {
@@ -334,7 +334,7 @@ const loadHierarchy = async () => {
 const loadInstances = async () => {
   loading.value = true;
   try {
-    const data = await apiRequest("/api/nifi-instances/");
+    const data = await apiRequest("/api/nifi-instances/") as any;
     instances.value = data;
   } catch (error) {
     console.error("Error loading instances:", error);
@@ -422,7 +422,7 @@ const testConnection = async (instanceId: number) => {
       {
         method: "POST",
       },
-    );
+    ) as any;
 
     if (result.status === "success") {
       alert(
@@ -454,7 +454,7 @@ const testConnectionFromModal = async () => {
     const result = await apiRequest("/api/nifi-instances/test", {
       method: "POST",
       body: JSON.stringify(payload),
-    });
+    }) as any;
 
     if (result.status === "success") {
       alert(

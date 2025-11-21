@@ -20,8 +20,10 @@ import Footer from "../Components/Footer.vue";
 export default defineComponent({
   name: "BaseLayout",
   components: {
+    // eslint-disable-next-line vue/no-reserved-component-names
     Header,
     SidebarNav,
+    // eslint-disable-next-line vue/no-reserved-component-names
     Footer,
   },
 });

@@ -2,7 +2,7 @@ import { ref, computed } from 'vue'
 
 export interface Flow {
   id: number
-  [key: string]: any
+  [key: string]: unknown
   source: string
   destination: string
 }
@@ -19,6 +19,44 @@ export interface ProcessGroupPath {
   parent_group_id: string | null
   depth: number
   path: Array<{ id: string; name: string; parent_group_id: string | null }>
+}
+
+export interface NiFiInstance {
+  id: number
+  hierarchy_attribute?: string
+  hierarchy_value?: string
+  nifi_url?: string
+  [key: string]: unknown
+}
+
+export interface RegistryFlow {
+  id: number
+  flow_name: string
+  nifi_instance_name?: string
+  [key: string]: unknown
+}
+
+export interface ConflictInfo {
+  message: string
+  existing_process_group: {
+    id: string
+    name: string
+    running_count: number
+    stopped_count: number
+    has_version_control: boolean
+    [key: string]: unknown
+  }
+  [key: string]: unknown
+}
+
+export interface ConflictDeployment {
+  flow: Flow
+  target: 'source' | 'destination'
+  instanceId: number
+  hierarchyValue: string
+  processGroupName: string
+  deploymentRequest: Record<string, unknown>
+  config: DeploymentConfig
 }
 
 export interface DeploymentConfig {
@@ -44,15 +82,28 @@ export interface DeploymentSettings {
     stop_versioning_after_deploy: boolean
     start_after_deploy: boolean
   }
-  paths: Record<string, any>
+  paths: Record<string, unknown>
+}
+
+export interface DeploymentResult {
+  success: boolean
+  message: string
+  config: DeploymentConfig
+  processGroupName?: string
+  processGroupId?: string
+  flowName?: string
+  target?: string
+  instance?: string
+  error?: string
+  [key: string]: unknown
 }
 
 export interface DeploymentResults {
   successCount: number
   failCount: number
   total: number
-  successful: any[]
-  failed: any[]
+  successful: DeploymentResult[]
+  failed: DeploymentResult[]
 }
 
 export function useDeploymentWizard() {
@@ -74,8 +125,8 @@ export function useDeploymentWizard() {
   const selectedFlows = ref<number[]>([])
   const hierarchyConfig = ref<HierarchyAttribute[]>([])
   const visibleColumns = ref<Array<{ key: string; label: string }>>([])
-  const nifiInstances = ref<any[]>([])
-  const registryFlows = ref<any[]>([])
+  const nifiInstances = ref<NiFiInstance[]>([])
+  const registryFlows = ref<RegistryFlow[]>([])
 
   // Deployment configuration
   const deploymentTargets = ref<Record<number, 'source' | 'destination' | 'both'>>({})
@@ -93,8 +144,8 @@ export function useDeploymentWizard() {
 
   // Conflict resolution
   const showConflictModal = ref(false)
-  const conflictInfo = ref<any>(null)
-  const currentConflictDeployment = ref<any>(null)
+  const conflictInfo = ref<ConflictInfo | null>(null)
+  const currentConflictDeployment = ref<ConflictDeployment | null>(null)
   const isResolvingConflict = ref(false)
   const conflictResolution = ref<string>('')
 

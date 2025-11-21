@@ -524,7 +524,7 @@ export default {
 
         this.mapLoaded = true;
         this.mapError = false;
-      } catch (_error) {
+      } catch {
         this.mapError = true;
         this.mapLoaded = false;
       }

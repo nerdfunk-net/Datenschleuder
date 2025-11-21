@@ -267,7 +267,7 @@ const hasErrors = computed(() => {
 
 const loadSettings = async () => {
   try {
-    const data = await apiRequest("/api/settings/hierarchy");
+    const data = await apiRequest("/api/settings/hierarchy") as any;
     settings.value = data;
   } catch (error) {
     console.error("Error loading settings:", error);
@@ -368,7 +368,7 @@ const viewAttribute = async (index: number) => {
     // Fetch values from backend
     const data = await apiRequest(
       `/api/settings/hierarchy/values/${encodeURIComponent(attr.name)}`,
-    );
+    ) as any;
     editingAttribute.value = {
       ...attr,
       values: data.values || [],
@@ -393,7 +393,7 @@ const editAttribute = async (index: number) => {
     // Fetch values from backend
     const data = await apiRequest(
       `/api/settings/hierarchy/values/${encodeURIComponent(attr.name)}`,
-    );
+    ) as any;
     editingAttribute.value = {
       ...attr,
       values: data.values || [],

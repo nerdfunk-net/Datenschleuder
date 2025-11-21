@@ -347,7 +347,7 @@ const destinationParameterOptions = computed(() => {
 
 const loadInstances = async () => {
   try {
-    const data = await apiRequest("/api/nifi-instances/");
+    const data = await apiRequest("/api/nifi-instances/") as any;
     instances.value = data;
   } catch (error) {
     console.error("Error loading instances:", error);
@@ -357,7 +357,7 @@ const loadInstances = async () => {
 
 const loadHierarchyConfig = async () => {
   try {
-    const data = await apiRequest("/api/settings/hierarchy");
+    const data = await apiRequest("/api/settings/hierarchy") as any;
     if (data.hierarchy) {
       hierarchyConfig.value = data.hierarchy.sort(
         (a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order,
@@ -445,7 +445,7 @@ const getHierarchyAttributeFromPath = (
 
 const loadRegistryFlows = async (instanceId: number, type: 'source' | 'destination') => {
   try {
-    const flows = await apiRequest(`/api/registry-flows/?nifi_instance=${instanceId}`);
+    const flows = await apiRequest(`/api/registry-flows/?nifi_instance=${instanceId}`) as any;
     if (type === 'source') {
       sourceRegistryFlows.value = flows;
     } else {
@@ -458,7 +458,7 @@ const loadRegistryFlows = async (instanceId: number, type: 'source' | 'destinati
 
 const loadParameterContexts = async (instanceId: number, type: 'source' | 'destination') => {
   try {
-    const response = await apiRequest(`/api/nifi-instances/${instanceId}/get-parameters`);
+    const response = await apiRequest(`/api/nifi-instances/${instanceId}/get-parameters`) as any;
     // Extract parameter_contexts array from response
     const parameters = response.parameter_contexts || [];
     if (type === 'source') {
@@ -484,7 +484,7 @@ const checkSourcePath = async () => {
   try {
     const data = await apiRequest(
       `/api/nifi-install/check-path?instance_id=${sourceInstance.value}&path_type=source`,
-    );
+    ) as any;
     sourceStatus.value = data.status;
   } catch (error: any) {
     console.error("Error checking source path:", error);
@@ -501,7 +501,7 @@ const checkDestinationPath = async () => {
   try {
     const data = await apiRequest(
       `/api/nifi-install/check-path?instance_id=${destinationInstance.value}&path_type=destination`,
-    );
+    ) as any;
     destinationStatus.value = data.status;
   } catch (error: any) {
     console.error("Error checking destination path:", error);

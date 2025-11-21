@@ -107,7 +107,7 @@ router.beforeEach(async (to, from, next) => {
   } else if (requiresAdmin && isAuthenticated) {
     // Check if user is admin for admin-only routes
     try {
-      const user = await api.get("/api/users/me");
+      const user = await api.get("/api/users/me") as { is_superuser: boolean };
       if (user.is_superuser) {
         next();
       } else {

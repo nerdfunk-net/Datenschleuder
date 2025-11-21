@@ -936,7 +936,6 @@ const isViewMode = ref(false);
 const deployingFlows = ref<Record<string, boolean>>({});
 const deploymentSettings = ref<any>(null);
 const nifiInstances = ref<any[]>([]);
-const processGroupPaths = ref<Record<string, any[]>>({});
 
 // Parameter context management
 const sourceNiFiInstanceId = ref<number | null>(null);
@@ -1143,7 +1142,7 @@ const loadHierarchyValues = async () => {
     for (const col of hierarchyColumns.value) {
       const data = await apiRequest(
         `/api/settings/hierarchy/values/${encodeURIComponent(col.name)}`,
-      );
+      ) as any;
       hierarchyValues.value[col.name] = data.values || [];
     }
   } catch (error) {
@@ -1153,7 +1152,7 @@ const loadHierarchyValues = async () => {
 
 const loadHierarchyConfig = async () => {
   try {
-    const data = await apiRequest("/api/settings/hierarchy");
+    const data = await apiRequest("/api/settings/hierarchy") as any;
     if (data.hierarchy) {
       hierarchyConfig.value = data.hierarchy.sort(
         (a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order,
@@ -1166,7 +1165,7 @@ const loadHierarchyConfig = async () => {
 
 const loadRegistryFlows = async () => {
   try {
-    const flows = await apiRequest("/api/registry-flows/");
+    const flows = await apiRequest("/api/registry-flows/") as any;
     registryFlows.value = flows;
   } catch (error) {
     console.error("Error loading registry flows:", error);
@@ -1186,7 +1185,7 @@ const loadFlows = async () => {
 
   isLoading.value = true;
   try {
-    const data = await apiRequest("/api/nifi-flows/");
+    const data = await apiRequest("/api/nifi-flows/") as any;
     flows.value = data.flows || [];
   } catch (error) {
     console.error("Error loading flows:", error);
@@ -1577,7 +1576,7 @@ const loadParameterContexts = async (instanceId: number, isSource: boolean) => {
   }
 
   try {
-    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-parameters`);
+    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-parameters`) as any;
 
     const options = [
       { value: "", text: "Select a parameter context..." },
@@ -1623,7 +1622,7 @@ const updateSourceParameterContexts = async () => {
   // Load NiFi instances if not already loaded
   if (nifiInstances.value.length === 0) {
     try {
-      const data = await apiRequest("/api/nifi-instances/");
+      const data = await apiRequest("/api/nifi-instances/") as any;
       nifiInstances.value = data;
     } catch (error) {
       console.error("Error loading NiFi instances:", error);
@@ -1658,7 +1657,7 @@ const updateDestParameterContexts = async () => {
   // Load NiFi instances if not already loaded
   if (nifiInstances.value.length === 0) {
     try {
-      const data = await apiRequest("/api/nifi-instances/");
+      const data = await apiRequest("/api/nifi-instances/") as any;
       nifiInstances.value = data;
     } catch (error) {
       console.error("Error loading NiFi instances:", error);
@@ -1762,7 +1761,7 @@ const quickDeploy = async (flow: any, target: "source" | "destination") => {
       const result = await apiRequest(`/api/deploy/${instanceId}/flow`, {
         method: "POST",
         body: JSON.stringify(deploymentRequest),
-      });
+      }) as any;
 
       if (result.status === "success") {
         // Show success modal
@@ -1872,7 +1871,7 @@ const handleConflictResolution = async (resolution: string) => {
       const result = await apiRequest(`/api/deploy/${instanceId}/flow`, {
         method: "POST",
         body: JSON.stringify(modifiedRequest),
-      });
+      }) as any;
 
       if (result.status === "success") {
         showConflictModal.value = false;
@@ -1904,7 +1903,7 @@ const handleConflictResolution = async (resolution: string) => {
       const result = await apiRequest(`/api/deploy/${instanceId}/flow`, {
         method: "POST",
         body: JSON.stringify(deploymentRequest),
-      });
+      }) as any;
 
       if (result.status === "success") {
         showConflictModal.value = false;
@@ -1935,7 +1934,7 @@ const handleConflictResolution = async (resolution: string) => {
           method: "POST",
           body: JSON.stringify(updateRequest),
         },
-      );
+      ) as any;
 
       if (result.status === "success") {
         showConflictModal.value = false;
@@ -1990,7 +1989,7 @@ const getInstanceIdForHierarchyValue = async (
 ): Promise<number | null> => {
   try {
     if (nifiInstances.value.length === 0) {
-      const data = await apiRequest("/api/nifi-instances/");
+      const data = await apiRequest("/api/nifi-instances/") as any;
       nifiInstances.value = data;
     }
 
@@ -2011,12 +2010,12 @@ const autoSelectProcessGroupForFlow = async (
   flow: any,
   target: "source" | "destination",
   instanceId: number,
-  cacheKey: string,
+  _cacheKey: string,
 ): Promise<string | null> => {
   try {
     // Load deployment settings if not already loaded
     if (!deploymentSettings.value) {
-      const data = await apiRequest("/api/settings/deploy");
+      const data = await apiRequest("/api/settings/deploy") as any;
       const paths: {
         [key: number]: { source_path?: string; dest_path?: string };
       } = {};
@@ -2585,7 +2584,7 @@ onMounted(async () => {
 .hierarchy-dropdown-btn {
   flex-shrink: 0;
 
-  ::v-deep .btn {
+  :deep(.btn) {
     padding: 0 8px;
     height: 100%;
     border: 1px solid #ced4da;
@@ -2610,7 +2609,7 @@ onMounted(async () => {
     }
   }
 
-  ::v-deep .dropdown-menu {
+  :deep(.dropdown-menu) {
     min-width: 200px;
     max-height: 200px;
     overflow-y: auto;

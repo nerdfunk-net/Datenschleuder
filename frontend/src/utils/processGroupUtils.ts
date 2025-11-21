@@ -59,10 +59,11 @@ export function autoSelectProcessGroup(
       return null
     }
 
+    const instanceSettings = deploymentSettings.paths[instanceId] as { source_path?: string; dest_path?: string }
     const searchPathId =
       target === 'source'
-        ? deploymentSettings.paths[instanceId].source_path
-        : deploymentSettings.paths[instanceId].dest_path
+        ? instanceSettings.source_path
+        : instanceSettings.dest_path
 
     if (!searchPathId) {
       return null
@@ -90,7 +91,7 @@ export function autoSelectProcessGroup(
     for (let i = 1; i < hierarchyConfig.length - 1; i++) {
       const attrName = hierarchyConfig[i].name.toLowerCase()
       const value = flow[`${prefix}${attrName}`]
-      if (value) {
+      if (value && typeof value === 'string') {
         hierarchyAttributes.push(value)
       }
     }
@@ -179,7 +180,7 @@ export function getHierarchyAttributeForProcessGroup(
   if (!selectedPg || !selectedPg.path || selectedPg.path.length === 0) return null
 
   // Get configured path for this instance
-  const instanceSettings = deploymentSettings.paths?.[instanceId]
+  const instanceSettings = deploymentSettings.paths?.[instanceId] as { source_path?: { id: string; path: string }; dest_path?: { id: string; path: string } } | undefined
   if (!instanceSettings) return null
 
   // Get the PathConfig object (contains id and path properties)
@@ -193,8 +194,8 @@ export function getHierarchyAttributeForProcessGroup(
 
   // Build PG path string from the path array (excluding root)
   const pgPathSegments = selectedPg.path
-    .filter((p: any) => p.name !== 'NiFi Flow') // Exclude root
-    .map((p: any) => p.name)
+    .filter((p: { name?: string }) => p.name !== 'NiFi Flow') // Exclude root
+    .map((p: { name?: string }) => p.name || '')
 
   // Count configured path segments
   const configuredSegments = configuredPath.split('/').filter((p: string) => p.length > 0)
@@ -231,8 +232,8 @@ export function generateProcessGroupName(
 
   for (let i = 0; i < hierarchyConfig.length; i++) {
     const attrName = hierarchyConfig[i].name.toLowerCase()
-    const value = flow[`${prefix}${attrName}`] || ''
-    hierarchyValues.push(value)
+    const value = flow[`${prefix}${attrName}`]
+    hierarchyValues.push(typeof value === 'string' ? value : '')
   }
 
   // Replace placeholders in template

@@ -239,6 +239,7 @@
               <h5 class="card-title">
                 Checkbox Buttons
               </h5>
+              <!-- eslint-disable-next-line vue/no-lone-template -->
               <template>
                 <div class="text-center">
                   <b-form-checkbox-group
@@ -274,6 +275,7 @@
               <h5 class="card-title">
                 Radio Buttons
               </h5>
+              <!-- eslint-disable-next-line vue/no-lone-template -->
               <template>
                 <div class="text-center">
                   <b-form-radio-group

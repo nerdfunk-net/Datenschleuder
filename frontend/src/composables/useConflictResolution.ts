@@ -1,13 +1,40 @@
 import { apiRequest } from '@/utils/api'
+import type { DeploymentConfig as WizardDeploymentConfig } from './useDeploymentWizard'
+
+export type DeploymentConfig = WizardDeploymentConfig
+
+export interface DeploymentRequest {
+  process_group_name?: string | null
+  version?: number
+  [key: string]: unknown
+}
+
+export interface ConflictInfo {
+  message: string
+  existing_process_group: {
+    id: string
+    name?: string
+    [key: string]: unknown
+  }
+  [key: string]: unknown
+}
+
+export interface DeploymentResult {
+  success: boolean
+  status: string
+  process_group_name?: string
+  message?: string
+  [key: string]: unknown
+}
 
 /**
  * Handle conflict resolution for deployment conflicts
  */
 export async function handleConflictResolution(
   resolution: 'deploy_anyway' | 'delete_and_deploy' | 'update_version',
-  config: any,
-  deploymentRequest: any,
-  conflictInfo: any
+  config: DeploymentConfig,
+  deploymentRequest: DeploymentRequest,
+  conflictInfo: ConflictInfo
 ) {
   const existingPgId = conflictInfo.existing_process_group.id
 
@@ -21,7 +48,7 @@ export async function handleConflictResolution(
     const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
       method: 'POST',
       body: JSON.stringify(modifiedRequest)
-    })
+    }) as DeploymentResult
 
     if (result.status === 'success') {
       return {
@@ -43,7 +70,7 @@ export async function handleConflictResolution(
     const result = await apiRequest(`/api/deploy/${config.instanceId}/flow`, {
       method: 'POST',
       body: JSON.stringify(deploymentRequest)
-    })
+    }) as DeploymentResult
 
     if (result.status === 'success') {
       return {
@@ -64,7 +91,7 @@ export async function handleConflictResolution(
         method: 'POST',
         body: JSON.stringify(updateRequest)
       }
-    )
+    ) as DeploymentResult
 
     if (result.status === 'success') {
       return {

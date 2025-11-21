@@ -30,7 +30,8 @@ ChartJS.register(
 export default {
   name: "Chart2",
   components: {
-    Line,
+    // eslint-disable-next-line vue/no-reserved-component-names
+    Line: Line,
   },
   props: {
     height: {

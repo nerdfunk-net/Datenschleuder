@@ -157,9 +157,9 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:show', value: boolean): void
-  (e: 'resolve', action: 'deploy_anyway' | 'delete_and_deploy' | 'update_version'): void
-  (e: 'cancel'): void
+  (_e: 'update:show', _value: boolean): void
+  (_e: 'resolve', _action: 'deploy_anyway' | 'delete_and_deploy' | 'update_version'): void
+  (_e: 'cancel'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {

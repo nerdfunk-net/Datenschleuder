@@ -174,9 +174,9 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'update:show', value: boolean): void
-  (e: 'done'): void
-  (e: 'review'): void
+  (_e: 'update:show', _value: boolean): void
+  (_e: 'done'): void
+  (_e: 'review'): void
 }
 
 const props = defineProps<Props>()

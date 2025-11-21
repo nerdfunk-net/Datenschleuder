@@ -4,8 +4,6 @@
  * In production, the frontend is served from the same origin as the backend
  */
 
-const API_BASE_URL = "";
-
 // Flag to prevent multiple concurrent refresh attempts
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
@@ -49,7 +47,7 @@ async function refreshAccessToken(): Promise<string> {
 /**
  * Make an authenticated API request
  */
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<T> {
@@ -102,7 +100,7 @@ export async function apiRequest<T = any>(
           ...options,
           headers,
         });
-      } catch (error) {
+      } catch {
         // Refresh failed, redirect to login
         isRefreshing = false;
         refreshPromise = null;
@@ -127,11 +125,17 @@ export async function apiRequest<T = any>(
       .catch(() => ({ detail: "Request failed" }));
 
     // Create error object with proper structure
-    const apiError: any = new Error(
+    interface ApiError extends Error {
+      status: number;
+      detail: unknown;
+      response: unknown;
+    }
+
+    const apiError = new Error(
       typeof error.detail === "string"
         ? error.detail
         : error.message || `Request failed with status ${response.status}`,
-    );
+    ) as ApiError;
     apiError.status = response.status;
     apiError.detail = error.detail;
     apiError.response = error;
@@ -204,27 +208,27 @@ export async function logout() {
  * Default API object with axios-like interface
  */
 const api = {
-  get: <T = any>(url: string, config?: RequestInit) =>
+  get: <T = unknown>(url: string, config?: RequestInit) =>
     apiRequest<T>(url, { ...config, method: "GET" }),
 
-  post: <T = any>(url: string, data?: any, config?: RequestInit) =>
+  post: <T = unknown>(url: string, data?: unknown, config?: RequestInit) =>
     apiRequest<T>(url, {
       ...config,
       method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  put: <T = any>(url: string, data?: any, config?: RequestInit) =>
+  put: <T = unknown>(url: string, data?: unknown, config?: RequestInit) =>
     apiRequest<T>(url, {
       ...config,
       method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
-  delete: <T = any>(url: string, config?: RequestInit) =>
+  delete: <T = unknown>(url: string, config?: RequestInit) =>
     apiRequest<T>(url, { ...config, method: "DELETE" }),
 
-  patch: <T = any>(url: string, data?: any, config?: RequestInit) =>
+  patch: <T = unknown>(url: string, data?: unknown, config?: RequestInit) =>
     apiRequest<T>(url, {
       ...config,
       method: "PATCH",

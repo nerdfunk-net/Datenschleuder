@@ -211,7 +211,7 @@ const isAdmin = ref(false);
 // Load current user info
 onMounted(async () => {
   try {
-    const response = await api.get("/api/users/me");
+    const response = await api.get("/api/users/me") as any;
     username.value = response.username;
     isAdmin.value = response.is_superuser;
     console.log("Current user:", response);

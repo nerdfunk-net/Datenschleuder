@@ -504,7 +504,6 @@ import api from "@/utils/api";
 
 // Simple notification helper
 const showError = (message: string) => alert("Error: " + message);
-const showSuccess = (message: string) => alert("Success: " + message);
 
 // State
 const loading = ref(false);
@@ -604,7 +603,7 @@ async function buildInheritedParametersMap(
 
       const response = await api.get(
         `/api/nifi-instances/${instanceId}/parameter-contexts/${contextId}`
-      );
+      ) as any;
 
       console.log("Inherited context response:", response);
 
@@ -681,7 +680,7 @@ function buildCombinedParametersList(localParams: any[], inheritedMap: Map<strin
 async function loadInstances() {
   try {
     loading.value = true;
-    const response = await api.get("/api/nifi-instances/");
+    const response = await api.get("/api/nifi-instances/") as any;
     instances.value = response;
 
     // Load parameter contexts for each instance
@@ -700,7 +699,7 @@ async function loadParameterContexts(instanceId: number) {
     instanceLoading.value[instanceId] = true;
     const response = await api.get(
       `/api/nifi-instances/${instanceId}/get-parameters`,
-    );
+    ) as any;
 
     console.log(
       `Loaded parameter contexts for instance ${instanceId}:`,
@@ -760,7 +759,7 @@ async function editParameterContext(instanceId: number, context: any) {
 
     const response = await api.get(
       `/api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`
-    );
+    ) as any;
 
     console.log("API Response:", response);
 
@@ -995,7 +994,7 @@ async function showInheritanceModal() {
     console.log("Fetching all parameter contexts for instance:", form.value.instance_id);
     const response = await api.get(
       `/api/nifi-instances/${form.value.instance_id}/get-parameters`
-    );
+    ) as any;
 
     console.log("Parameter contexts response:", response);
 
@@ -1046,11 +1045,6 @@ function onInheritanceModalShow(event: any) {
 
 function onInheritanceModalShown() {
   console.log("onInheritanceModalShown - modal is fully shown");
-}
-
-function onModalOk(event: any) {
-  console.log("onModalOk - preventing default OK behavior");
-  event.preventDefault();
 }
 
 function onInheritanceModalHide(event: any) {

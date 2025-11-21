@@ -286,24 +286,6 @@ const formData = ref({
   is_active: true,
 });
 
-const fields = [
-  { key: "username", label: "Username", sortable: true },
-  { key: "role", label: "Role", sortable: true },
-  { key: "status", label: "Status", sortable: true },
-  { key: "created_at", label: "Created", sortable: true },
-  { key: "actions", label: "Actions", class: "text-end" },
-];
-
-const roleOptions = [
-  { value: false, text: "User" },
-  { value: true, text: "Admin" },
-];
-
-const statusOptions = [
-  { value: true, text: "Active" },
-  { value: false, text: "Inactive" },
-];
-
 const canChangePassword = computed(() => {
   return !editingUser.value || !editingUser.value.is_oidc_user;
 });

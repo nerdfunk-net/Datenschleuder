@@ -48,7 +48,7 @@ import SearchBox from "./Header/SearchBox.vue";
 import UserArea from "./Header/HeaderUserArea.vue";
 
 export default defineComponent({
-  name: "Header",
+  name: "AppHeader",
   components: {
     SearchBox,
     UserArea,

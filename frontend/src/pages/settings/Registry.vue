@@ -492,7 +492,6 @@ const isSaving = ref(false);
 
 // Data loading
 const nifiInstances = ref<NiFiInstance[]>([]);
-const registries = ref<Registry[]>([]);
 const buckets = ref<Bucket[]>([]);
 const availableFlows = ref<Flow[]>([]);
 
@@ -665,7 +664,7 @@ const onInstanceChange = async () => {
     // Get registry clients from this NiFi instance
     const response = await apiRequest(
       `/api/nifi-instances/${selectedInstance.value.id}/get-registries`,
-    );
+    ) as any;
 
     if (response.registry_clients && response.registry_clients.length > 0) {
       // Use the first registry (or we could let user select)
@@ -678,7 +677,7 @@ const onInstanceChange = async () => {
       // Load buckets from this registry
       const bucketsResponse = await apiRequest(
         `/api/nifi-instances/${selectedInstance.value.id}/registry/${firstRegistry.id}/get-buckets`,
-      );
+      ) as any;
       buckets.value = bucketsResponse.buckets || [];
     } else {
       alert("No registries found for this NiFi instance");
@@ -709,7 +708,7 @@ const onBucketChange = async () => {
   try {
     const response = await apiRequest(
       `/api/nifi-instances/${selectedInstance.value.id}/registry/${selectedRegistry.value.id}/${selectedBucket.value.identifier}/get-flows`,
-    );
+    ) as any;
     availableFlows.value = response.flows || [];
   } catch (error) {
     console.error("Error loading flows:", error);
@@ -747,7 +746,7 @@ const saveFlows = async () => {
     const result = await apiRequest("/api/registry-flows/", {
       method: "POST",
       body: JSON.stringify(flowsToSave),
-    });
+    }) as any;
 
     alert(
       `Successfully saved ${result.created} flow(s)` +
@@ -931,7 +930,7 @@ const onImportInstanceChange = async () => {
   try {
     const response = await apiRequest(
       `/api/nifi-instances/${importSelectedInstance.value.id}/get-registries`,
-    );
+    ) as any;
     importRegistries.value = response.registries || [];
   } catch (error) {
     console.error("Error loading registries:", error);
@@ -955,7 +954,7 @@ const onImportRegistryChange = async () => {
   try {
     const response = await apiRequest(
       `/api/nifi-instances/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/get-buckets`,
-    );
+    ) as any;
     importBuckets.value = response.buckets || [];
   } catch (error) {
     console.error("Error loading buckets:", error);
@@ -972,7 +971,7 @@ const loadImportFlows = async () => {
   try {
     const response = await apiRequest(
       `/api/nifi-instances/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/${importSelectedBucket.value.identifier}/get-flows`,
-    );
+    ) as any;
     importFlows.value = response.flows || [];
   } catch (error) {
     console.error("Error loading flows:", error);

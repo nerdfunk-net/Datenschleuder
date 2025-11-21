@@ -513,8 +513,8 @@
     <!-- Conflict Resolution Modal -->
     <ConflictResolutionModal
       v-model:show="showConflictModal"
-      :conflict-info="conflictInfo"
-      :deployment-config="currentConflictDeployment?.config"
+      :conflict-info="(conflictInfo as ConflictInfo)"
+      :deployment-config="(currentConflictDeployment as ConflictDeployment | null)?.config"
       :is-resolving="isResolvingConflict"
       @resolve="handleConflictResolution"
       @cancel="showConflictModal = false"
@@ -539,7 +539,7 @@ import * as processGroupUtils from "@/utils/processGroupUtils";
 import * as flowUtils from "@/utils/flowUtils";
 import ConflictResolutionModal from "@/components/flows/deploy/ConflictResolutionModal.vue";
 import DeploymentResultsModal from "@/components/flows/deploy/DeploymentResultsModal.vue";
-import type { ProcessGroupPath, Flow, HierarchyAttribute, DeploymentConfig } from "@/composables/useDeploymentWizard";
+import type { Flow, DeploymentConfig, ConflictDeployment, ConflictInfo } from "@/composables/useDeploymentWizard";
 
 // Use the deployment wizard composable for state management
 const {
@@ -568,7 +568,6 @@ const {
   allSelected,
   selectedFlowObjects,
   topHierarchyName,
-  secondHierarchyName,
   allTargetsSelected,
   allProcessGroupsSelected,
   uniqueInstancesCount,
@@ -581,7 +580,7 @@ const {
 } = useDeploymentWizard();
 
 // Use deployment operations composable
-const { prepareDeploymentConfigs, deployFlows, loadProcessGroupPaths } =
+const { prepareDeploymentConfigs, deployFlows } =
   useDeploymentOperations(
     selectedFlows,
     deploymentTargets,
@@ -597,7 +596,8 @@ const { prepareDeploymentConfigs, deployFlows, loadProcessGroupPaths } =
     currentConflictDeployment,
     showConflictModal,
     deploymentResults,
-    showResultsModal
+    showResultsModal,
+    flows
   );
 
 // Wrapper methods that use utilities
@@ -615,15 +615,6 @@ const goToNextStep = async () => {
     await prepareDeploymentConfigs(flows.value);
   }
   wizardGoToNextStep();
-};
-
-// Utility wrapper functions (keep these lightweight wrappers)
-const getSuggestedPath = (flow: Flow, side: "source" | "destination") => {
-  return processGroupUtils.getSuggestedPath(flow, side, hierarchyConfig.value);
-};
-
-const getTemplateName = (templateId: number | null): string | null => {
-  return flowUtils.getTemplateName(templateId, registryFlows.value);
 };
 
 const updateProcessGroupSelection = (deployment: DeploymentConfig) => {
@@ -644,13 +635,13 @@ const handleConflictResolution = async (resolution: 'deploy_anyway' | 'delete_an
 
   try {
     const { handleConflictResolution: resolveConflict } = await import('@/composables/useConflictResolution');
-    const { config, deploymentRequest } = currentConflictDeployment.value;
+    const deployment = currentConflictDeployment.value as ConflictDeployment;
 
     const result = await resolveConflict(
       resolution,
-      config,
-      deploymentRequest,
-      conflictInfo.value
+      deployment.config,
+      deployment.deploymentRequest,
+      conflictInfo.value as ConflictInfo
     );
 
     if (result.success) {
@@ -698,7 +689,7 @@ const loadFlows = async () => {
   try {
     const flows_data = await deploymentService.loadFlows();
     if (flows_data) {
-      flows.value = flows_data;
+      flows.value = flows_data as Flow[];
     }
   } catch (error) {
     console.error("Error loading flows:", error);

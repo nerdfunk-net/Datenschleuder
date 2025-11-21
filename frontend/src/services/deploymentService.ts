@@ -27,6 +27,31 @@ export interface ConflictResolution {
   deployment_request: DeploymentRequest
 }
 
+export interface FlowsResponse {
+  flows: unknown[]
+}
+
+export interface HierarchyAttribute {
+  name: string
+  label: string
+  order: number
+  [key: string]: unknown
+}
+
+export interface HierarchyResponse {
+  hierarchy?: HierarchyAttribute[]
+}
+
+export interface DeploymentSettingsResponse {
+  global?: {
+    process_group_name_template?: string
+    disable_after_deploy?: boolean
+    stop_versioning_after_deploy?: boolean
+    start_after_deploy?: boolean
+  }
+  paths?: Record<string, { source_path?: string; dest_path?: string }>
+}
+
 /**
  * Deploy a flow to a NiFi instance
  */
@@ -92,7 +117,7 @@ export async function loadRegistryFlows() {
  * Load flows for deployment
  */
 export async function loadFlows() {
-  const data = await apiRequest('/api/nifi-flows/')
+  const data = await apiRequest('/api/nifi-flows/') as FlowsResponse
   return data.flows || []
 }
 
@@ -100,9 +125,9 @@ export async function loadFlows() {
  * Load hierarchy configuration
  */
 export async function loadHierarchyConfig() {
-  const data = await apiRequest('/api/settings/hierarchy')
+  const data = await apiRequest('/api/settings/hierarchy') as HierarchyResponse
   if (data.hierarchy) {
-    return data.hierarchy.sort((a: any, b: any) => a.order - b.order)
+    return data.hierarchy.sort((a: HierarchyAttribute, b: HierarchyAttribute) => a.order - b.order)
   }
   return []
 }
@@ -111,14 +136,16 @@ export async function loadHierarchyConfig() {
  * Load deployment settings
  */
 export async function loadDeploymentSettings() {
-  const data = await apiRequest('/api/settings/deploy')
+  const data = await apiRequest('/api/settings/deploy') as DeploymentSettingsResponse
 
   // Convert string keys to numbers since JSON serialization converts numeric keys to strings
   const paths: { [key: number]: { source_path?: string; dest_path?: string } } = {}
   if (data.paths) {
     Object.keys(data.paths).forEach((key) => {
       const numKey = parseInt(key, 10)
-      paths[numKey] = data.paths[key]
+      if (data.paths) {
+        paths[numKey] = data.paths[key]
+      }
     })
   }
 

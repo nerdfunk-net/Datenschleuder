@@ -583,7 +583,7 @@ const garbageCollection = computed(() => {
 });
 
 // Utility functions
-const formatBytes = (bytes: number | string): string => {
+const _formatBytes = (bytes: number | string): string => {
   if (typeof bytes === 'string') return bytes;
   if (!bytes || bytes === 0) return '0 Bytes';
 

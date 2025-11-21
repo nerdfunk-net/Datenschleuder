@@ -37,8 +37,8 @@ declare module "chart.js" {
 
 // Perfect Scrollbar types
 declare module "vue3-perfect-scrollbar" {
-  import { App } from "vue";
-  export function install(app: App): void;
+  import type { App } from "vue";
+  export function install(_app: App): void;
   export const PerfectScrollbar: Record<string, unknown>;
 }
 

@@ -1,34 +1,37 @@
-import { ref } from 'vue'
+import type { Ref } from 'vue'
 import * as deploymentService from '@/services/deploymentService'
 import * as processGroupUtils from '@/utils/processGroupUtils'
 import * as flowUtils from '@/utils/flowUtils'
 import type {
   Flow,
-  HierarchyAttribute,
   DeploymentConfig,
+  HierarchyAttribute,
   DeploymentSettings,
-  ProcessGroupPath
+  ProcessGroupPath,
+  DeploymentResults,
+  ConflictInfo,
 } from './useDeploymentWizard'
 
 /**
  * Composable for deployment operations (preparing configs, deploying flows)
  */
 export function useDeploymentOperations(
-  selectedFlows: any,
-  deploymentTargets: any,
-  hierarchyConfig: any,
-  nifiInstances: any,
-  registryFlows: any,
-  processGroupPaths: any,
-  deploymentSettings: any,
-  deploymentConfigs: any,
-  isLoadingPaths: any,
-  isDeploying: any,
-  conflictInfo: any,
-  currentConflictDeployment: any,
-  showConflictModal: any,
-  deploymentResults: any,
-  showResultsModal: any
+  selectedFlows: Ref<number[]>,
+  deploymentTargets: Ref<Record<number, 'source' | 'destination' | 'both'>>,
+  hierarchyConfig: Ref<HierarchyAttribute[]>,
+  nifiInstances: Ref<Array<Record<string, unknown>>>,
+  registryFlows: Ref<Array<Record<string, unknown>>>,
+  processGroupPaths: Ref<Record<string, ProcessGroupPath[]>>,
+  deploymentSettings: Ref<DeploymentSettings>,
+  deploymentConfigs: Ref<DeploymentConfig[]>,
+  isLoadingPaths: Ref<boolean>,
+  isDeploying: Ref<boolean>,
+  conflictInfo: Ref<unknown>,
+  currentConflictDeployment: Ref<unknown>,
+  showConflictModal: Ref<boolean>,
+  deploymentResults: Ref<DeploymentResults | null>,
+  showResultsModal: Ref<boolean>,
+  flows: Ref<Flow[]>
 ) {
   /**
    * Prepare deployment configurations for selected flows
@@ -48,12 +51,12 @@ export function useDeploymentOperations(
 
         // Process source deployment
         if (target === 'source' || target === 'both') {
-          await createDeploymentConfig(flow, flowName, 'source', flows)
+          await createDeploymentConfig(flow, flowName, 'source')
         }
 
         // Process destination deployment
         if (target === 'destination' || target === 'both') {
-          await createDeploymentConfig(flow, flowName, 'destination', flows)
+          await createDeploymentConfig(flow, flowName, 'destination')
         }
       }
     } catch (error) {
@@ -69,8 +72,7 @@ export function useDeploymentOperations(
   const createDeploymentConfig = async (
     flow: Flow,
     flowName: string,
-    target: 'source' | 'destination',
-    flows: Flow[]
+    target: 'source' | 'destination'
   ) => {
     const hierarchyValue = flowUtils.getTopHierarchyValue(
       flow,
@@ -84,9 +86,11 @@ export function useDeploymentOperations(
       nifiInstances.value
     )
 
-    const templateId = target === 'source' ? flow.src_template_id : flow.dest_template_id
+    const templateIdRaw = target === 'source' ? flow.src_template_id : flow.dest_template_id
+    const templateId = typeof templateIdRaw === 'number' ? templateIdRaw : null
     const templateName = flowUtils.getTemplateName(templateId, registryFlows.value)
-    const parameterContextName = target === 'source' ? flow.src_connection_param : flow.dest_connection_param
+    const paramContextRaw = target === 'source' ? flow.src_connection_param : flow.dest_connection_param
+    const parameterContextName = typeof paramContextRaw === 'string' ? paramContextRaw : null
 
     const config: DeploymentConfig = {
       key: `${flow.id}-${target}`,
@@ -145,7 +149,7 @@ export function useDeploymentOperations(
     }
 
     try {
-      const data = await deploymentService.loadProcessGroupPaths(instanceId)
+      const data = await deploymentService.loadProcessGroupPaths(instanceId) as { status: string; process_groups?: ProcessGroupPath[] }
 
       if (data.status === 'success' && data.process_groups) {
         processGroupPaths.value[cacheKey] = data.process_groups
@@ -167,7 +171,7 @@ export function useDeploymentOperations(
     isDeploying.value = true
 
     try {
-      console.log('Deploying flows with configs:', deploymentConfigs.value)
+      console.warn('Deploying flows with configs:', deploymentConfigs.value)
 
       const results = []
       let successCount = 0
@@ -190,7 +194,7 @@ export function useDeploymentOperations(
         return targetOrder[aTarget] - targetOrder[bTarget]
       })
 
-      console.log('Deployment order (destination → source):',
+      console.warn('Deployment order (destination → source):',
         sortedConfigs.map(c => `${c.flowName} (${c.target})`).join(' → '))
 
       // Deploy each configuration in sorted order
@@ -203,14 +207,14 @@ export function useDeploymentOperations(
             )
             failCount++
             results.push({
-              config,
               success: false,
-              message: 'Skipped: Destination deployment failed. Cannot deploy source without working destination.'
+              message: 'Skipped: Destination deployment failed. Cannot deploy source without working destination.',
+              config
             })
             continue
           }
 
-          console.log(
+          console.warn(
             `Deploying ${config.flowName} to ${config.target} (${config.hierarchyValue})...`
           )
 
@@ -241,7 +245,7 @@ export function useDeploymentOperations(
             hierarchyAttribute || undefined
           )
 
-          console.log('Deployment request:', deploymentRequest)
+          console.warn('Deployment request:', deploymentRequest)
 
           // Call deployment API
           try {
@@ -250,7 +254,7 @@ export function useDeploymentOperations(
               deploymentRequest
             )
 
-            console.log('Deployment result:', result)
+            console.warn('Deployment result:', result)
 
             if (result.status === 'success') {
               successCount++
@@ -261,7 +265,7 @@ export function useDeploymentOperations(
                 processGroupId: result.process_group_id,
                 processGroupName: result.process_group_name
               })
-              console.log(`✅ Successfully deployed ${config.flowName} (${config.target})`)
+              console.warn(`✅ Successfully deployed ${config.flowName} (${config.target})`)
             } else {
               failCount++
               results.push({
@@ -275,14 +279,28 @@ export function useDeploymentOperations(
                 console.error(`❌ Destination deployment failed for ${config.flowName} - will skip source deployment`)
               }
             }
-          } catch (apiError: any) {
+          } catch (apiError: unknown) {
             // Check if it's a 409 Conflict (process group already exists)
-            if (apiError.status === 409 && apiError.detail) {
-              console.log('Conflict detected:', apiError.detail)
+            const error = apiError as { status?: number; detail?: unknown }
+            if (error.status === 409 && error.detail) {
+              console.warn('Conflict detected:', error.detail)
 
               // Store conflict info and current deployment config
-              conflictInfo.value = apiError.detail
-              currentConflictDeployment.value = { config, deploymentRequest }
+              conflictInfo.value = error.detail as ConflictInfo
+              const matchedFlow = flows.value.find((f: Flow) => f.id === config.flowId)
+              const instanceId = config.instanceId
+              
+              if (matchedFlow && instanceId) {
+                currentConflictDeployment.value = { 
+                  flow: matchedFlow,
+                  target: config.target,
+                  instanceId: instanceId,
+                  hierarchyValue: config.hierarchyValue,
+                  processGroupName: config.processGroupName,
+                  deploymentRequest,
+                  config
+                }
+              }
 
               // Show conflict modal and wait for user decision
               showConflictModal.value = true
@@ -295,7 +313,7 @@ export function useDeploymentOperations(
             // For other errors, add to results
             throw apiError
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           failCount++
           console.error(`Deployment failed for ${config.flowName}:`, error)
 
@@ -328,7 +346,7 @@ export function useDeploymentOperations(
       showResultsModal.value = true
     } catch (error) {
       console.error('Deployment process failed:', error)
-      alert('Deployment process failed. Check console for details.')
+      window.alert('Deployment process failed. Check console for details.')
     } finally {
       isDeploying.value = false
     }
@@ -337,21 +355,25 @@ export function useDeploymentOperations(
   /**
    * Extract error message from various error structures
    */
-  const extractErrorMessage = (error: any): string => {
+  const extractErrorMessage = (error: unknown): string => {
     if (!error) return 'Unknown error'
     if (typeof error === 'string') return error
 
+    // Cast to a generic error object type
+    const err = error as Record<string, unknown>
+
     // Check common error message paths
-    if (error.detail?.message) return error.detail.message
-    if (error.detail?.error) return error.detail.error
-    if (error.message) return error.message
-    if (error.error) return error.error
-    if (error.statusText) return error.statusText
+    const detail = err.detail as Record<string, unknown> | undefined
+    if (detail?.message && typeof detail.message === 'string') return detail.message
+    if (detail?.error && typeof detail.error === 'string') return detail.error
+    if (err.message && typeof err.message === 'string') return err.message
+    if (err.error && typeof err.error === 'string') return err.error
+    if (err.statusText && typeof err.statusText === 'string') return err.statusText
 
     // If detail is an object, try to stringify it nicely
-    if (error.detail && typeof error.detail === 'object') {
+    if (detail && typeof detail === 'object') {
       try {
-        return JSON.stringify(error.detail, null, 2)
+        return JSON.stringify(detail, null, 2)
       } catch {
         return 'Complex error - see console'
       }

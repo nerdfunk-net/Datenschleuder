@@ -903,7 +903,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { apiRequest } from '@/utils/api';
 
 // Click outside directive
@@ -1354,9 +1354,9 @@ const getStatusText = (flow: Flow, flowType: 'source' | 'destination'): string =
   }
 };
 
-const viewFlowDetails = (flow: Flow, flowType: 'source' | 'destination') => {
+const _viewFlowDetails = (flow: Flow, _flowType: 'source' | 'destination') => {
   selectedFlow.value = flow;
-  selectedFlowType.value = flowType;
+  selectedFlowType.value = _flowType;
   showDetailsModal.value = true;
 };
 
@@ -1369,7 +1369,7 @@ const viewProcessGroupDetails = (flow: Flow, flowType: 'source' | 'destination')
   }
 };
 
-const handleFlowClick = (flow: Flow, flowType: 'source' | 'destination') => {
+const handleFlowClick = (flow: Flow, _flowType: 'source' | 'destination') => {
   // Toggle highlight: if already highlighted, remove it; otherwise highlight this flow
   if (highlightedFlowId.value === flow.id) {
     highlightedFlowId.value = null;

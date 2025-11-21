@@ -226,26 +226,39 @@ onMounted(async () => {
     isLoadingProviders.value = true;
 
     // Check if OIDC is enabled
-    const enabledResponse = await api.get<{ enabled: boolean }>("/auth/oidc/enabled");
-    oidcEnabled.value = enabledResponse.enabled;
+    try {
+      const enabledResponse = await api.get<{ enabled: boolean }>("/auth/oidc/enabled");
+      oidcEnabled.value = enabledResponse.enabled;
+    } catch (error) {
+      // OIDC endpoint not available or disabled
+      console.log("OIDC not available:", error);
+      oidcEnabled.value = false;
+      return;
+    }
 
     if (oidcEnabled.value) {
       // Fetch provider list
-      const providersResponse = await api.get<{
-        providers: Array<{
-          provider_id: string;
-          name: string;
-          description: string;
-          icon: string;
-          display_order: number;
-        }>;
-        allow_traditional_login: boolean;
-      }>("/auth/oidc/providers");
-      oidcProviders.value = providersResponse.providers || [];
-      allowTraditionalLogin.value = providersResponse.allow_traditional_login ?? true;
+      try {
+        const providersResponse = await api.get<{
+          providers: Array<{
+            provider_id: string;
+            name: string;
+            description: string;
+            icon: string;
+            display_order: number;
+          }>;
+          allow_traditional_login: boolean;
+        }>("/auth/oidc/providers");
+        oidcProviders.value = providersResponse.providers || [];
+        allowTraditionalLogin.value = providersResponse.allow_traditional_login ?? true;
+      } catch (error) {
+        console.error("Failed to fetch OIDC providers:", error);
+        oidcEnabled.value = false;
+        // Silently fail - traditional login will still work
+      }
     }
   } catch (error) {
-    console.error("Failed to fetch OIDC providers:", error);
+    console.error("Failed to initialize OIDC:", error);
     // Silently fail - traditional login will still work
   } finally {
     isLoadingProviders.value = false;

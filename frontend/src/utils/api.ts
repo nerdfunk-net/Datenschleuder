@@ -143,7 +143,20 @@ export async function apiRequest<T = unknown>(
     throw apiError;
   }
 
-  return response.json();
+  // Try to parse as JSON, but handle cases where response might not be JSON
+  try {
+    return await response.json();
+  } catch (error) {
+    // If JSON parsing fails, check content type
+    const contentType = response.headers.get("content-type");
+    if (contentType && !contentType.includes("application/json")) {
+      throw new Error(
+        `Expected JSON response but got ${contentType}. The endpoint may not exist or returned an unexpected response.`,
+      );
+    }
+    // Re-throw the original parsing error
+    throw error;
+  }
 }
 
 /**

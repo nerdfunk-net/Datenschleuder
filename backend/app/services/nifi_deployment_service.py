@@ -6,7 +6,7 @@ import logging
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from nipyapi import versioning, canvas
-from nipyapi.nifi import ProcessGroupsApi, FlowApi
+from nipyapi.nifi import ProcessGroupsApi
 
 from app.models.nifi_instance import NiFiInstance
 from app.models.registry_flow import RegistryFlow
@@ -192,35 +192,77 @@ class NiFiDeploymentService:
             flow_identifier: Flow identifier
 
         Returns:
-            Version to deploy or None for latest
+            Version to deploy (explicit version number)
+
+        Note:
+            For GitHub registries, we explicitly fetch the latest version number
+            instead of relying on version=None, as GitHub registries may not properly
+            enumerate versions through NiFi's internal list_flow_versions call.
         """
         deploy_version = deployment.version
 
         if deploy_version is None:
-            logger.info("Fetching latest version for flow...")
+            logger.info("No version specified - fetching latest version explicitly...")
             try:
-                flow_api = FlowApi()
-
-                versions = flow_api.get_versions(
-                    registry_id=reg_client_id,
+                # Explicitly list versions using NiFi's FlowAPI (which goes through the registry client)
+                # This is more reliable for GitHub registries than relying on version=None
+                flow_versions = versioning.list_flow_versions(
                     bucket_id=bucket_identifier,
                     flow_id=flow_identifier,
+                    registry_id=reg_client_id,
+                    service="nifi"
                 )
 
-                if versions and hasattr(
-                    versions, "versioned_flow_snapshot_metadata_set"
-                ):
-                    metadata_set = versions.versioned_flow_snapshot_metadata_set
-                    if metadata_set:
-                        # Get the last version (latest)
-                        deploy_version = metadata_set[-1].version_control_information.version
-                        logger.info(f"  Using latest version: {deploy_version}")
+                logger.info(f"DEBUG: flow_versions object type: {type(flow_versions)}")
+                logger.info(f"DEBUG: flow_versions attributes: {dir(flow_versions)}")
+
+                if flow_versions and hasattr(flow_versions, 'versioned_flow_snapshot_metadata_set'):
+                    versions_list = flow_versions.versioned_flow_snapshot_metadata_set
+                    logger.info(f"DEBUG: Found {len(versions_list)} versions in metadata set")
+
+                    if versions_list:
+                        # Log all available versions for debugging
+                        logger.info("=" * 60)
+                        logger.info("ALL AVAILABLE VERSIONS (as returned from registry):")
+                        for idx, v in enumerate(versions_list):
+                            metadata = v.versioned_flow_snapshot_metadata
+                            logger.info(f"  [{idx}] Version: {metadata.version}")
+                            logger.info(f"      Timestamp: {metadata.timestamp}")
+                            logger.info(f"      Comments: {metadata.comments}")
+                            logger.info(f"      Author: {metadata.author}")
+                        logger.info("=" * 60)
+
+                        # Sort by timestamp descending to get the latest (most recent)
+                        # GitHub registries may not have sequential version numbers,
+                        # so timestamp is more reliable for finding the latest version
+                        sorted_versions = sorted(
+                            versions_list,
+                            key=lambda x: x.versioned_flow_snapshot_metadata.timestamp,
+                            reverse=True
+                        )
+
+                        logger.info("SORTED VERSIONS (by timestamp, newest first):")
+                        for idx, v in enumerate(sorted_versions):
+                            metadata = v.versioned_flow_snapshot_metadata
+                            logger.info(f"  [{idx}] Version: {metadata.version} | Timestamp: {metadata.timestamp}")
+                        logger.info("=" * 60)
+
+                        latest_version_metadata = sorted_versions[0]
+                        deploy_version = latest_version_metadata.versioned_flow_snapshot_metadata.version
+                        logger.info(f"✓ LATEST version selected (by timestamp): {deploy_version}")
+                        logger.info(f"  Timestamp: {latest_version_metadata.versioned_flow_snapshot_metadata.timestamp}")
+                    else:
+                        logger.warning("No versions found in flow metadata, will use version=None as fallback")
+                        deploy_version = None
                 else:
-                    logger.warning("  No versions found, will use default (latest)")
+                    logger.warning("Could not retrieve flow versions, will use version=None as fallback")
                     deploy_version = None
-            except Exception as e:
-                logger.warning(f"  Warning: Could not fetch versions: {e}")
-                logger.info("  Falling back to version=None")
+
+            except Exception as version_error:
+                logger.warning(f"Could not fetch latest version: {version_error}")
+                logger.warning("Falling back to version=None (nipyapi will determine latest)")
+                import traceback
+                logger.error(f"DEBUG: Full traceback:\n{traceback.format_exc()}")
                 deploy_version = None
 
         return deploy_version

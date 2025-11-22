@@ -313,3 +313,70 @@ async def get_bucket_flows(
             "flows": [],
             "count": 0,
         }
+
+
+@router.get("/{instance_id}/registry/{registry_id}/{bucket_id}/{flow_id}/get-versions")
+async def get_flow_versions(
+    instance_id: int,
+    registry_id: str,
+    bucket_id: str,
+    flow_id: str,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """Get list of all versions for a specific flow"""
+    instance = get_instance_or_404(db, instance_id)
+
+    try:
+        from nipyapi import versioning
+
+        # Configure nipyapi with authentication
+        setup_nifi_connection(instance)
+
+        # List all versions using NiFi's FlowAPI (goes through registry client)
+        flow_versions = versioning.list_flow_versions(
+            bucket_id=bucket_id,
+            flow_id=flow_id,
+            registry_id=registry_id,
+            service="nifi"
+        )
+
+        # Convert to serializable format
+        versions_list = []
+        if flow_versions and hasattr(flow_versions, 'versioned_flow_snapshot_metadata_set'):
+            for version_item in flow_versions.versioned_flow_snapshot_metadata_set:
+                if hasattr(version_item, 'versioned_flow_snapshot_metadata'):
+                    metadata = version_item.versioned_flow_snapshot_metadata
+                    version_data = {
+                        "version": metadata.version if hasattr(metadata, 'version') else None,
+                        "timestamp": metadata.timestamp if hasattr(metadata, 'timestamp') else None,
+                        "comments": metadata.comments if hasattr(metadata, 'comments') else "",
+                        "author": metadata.author if hasattr(metadata, 'author') else "Unknown",
+                        "bucket_identifier": metadata.bucket_identifier if hasattr(metadata, 'bucket_identifier') else bucket_id,
+                        "flow_identifier": metadata.flow_identifier if hasattr(metadata, 'flow_identifier') else flow_id,
+                    }
+                    versions_list.append(version_data)
+
+        # Sort by timestamp descending (newest first)
+        versions_list.sort(key=lambda x: x['timestamp'] if x['timestamp'] else 0, reverse=True)
+
+        return {
+            "status": "success",
+            "versions": versions_list,
+            "count": len(versions_list),
+            "registry_id": registry_id,
+            "bucket_id": bucket_id,
+            "flow_id": flow_id,
+        }
+
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to get flow versions: {error_msg}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return {
+            "status": "error",
+            "message": f"Failed to get flow versions: {error_msg}",
+            "versions": [],
+            "count": 0,
+        }

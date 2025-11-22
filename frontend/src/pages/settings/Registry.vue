@@ -62,7 +62,13 @@
           <tbody>
             <tr v-for="flow in registryFlows" :key="flow.id">
               <td>
-                <strong>{{ flow.flow_name }}</strong>
+                <a
+                  href="#"
+                  class="flow-name-link"
+                  @click.prevent="showVersionsModal(flow)"
+                >
+                  <strong>{{ flow.flow_name }}</strong>
+                </a>
               </td>
               <td>{{ flow.nifi_instance_name }}</td>
               <td>{{ flow.registry_name }}</td>
@@ -423,6 +429,66 @@
         </b-button>
       </template>
     </b-modal>
+
+    <!-- Flow Versions Modal -->
+    <b-modal
+      v-model="showFlowVersionsModal"
+      title="Flow Versions"
+      size="lg"
+      modal-class="flow-versions-modal"
+    >
+      <template #modal-title>
+        <div>
+          <div class="modal-title-main">Flow Versions</div>
+          <div class="modal-title-sub">{{ selectedFlowForVersions?.flow_name }}</div>
+        </div>
+      </template>
+
+      <div v-if="loadingVersions" class="text-center py-5">
+        <b-spinner variant="primary" />
+        <p class="mt-3 text-muted">Loading versions...</p>
+      </div>
+
+      <div v-else-if="flowVersionsError" class="alert alert-danger">
+        {{ flowVersionsError }}
+      </div>
+
+      <div v-else-if="flowVersions.length === 0" class="text-center py-5 text-muted">
+        <i class="pe-7s-info display-4 d-block mb-2"></i>
+        No versions found for this flow.
+      </div>
+
+      <div v-else class="versions-list">
+        <div v-for="(version, index) in flowVersions" :key="version.version" class="version-item">
+          <div class="version-header">
+            <div class="version-badge" :class="{ 'latest-badge': index === 0 }">
+              <i class="pe-7s-album"></i> Version {{ version.version }}
+              <span v-if="index === 0" class="badge bg-success ms-2">LATEST</span>
+            </div>
+            <div class="version-meta">
+              <span class="version-author">
+                <i class="pe-7s-user"></i> {{ version.author }}
+              </span>
+              <span class="version-timestamp">
+                <i class="pe-7s-clock"></i> {{ formatTimestamp(version.timestamp) }}
+              </span>
+            </div>
+          </div>
+          <div v-if="version.comments" class="version-comments">
+            <i class="pe-7s-comment"></i> {{ version.comments }}
+          </div>
+          <div v-else class="version-comments text-muted fst-italic">
+            No comments
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <b-button variant="secondary" size="sm" @click="showFlowVersionsModal = false">
+          Close
+        </b-button>
+      </template>
+    </b-modal>
   </div>
 </template>
 
@@ -523,6 +589,13 @@ const exportingFlowIds = ref<Set<string>>(new Set());
 // Registry details cache (registry_id -> details)
 const registryDetailsCache = ref<Map<string, any>>(new Map());
 
+// Flow versions modal state
+const showFlowVersionsModal = ref(false);
+const selectedFlowForVersions = ref<RegistryFlow | null>(null);
+const flowVersions = ref<any[]>([]);
+const loadingVersions = ref(false);
+const flowVersionsError = ref<string | null>(null);
+
 const instanceOptions = computed(() => {
   return nifiInstances.value.map((instance) => ({
     value: instance,
@@ -617,7 +690,7 @@ const loadRegistryFlows = async () => {
       if (instanceId > 0) {
         try {
           const details = await apiRequest(
-            `/api/nifi-instances/${instanceId}/registry/${registryId}/details`
+            `/api/nifi/${instanceId}/registry/${registryId}/details`
           );
           console.log(`Loaded registry details for ${key}:`, details);
           registryDetailsCache.value.set(key, details);
@@ -1046,6 +1119,44 @@ watch(
   }
 );
 
+// Show flow versions modal
+const showVersionsModal = async (flow: RegistryFlow) => {
+  selectedFlowForVersions.value = flow;
+  showFlowVersionsModal.value = true;
+  flowVersions.value = [];
+  flowVersionsError.value = null;
+  loadingVersions.value = true;
+
+  try {
+    const instanceId = getInstanceIdByUrl(flow.nifi_instance_url);
+    if (!instanceId) {
+      throw new Error("Could not determine NiFi instance ID");
+    }
+
+    const response = await apiRequest(
+      `/api/nifi/${instanceId}/registry/${flow.registry_id}/${flow.bucket_id}/${flow.flow_id}/get-versions`
+    ) as any;
+
+    if (response.status === "success") {
+      flowVersions.value = response.versions || [];
+    } else {
+      flowVersionsError.value = response.message || "Failed to load versions";
+    }
+  } catch (error) {
+    console.error("Error loading flow versions:", error);
+    flowVersionsError.value = error instanceof Error ? error.message : "Failed to load versions";
+  } finally {
+    loadingVersions.value = false;
+  }
+};
+
+// Format timestamp for display
+const formatTimestamp = (timestamp: number | null): string => {
+  if (!timestamp) return "Unknown";
+  const date = new Date(timestamp);
+  return date.toLocaleString();
+};
+
 onMounted(async () => {
   await loadNiFiInstances();
   await loadRegistryFlows();
@@ -1120,6 +1231,18 @@ onMounted(async () => {
   }
 }
 
+.flow-name-link {
+  color: #667eea;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #764ba2;
+    text-decoration: underline;
+  }
+}
+
 .add-flow-content {
   padding: 10px 0;
 }
@@ -1173,11 +1296,92 @@ onMounted(async () => {
     }
   }
 }
+
+.versions-list {
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.version-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-left: 4px solid #667eea;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e9ecef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .version-badge {
+    font-weight: 600;
+    color: #495057;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &.latest-badge {
+      color: #667eea;
+    }
+
+    i {
+      font-size: 1.2rem;
+    }
+  }
+
+  .version-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-align: right;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+
+    i {
+      font-size: 1rem;
+    }
+  }
+
+  .version-comments {
+    padding: 12px;
+    background: white;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #495057;
+    line-height: 1.5;
+
+    i {
+      color: #667eea;
+      margin-right: 8px;
+    }
+  }
+}
 </style>
 
 <style lang="scss">
 // Global styles for modal (not scoped)
-.add-flow-modal {
+.add-flow-modal,
+.flow-versions-modal {
   .modal-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -1188,6 +1392,19 @@ onMounted(async () => {
       font-weight: 600;
       font-size: 1.1rem;
       color: white;
+    }
+
+    .modal-title-main {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: white;
+    }
+
+    .modal-title-sub {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 400;
+      margin-top: 2px;
     }
 
     .btn-close {

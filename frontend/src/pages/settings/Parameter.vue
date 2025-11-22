@@ -602,7 +602,7 @@ async function buildInheritedParametersMap(
       console.log(`Fetching inherited context: ${contextId}`);
 
       const response = await api.get(
-        `/api/nifi-instances/${instanceId}/parameter-contexts/${contextId}`
+        `/api/nifi/${instanceId}/parameter-contexts/${contextId}`
       ) as any;
 
       console.log("Inherited context response:", response);
@@ -698,7 +698,7 @@ async function loadParameterContexts(instanceId: number) {
   try {
     instanceLoading.value[instanceId] = true;
     const response = await api.get(
-      `/api/nifi-instances/${instanceId}/get-parameters`,
+      `/api/nifi/${instanceId}/get-parameters`,
     ) as any;
 
     console.log(
@@ -755,10 +755,10 @@ async function editParameterContext(instanceId: number, context: any) {
 
   try {
     // Fetch detailed parameter context configuration
-    console.log(`Fetching: /api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`);
+    console.log(`Fetching: /api/nifi/${instanceId}/parameter-contexts/${context.id}`);
 
     const response = await api.get(
-      `/api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`
+      `/api/nifi/${instanceId}/parameter-contexts/${context.id}`
     ) as any;
 
     console.log("API Response:", response);
@@ -836,7 +836,7 @@ async function deleteParameterContext(instanceId: number, context: any) {
 
   try {
     await api.delete(
-      `/api/nifi-instances/${instanceId}/parameter-contexts/${context.id}`,
+      `/api/nifi/${instanceId}/parameter-contexts/${context.id}`,
     );
     await loadParameterContexts(instanceId);
   } catch (error: any) {
@@ -944,14 +944,14 @@ async function handleSave(bvModalEvent?: any) {
 
     if (modalMode.value === "create") {
       const result = await api.post(
-        `/api/nifi-instances/${form.value.instance_id}/parameter-contexts`,
+        `/api/nifi/${form.value.instance_id}/parameter-contexts`,
         payload,
       );
       console.log("Create result:", result);
       await loadParameterContexts(form.value.instance_id!);
     } else if (modalMode.value === "edit") {
       const result = await api.put(
-        `/api/nifi-instances/${form.value.instance_id}/parameter-contexts/${form.value.context_id}`,
+        `/api/nifi/${form.value.instance_id}/parameter-contexts/${form.value.context_id}`,
         payload,
       );
       console.log("Update result:", result);
@@ -993,7 +993,7 @@ async function showInheritanceModal() {
     // Fetch all parameter contexts for this instance
     console.log("Fetching all parameter contexts for instance:", form.value.instance_id);
     const response = await api.get(
-      `/api/nifi-instances/${form.value.instance_id}/get-parameters`
+      `/api/nifi/${form.value.instance_id}/get-parameters`
     ) as any;
 
     console.log("Parameter contexts response:", response);

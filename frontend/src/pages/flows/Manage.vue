@@ -1576,7 +1576,7 @@ const loadParameterContexts = async (instanceId: number, isSource: boolean) => {
   }
 
   try {
-    const data = await apiRequest(`/api/nifi-instances/${instanceId}/get-parameters`) as any;
+    const data = await apiRequest(`/api/nifi/${instanceId}/get-parameters`) as any;
 
     const options = [
       { value: "", text: "Select a parameter context..." },

@@ -663,7 +663,7 @@ const onInstanceChange = async () => {
   try {
     // Get registry clients from this NiFi instance
     const response = await apiRequest(
-      `/api/nifi-instances/${selectedInstance.value.id}/get-registries`,
+      `/api/nifi/${selectedInstance.value.id}/get-registries`,
     ) as any;
 
     if (response.registry_clients && response.registry_clients.length > 0) {
@@ -676,7 +676,7 @@ const onInstanceChange = async () => {
 
       // Load buckets from this registry
       const bucketsResponse = await apiRequest(
-        `/api/nifi-instances/${selectedInstance.value.id}/registry/${firstRegistry.id}/get-buckets`,
+        `/api/nifi/${selectedInstance.value.id}/registry/${firstRegistry.id}/get-buckets`,
       ) as any;
       buckets.value = bucketsResponse.buckets || [];
     } else {
@@ -707,7 +707,7 @@ const onBucketChange = async () => {
   loadingFlows.value = true;
   try {
     const response = await apiRequest(
-      `/api/nifi-instances/${selectedInstance.value.id}/registry/${selectedRegistry.value.id}/${selectedBucket.value.identifier}/get-flows`,
+      `/api/nifi/${selectedInstance.value.id}/registry/${selectedRegistry.value.id}/${selectedBucket.value.identifier}/get-flows`,
     ) as any;
     availableFlows.value = response.flows || [];
   } catch (error) {
@@ -929,7 +929,7 @@ const onImportInstanceChange = async () => {
   loadingImportRegistries.value = true;
   try {
     const response = await apiRequest(
-      `/api/nifi-instances/${importSelectedInstance.value.id}/get-registries`,
+      `/api/nifi/${importSelectedInstance.value.id}/get-registries`,
     ) as any;
     importRegistries.value = response.registries || [];
   } catch (error) {
@@ -953,7 +953,7 @@ const onImportRegistryChange = async () => {
   loadingImportBuckets.value = true;
   try {
     const response = await apiRequest(
-      `/api/nifi-instances/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/get-buckets`,
+      `/api/nifi/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/get-buckets`,
     ) as any;
     importBuckets.value = response.buckets || [];
   } catch (error) {
@@ -970,7 +970,7 @@ const loadImportFlows = async () => {
   loadingImportFlows.value = true;
   try {
     const response = await apiRequest(
-      `/api/nifi-instances/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/${importSelectedBucket.value.identifier}/get-flows`,
+      `/api/nifi/${importSelectedInstance.value.id}/registry/${importSelectedRegistry.value.id}/${importSelectedBucket.value.identifier}/get-flows`,
     ) as any;
     importFlows.value = response.flows || [];
   } catch (error) {

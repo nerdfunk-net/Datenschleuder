@@ -420,7 +420,7 @@ onMounted(async () => {
 
 const loadInstances = async () => {
   try {
-    const response = await apiRequest<NifiInstance[]>('/api/nifi-instances');
+    const response = await apiRequest<NifiInstance[]>('/api/nifi-instances/');
     instances.value = response;
   } catch (err: any) {
     error.value = err.response?.data?.detail || 'Failed to load NiFi instances';

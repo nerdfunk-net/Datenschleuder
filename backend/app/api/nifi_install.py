@@ -57,8 +57,17 @@ def get_process_group_map(instance: NiFiInstance) -> Tuple[List[Dict[str, Any]],
     from nipyapi import canvas
 
     # Get all process groups (already flattened by nipyapi)
+    logger.info("Getting root process group ID...")
     root_pg_id = canvas.get_root_pg_id()
+    logger.info(f"Root PG ID: {root_pg_id}")
+    
+    logger.info("Listing all process groups...")
     all_pgs_raw = canvas.list_all_process_groups(root_pg_id)
+    logger.info(f"Found {len(all_pgs_raw) if all_pgs_raw else 0} process groups")
+    
+    if not all_pgs_raw:
+        logger.warning("No process groups returned from NiFi")
+        all_pgs_raw = []
 
     # Build a map of PG id -> PG info
     pg_map = {}
@@ -276,21 +285,31 @@ async def check_path(
 
         # Get flows and configuration
         flows = get_flows_from_database(db)
+        logger.info(f"Found {len(flows)} flows in database")
+        
         configured_path = get_deployment_path_config(db, instance_id, path_type)
+        logger.info(f"Configured {path_type} path: {configured_path}")
+        
         hierarchy = get_hierarchy_config(db)
+        logger.info(f"Hierarchy config: {hierarchy}")
 
         # Build expected paths
         paths_to_check = build_flow_paths(flows, configured_path, hierarchy, path_type)
+        logger.info(f"Paths to check ({len(paths_to_check)}): {paths_to_check}")
 
         # Build pg lookup by path
         pg_by_path = build_pg_by_path_lookup(all_pgs)
+        logger.info(f"Process groups by path ({len(pg_by_path)} total)")
+        logger.debug(f"Available PG paths: {list(pg_by_path.keys())}")
 
         # Check each path
         status_list = []
         for path in sorted(paths_to_check):
             exists = path in pg_by_path
+            logger.info(f"Path '{path}': exists={exists}")
             status_list.append(PathStatus(path=path, exists=exists))
-
+        
+        logger.info(f"Returning {len(status_list)} path statuses")
         return CheckPathResponse(status=status_list)
 
     except HTTPException:

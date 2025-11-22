@@ -287,9 +287,20 @@ const loadInstances = async () => {
 
   try {
     const response = await apiRequest<NifiInstance[]>(
-      '/api/nifi-instances'
+      '/api/nifi-instances/'
     );
     instances.value = response || [];
+    
+    // Auto-select first instance if only one exists
+    if (instances.value.length === 1) {
+      selectedInstanceId.value = instances.value[0].id;
+    }
+    // Clear selection if previously selected instance no longer exists
+    else if (selectedInstanceId.value && !instances.value.find(inst => inst.id === selectedInstanceId.value)) {
+      selectedInstanceId.value = null;
+      connections.value = [];
+      hasChecked.value = false;
+    }
   } catch (err: any) {
     console.error('Failed to load instances:', err);
     error.value = err.detail || 'Failed to load NiFi instances';
@@ -319,7 +330,7 @@ const checkAllQueues = async () => {
       components: Connection[];
       count: number;
     }>(
-      `/api/nifi-instances/${selectedInstanceId.value}/list-all-by-kind?kind=connections`
+      `/api/nifi/${selectedInstanceId.value}/list-all-by-kind?kind=connections`
     );
 
     connections.value = response.components || [];

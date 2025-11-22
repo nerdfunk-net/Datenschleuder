@@ -5,6 +5,11 @@
       <p class="text-muted">
         Check and create process groups for flow hierarchy paths
       </p>
+      <div class="alert alert-info mt-3" role="alert">
+        <i class="pe-7s-info-circle me-2"></i>
+        <strong>Note:</strong> Only configured flows are checked. You need at least one flow configured in the 
+        <router-link to="/flows/manage">Flow Management</router-link> page to see the hierarchy paths here.
+      </div>
     </div>
 
     <!-- Source Path Panel -->
@@ -458,7 +463,7 @@ const loadRegistryFlows = async (instanceId: number, type: 'source' | 'destinati
 
 const loadParameterContexts = async (instanceId: number, type: 'source' | 'destination') => {
   try {
-    const response = await apiRequest(`/api/nifi-instances/${instanceId}/get-parameters`) as any;
+    const response = await apiRequest(`/api/nifi/${instanceId}/get-parameters`) as any;
     // Extract parameter_contexts array from response
     const parameters = response.parameter_contexts || [];
     if (type === 'source') {

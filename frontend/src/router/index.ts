@@ -19,6 +19,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: false },
   },
   {
+    path: "/oidc-test",
+    name: "oidc-test",
+    component: () => import("../pages/OidcTest.vue"),
+    meta: { requiresAuth: false },
+  },
+  {
     path: "/",
     component: () => import("../Layout/DashboardLayout.vue"),
     meta: { requiresAuth: true },

@@ -1,34 +1,27 @@
 """NiFi monitoring API endpoints for cluster and system diagnostics"""
 
 import logging
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from app.core.database import get_db
 from app.core.security import verify_token
-from app.models.nifi_instance import NiFiInstance
-from app.services.nifi_auth import configure_nifi_connection
+from app.models.nifi_instance import (
+    NiFiInstance,
+    NiFiInstanceCreate,
+    NiFiInstanceUpdate,
+    NiFiInstanceResponse as NiFiInstanceFullResponse,
+)
+from app.services.nifi_auth import configure_nifi_connection, configure_nifi_test_connection
+from app.services.encryption_service import encryption_service
 
 router = APIRouter(prefix="/api/nifi-instances", tags=["nifi-monitoring"])
 logger = logging.getLogger(__name__)
 
 
-class NiFiInstanceResponse(BaseModel):
-    """Response model for NiFi instance listing"""
-    id: int
-    hierarchy_attribute: str
-    hierarchy_value: str
-    nifi_url: str
-    use_ssl: bool
-    verify_ssl: bool
-
-    class Config:
-        from_attributes = True
-
-
-@router.get("/", response_model=List[NiFiInstanceResponse])
+@router.get("/", response_model=List[NiFiInstanceFullResponse])
 async def list_nifi_instances(
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
@@ -46,6 +39,266 @@ async def list_nifi_instances(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list NiFi instances: {str(e)}",
         )
+
+
+@router.post("/", response_model=NiFiInstanceFullResponse, status_code=status.HTTP_201_CREATED)
+async def create_nifi_instance(
+    instance_data: NiFiInstanceCreate,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Create a new NiFi instance.
+    Requires admin privileges.
+    """
+    if token_data.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can create NiFi instances",
+        )
+    
+    try:
+        # Check if instance with same hierarchy value already exists
+        existing = (
+            db.query(NiFiInstance)
+            .filter(NiFiInstance.hierarchy_value == instance_data.hierarchy_value)
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"NiFi instance for {instance_data.hierarchy_attribute}={instance_data.hierarchy_value} already exists",
+            )
+        
+        # Create instance
+        instance = NiFiInstance(
+            hierarchy_attribute=instance_data.hierarchy_attribute,
+            hierarchy_value=instance_data.hierarchy_value,
+            nifi_url=instance_data.nifi_url,
+            username=instance_data.username,
+            use_ssl=instance_data.use_ssl,
+            verify_ssl=instance_data.verify_ssl,
+            certificate_name=instance_data.certificate_name,
+            check_hostname=instance_data.check_hostname,
+            oidc_provider_id=instance_data.oidc_provider_id,
+        )
+        
+        # Encrypt password if provided
+        if instance_data.password:
+            instance.password_encrypted = encryption_service.encrypt_to_string(
+                instance_data.password
+            )
+        
+        db.add(instance)
+        db.commit()
+        db.refresh(instance)
+        
+        logger.info(f"Created NiFi instance {instance.id} for {instance.hierarchy_value}")
+        return instance
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating NiFi instance: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create NiFi instance: {str(e)}",
+        )
+
+
+@router.put("/{instance_id}", response_model=NiFiInstanceFullResponse)
+async def update_nifi_instance(
+    instance_id: int,
+    instance_data: NiFiInstanceUpdate,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Update an existing NiFi instance.
+    Requires admin privileges.
+    """
+    if token_data.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can update NiFi instances",
+        )
+    
+    try:
+        instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+        if not instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"NiFi instance with id {instance_id} not found",
+            )
+        
+        # Update fields
+        update_data = instance_data.model_dump(exclude_unset=True)
+        
+        # Handle password encryption
+        if "password" in update_data and update_data["password"]:
+            instance.password_encrypted = encryption_service.encrypt_to_string(
+                update_data.pop("password")
+            )
+        elif "password" in update_data and not update_data["password"]:
+            # Empty password means clear it
+            instance.password_encrypted = None
+            update_data.pop("password")
+        
+        # Update other fields
+        for field, value in update_data.items():
+            setattr(instance, field, value)
+        
+        db.commit()
+        db.refresh(instance)
+        
+        logger.info(f"Updated NiFi instance {instance.id}")
+        return instance
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating NiFi instance {instance_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update NiFi instance: {str(e)}",
+        )
+
+
+@router.delete("/{instance_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_nifi_instance(
+    instance_id: int,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a NiFi instance.
+    Requires admin privileges.
+    """
+    if token_data.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can delete NiFi instances",
+        )
+    
+    try:
+        instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+        if not instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"NiFi instance with id {instance_id} not found",
+            )
+        
+        db.delete(instance)
+        db.commit()
+        
+        logger.info(f"Deleted NiFi instance {instance_id}")
+        return None
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting NiFi instance {instance_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete NiFi instance: {str(e)}",
+        )
+
+
+@router.post("/test")
+async def test_nifi_connection_temp(
+    instance_data: NiFiInstanceCreate,
+    token_data: dict = Depends(verify_token),
+):
+    """
+    Test NiFi connection without saving to database.
+    Used for validating credentials before creating an instance.
+    """
+    try:
+        # Configure temporary connection
+        configure_nifi_test_connection(
+            nifi_url=instance_data.nifi_url,
+            username=instance_data.username,
+            password=instance_data.password,
+            verify_ssl=instance_data.verify_ssl,
+            certificate_name=instance_data.certificate_name,
+            check_hostname=instance_data.check_hostname,
+            oidc_provider_id=instance_data.oidc_provider_id,
+        )
+        
+        # Try to get NiFi version as a connection test
+        import nipyapi
+        version_info = nipyapi.system.get_nifi_version_info()
+        
+        return {
+            "status": "success",
+            "message": "Connection successful",
+            "details": {
+                "version": version_info.nifi_version if hasattr(version_info, "nifi_version") else str(version_info),
+            },
+        }
+        
+    except Exception as e:
+        logger.error(f"Connection test failed: {e}")
+        return {
+            "status": "error",
+            "message": f"Connection failed: {str(e)}",
+        }
+
+
+@router.post("/{instance_id}/test-connection")
+async def test_nifi_connection_existing(
+    instance_id: int,
+    token_data: dict = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    """
+    Test connection to an existing NiFi instance.
+    """
+    try:
+        instance = db.query(NiFiInstance).filter(NiFiInstance.id == instance_id).first()
+        if not instance:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"NiFi instance with id {instance_id} not found",
+            )
+        
+        # Configure connection
+        configure_nifi_connection(instance)
+        
+        # Try to get NiFi version
+        import nipyapi
+        version_info = nipyapi.system.get_nifi_version_info()
+        
+        return {
+            "status": "success",
+            "message": "Connection successful",
+            "details": {
+                "version": version_info.nifi_version if hasattr(version_info, "nifi_version") else str(version_info),
+            },
+        }
+        
+    except Exception as e:
+        logger.error(f"Connection test failed for instance {instance_id}: {e}")
+        return {
+            "status": "error",
+            "message": f"Connection failed: {str(e)}",
+        }
+
+
+class NiFiInstanceResponse(BaseModel):
+    """Response model for NiFi instance listing"""
+    id: int
+    hierarchy_attribute: str
+    hierarchy_value: str
+    nifi_url: str
+    use_ssl: bool
+    verify_ssl: bool
+
+    class Config:
+        from_attributes = True
 
 
 @router.get("/{instance_id}/get-cluster")

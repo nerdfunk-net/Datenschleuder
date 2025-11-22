@@ -98,6 +98,41 @@ class SettingsManager:
         # Sort by display_order
         return sorted(enabled_providers, key=lambda p: p.get("display_order", 999))
 
+    def get_enabled_user_providers(self) -> List[Dict[str, Any]]:
+        """
+        Get enabled OIDC providers for user login (excludes backend-only providers).
+        
+        Returns:
+            List of enabled user-facing provider configurations sorted by display_order
+        """
+        if not self._config:
+            return []
+        
+        user_providers = []
+        for provider_id, config in self._config.get("providers", {}).items():
+            if config.get("enabled", False) and not config.get("backend", False):
+                provider_config = config.copy()
+                provider_config["provider_id"] = provider_id
+                user_providers.append(provider_config)
+        
+        # Sort by display_order
+        return sorted(user_providers, key=lambda p: p.get("display_order", 999))
+
+    def get_backend_provider(self, provider_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get configuration for a backend OIDC provider.
+        
+        Args:
+            provider_id: Provider identifier
+            
+        Returns:
+            Provider configuration dict or None if not found or not enabled
+        """
+        provider_config = self.get_oidc_provider(provider_id)
+        if provider_config and provider_config.get("enabled", False):
+            return provider_config
+        return None
+
     def get_oidc_provider(self, provider_id: str) -> Optional[Dict[str, Any]]:
         """
         Get configuration for specific OIDC provider.

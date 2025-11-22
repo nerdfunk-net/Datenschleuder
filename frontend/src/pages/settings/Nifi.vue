@@ -105,10 +105,13 @@
             <div class="info-row">
               <span class="label">Auth Method:</span>
               <span class="value">
+                <span v-if="instance.oidc_provider_id" class="badge bg-primary">
+                  OIDC: {{ instance.oidc_provider_id }}
+                </span>
                 <span
-                  v-if="instance.certificate_name"
+                  v-else-if="instance.certificate_name"
                   class="badge bg-info"
-                >{{ instance.certificate_name }}</span>
+                >Certificate: {{ instance.certificate_name }}</span>
                 <span v-else class="badge bg-secondary">Username/Password</span>
               </span>
             </div>
@@ -164,7 +167,19 @@
               required
             />
             <small class="form-text text-muted">
-              Choose between username/password or certificate-based authentication
+              Choose authentication method: username/password, OIDC, or certificate-based
+            </small>
+          </div>
+
+          <div v-if="form.authMethod === 'oidc'" class="col-md-12">
+            <label class="form-label">OIDC Provider</label>
+            <b-form-select
+              v-model="form.oidcProvider"
+              :options="oidcProviderOptions"
+              required
+            />
+            <small class="form-text text-muted">
+              Select an OIDC provider from config/oidc_providers.yaml
             </small>
           </div>
 
@@ -242,12 +257,20 @@ interface NiFiInstance {
   verify_ssl: boolean;
   certificate_name: string | null;
   check_hostname: boolean;
+  oidc_provider_id: string | null;
 }
 
 interface HierarchyAttribute {
   name: string;
   label: string;
   values?: string[];
+}
+
+interface OIDCProvider {
+  provider_id: string;
+  name: string;
+  description: string;
+  backend: boolean;
 }
 
 const loading = ref(true);
@@ -264,12 +287,16 @@ const form = ref({
   password: "",
   useSSL: true,
   verifySSL: true,
-  authMethod: "username", // "username" or certificate name
+  authMethod: "username", // "username", "oidc", or certificate name
+  oidcProvider: "", // OIDC provider ID
   checkHostname: true,
 });
 
 // Certificate list
 const certificates = ref<Array<{ name: string }>>([]);
+
+// OIDC providers list
+const oidcProviders = ref<OIDCProvider[]>([]);
 
 // Load hierarchy configuration
 const hierarchyConfig = ref<HierarchyAttribute[]>([]);
@@ -305,12 +332,35 @@ const loadCertificates = async () => {
   }
 };
 
+const loadOIDCProviders = async () => {
+  try {
+    const data = await apiRequest("/auth/oidc/backend-providers") as any;
+    oidcProviders.value = data.providers || [];
+  } catch (error) {
+    console.error("Error loading OIDC providers:", error);
+    oidcProviders.value = [];
+  }
+};
+
 const authMethodOptions = computed(() => {
-  const options = [{ value: "username", text: "Username / Password" }];
+  const options = [
+    { value: "username", text: "Username / Password" },
+    { value: "oidc", text: "OIDC Authentication" },
+  ];
   for (const cert of certificates.value) {
-    options.push({ value: cert.name, text: `Certificate: ${cert.name}` });
+    options.push({ value: `cert:${cert.name}`, text: `Certificate: ${cert.name}` });
   }
   return options;
+});
+
+const oidcProviderOptions = computed(() => {
+  if (oidcProviders.value.length === 0) {
+    return [{ value: "", text: "No OIDC providers configured" }];
+  }
+  return oidcProviders.value.map((provider) => ({
+    value: provider.provider_id,
+    text: `${provider.name}${provider.backend ? " (Backend)" : ""}`,
+  }));
 });
 
 const loadHierarchy = async () => {
@@ -347,6 +397,7 @@ const loadInstances = async () => {
 const showAddModal = async () => {
   await loadHierarchy();
   await loadCertificates();
+  await loadOIDCProviders();
 
   // Set default hierarchy attribute to first one
   if (hierarchyConfig.value.length > 0) {
@@ -360,8 +411,18 @@ const showAddModal = async () => {
 const editInstance = async (instance: NiFiInstance) => {
   await loadHierarchy();
   await loadCertificates();
+  await loadOIDCProviders();
 
   editingId.value = instance.id;
+  
+  // Determine auth method
+  let authMethod = "username";
+  if (instance.oidc_provider_id) {
+    authMethod = "oidc";
+  } else if (instance.certificate_name) {
+    authMethod = `cert:${instance.certificate_name}`;
+  }
+  
   form.value = {
     hierarchy_attribute: instance.hierarchy_attribute,
     hierarchy_value: instance.hierarchy_value,
@@ -370,7 +431,8 @@ const editInstance = async (instance: NiFiInstance) => {
     password: "",
     useSSL: instance.use_ssl,
     verifySSL: instance.verify_ssl,
-    authMethod: instance.certificate_name || "username",
+    authMethod: authMethod,
+    oidcProvider: instance.oidc_provider_id || "",
     checkHostname: instance.check_hostname,
   };
   isEditMode.value = true;
@@ -381,16 +443,38 @@ const handleSave = async (bvModalEvent: any) => {
   bvModalEvent.preventDefault();
 
   try {
+    // Determine authentication method and prepare payload
+    let certificateName = null;
+    let oidcProviderId = null;
+    let username = "";
+    let password = "";
+    
+    if (form.value.authMethod === "oidc") {
+      // OIDC authentication
+      oidcProviderId = form.value.oidcProvider || null;
+      if (!oidcProviderId) {
+        alert("Please select an OIDC provider");
+        return;
+      }
+    } else if (form.value.authMethod === "username") {
+      // Username/password authentication
+      username = form.value.username;
+      password = form.value.password;
+    } else if (form.value.authMethod.startsWith("cert:")) {
+      // Certificate authentication
+      certificateName = form.value.authMethod.substring(5); // Remove "cert:" prefix
+    }
+    
     const payload = {
       hierarchy_attribute: form.value.hierarchy_attribute,
       hierarchy_value: form.value.hierarchy_value,
       nifi_url: form.value.nifi_url,
-      username: form.value.authMethod === "username" ? form.value.username : "",
-      password: form.value.authMethod === "username" ? form.value.password : "",
+      username: username,
+      password: password,
       use_ssl: form.value.useSSL,
       verify_ssl: form.value.verifySSL,
-      certificate_name:
-        form.value.authMethod !== "username" ? form.value.authMethod : null,
+      certificate_name: certificateName,
+      oidc_provider_id: oidcProviderId,
       check_hostname: form.value.checkHostname,
     };
 
@@ -438,16 +522,35 @@ const testConnection = async (instanceId: number) => {
 
 const testConnectionFromModal = async () => {
   try {
+    // Determine authentication method
+    let certificateName = null;
+    let oidcProviderId = null;
+    let username = "";
+    let password = "";
+    
+    if (form.value.authMethod === "oidc") {
+      oidcProviderId = form.value.oidcProvider || null;
+      if (!oidcProviderId) {
+        alert("Please select an OIDC provider");
+        return;
+      }
+    } else if (form.value.authMethod === "username") {
+      username = form.value.username || "";
+      password = form.value.password || "";
+    } else if (form.value.authMethod.startsWith("cert:")) {
+      certificateName = form.value.authMethod.substring(5);
+    }
+    
     const payload = {
       hierarchy_attribute: form.value.hierarchy_attribute || "test",
       hierarchy_value: form.value.hierarchy_value || "test",
       nifi_url: form.value.nifi_url,
-      username: form.value.authMethod === "username" ? form.value.username || "" : "",
-      password: form.value.authMethod === "username" ? form.value.password || "" : "",
+      username: username,
+      password: password,
       use_ssl: form.value.useSSL,
       verify_ssl: form.value.verifySSL,
-      certificate_name:
-        form.value.authMethod !== "username" ? form.value.authMethod : null,
+      certificate_name: certificateName,
+      oidc_provider_id: oidcProviderId,
       check_hostname: form.value.checkHostname,
     };
 
@@ -495,6 +598,7 @@ const resetForm = () => {
     useSSL: true,
     verifySSL: true,
     authMethod: "username",
+    oidcProvider: "",
     checkHostname: true,
   };
   editingId.value = null;

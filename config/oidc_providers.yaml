@@ -21,6 +21,11 @@ providers:
     # Enable/disable this provider
     enabled: true
     
+    # Backend Only Provider
+    # If true, this provider is used only for backend-to-NiFi authentication
+    # and will not be shown on the user login page
+    backend: false
+    
     # Display Settings (shown on login page)
     name: "Corporate SSO"
     description: "Sign in with your company account"
@@ -64,34 +69,48 @@ providers:
     default_role: "user"            # Role for new users: "user" or "admin"
     username_prefix: ""             # Optional: prefix to avoid conflicts
   
-  # ---------------------------------------------------------------------------
-  # Example 2: Development/Staging Environment
-  # ---------------------------------------------------------------------------
-  development:
-    enabled: false
-    name: "Development SSO"
-    description: "For testing and development"
-    icon: "flask"
-    display_order: 2
+
+  nifi_backend:
+    # MANDATORY FIELDS
+    enabled: true
     
-    discovery_url: "http://localhost:7080/realms/dev/.well-known/openid-configuration"
-    client_id: "datenschleuder-dev"
-    client_secret: "dev-secret-change-me"
-    redirect_uri: ""
+    # backend: Set to true to use this provider ONLY for backend authentication
+    # When true, this provider will not appear on the user login page
+    # Use this for machine-to-machine authentication (Client Credentials flow)
+    backend: true
+
+    # Display Settings (shown on login page)
+    name: "NiPyAPI"
+    description: "backend OIDC provider for NiFi backend authentication"
+
+    # Discovery URL for backend authentication
+    # For Keycloak: https://{host}:{port}/realms/{realm}/.well-known/openid-configuration
+    discovery_url: "https://keycloak:7443/realms/oidc/.well-known/openid-configuration"
     
+    # Client credentials for backend service account
+    # Configure these in your OIDC provider:
+    #   - Access Type: confidential
+    #   - Service Accounts Enabled: ON
+    #   - Standard Flow Enabled: OFF (not needed for backend)
+    client_id: "oidc"
+    client_secret: "hOpFglgyuFLdb5N2nq6ZwkVbLYclhXnA"
+    
+    # Redirect URI not needed for backend-only providers (Client Credentials flow)
+    redirect_uri: "https://localhost:8443/nifi-api/access/oidc/callback"
+    
+    # OPTIONAL: Display settings (not shown to users but good for documentation)
+    name: "NiFi Backend Service"
+    description: "Backend authentication for NiFi instances (Client Credentials)"
+    
+    # Custom CA certificate if NiFi uses self-signed certificates
+    ca_cert_path: "config/certs/nifi-ca.cert.pem"
+    
+    # Scopes for backend authentication
+    # For Client Credentials flow, typically just openid
     scopes:
       - openid
-      - profile
-      - email
     
-    claim_mappings:
-      username: "email"             # Use email as username for dev
-      email: "email"
-      name: "name"
-    
-    auto_provision: true
-    default_role: "admin"           # Dev users get admin access
-    username_prefix: "dev_"
+    # Note: To use this provider, set OIDC_BACKEND_PROVIDER=nifi_backend in .env file
 
 # ============================================================================
 # GLOBAL OIDC SETTINGS

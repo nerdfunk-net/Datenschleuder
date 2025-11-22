@@ -31,6 +31,12 @@ class NiFiInstance(Base):
     check_hostname = Column(
         Boolean, default=True
     )  # Whether to verify SSL certificate hostname matches
+    
+    # OIDC Authentication (references provider from oidc_providers.yaml)
+    oidc_provider_id = Column(
+        String, nullable=True
+    )  # ID of OIDC provider to use (from oidc_providers.yaml), e.g. "nifi_backend"
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -51,6 +57,9 @@ class NiFiInstanceCreate(BaseModel):
     verify_ssl: bool = True
     certificate_name: Optional[str] = None
     check_hostname: bool = True
+    
+    # OIDC authentication - provider ID from oidc_providers.yaml
+    oidc_provider_id: Optional[str] = None
 
 
 class NiFiInstanceUpdate(BaseModel):
@@ -63,6 +72,9 @@ class NiFiInstanceUpdate(BaseModel):
     verify_ssl: Optional[bool] = None
     certificate_name: Optional[str] = None
     check_hostname: Optional[bool] = None
+    
+    # OIDC authentication - provider ID from oidc_providers.yaml
+    oidc_provider_id: Optional[str] = None
 
 
 class NiFiInstanceResponse(BaseModel):
@@ -77,6 +89,10 @@ class NiFiInstanceResponse(BaseModel):
     verify_ssl: bool
     certificate_name: Optional[str] = None
     check_hostname: bool
+    
+    # OIDC authentication - provider ID from oidc_providers.yaml
+    oidc_provider_id: Optional[str] = None
+    
     created_at: datetime
     updated_at: Optional[datetime] = None
 

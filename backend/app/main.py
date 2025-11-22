@@ -19,7 +19,18 @@ from app.api.registry_flows import router as registry_flows_router
 from app.api.deploy import router as deploy_router
 from app.api.oidc import router as oidc_router
 from app.api.users import router as users_router
-from app.models.user import User
+
+# Import all models to ensure they're registered with SQLAlchemy
+from app.models import (
+    User,
+    RefreshToken,
+    Credential,
+    Setting,
+    HierarchyValue,
+    NiFiInstance,
+    FlowView,
+    RegistryFlow,
+)
 
 # Configure logging
 logging.basicConfig(

@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     DEFAULT_ADMIN_USERNAME: str = "admin"
     DEFAULT_ADMIN_PASSWORD: str = "admin"
 
+    # OIDC Backend Provider
+    # If set, use this OIDC provider from oidc_providers.yaml for backend-to-NiFi authentication
+    # Leave empty to use certificate-based authentication
+    OIDC_BACKEND_PROVIDER: str = ""
+
     @property
     def database_url(self) -> str:
         """Construct database URL from configuration"""

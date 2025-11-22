@@ -24,6 +24,9 @@ async def test_nifi_connection(
         from app.services.nifi_auth import configure_nifi_test_connection
         from nipyapi.nifi import FlowApi
 
+        logger.info("=== CONNECTIONS.PY TEST ENDPOINT CALLED ===")
+        logger.info(f"Received data: username={data.username!r}, oidc_provider_id={data.oidc_provider_id!r}, certificate_name={data.certificate_name!r}")
+
         # Configure nipyapi with authentication
         configure_nifi_test_connection(
             nifi_url=data.nifi_url,
@@ -32,6 +35,7 @@ async def test_nifi_connection(
             verify_ssl=data.verify_ssl,
             certificate_name=data.certificate_name,
             check_hostname=data.check_hostname,
+            oidc_provider_id=data.oidc_provider_id,  # Added OIDC support
         )
 
         # Test connection

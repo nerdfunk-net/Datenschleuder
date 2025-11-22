@@ -57,6 +57,10 @@ async def create_nifi_instance(
             detail="Only admins can create NiFi instances",
         )
     
+    logger.info(f"=== CREATE INSTANCE CALLED ===")
+    logger.info(f"Received instance_data: {instance_data.dict()}")
+    logger.info(f"OIDC provider ID: {instance_data.oidc_provider_id!r}")
+    
     try:
         # Check if instance with same hierarchy value already exists
         existing = (
@@ -82,6 +86,8 @@ async def create_nifi_instance(
             check_hostname=instance_data.check_hostname,
             oidc_provider_id=instance_data.oidc_provider_id,
         )
+        
+        logger.info(f"Created instance object with oidc_provider_id={instance.oidc_provider_id!r}")
         
         # Encrypt password if provided
         if instance_data.password:
@@ -176,6 +182,8 @@ async def delete_nifi_instance(
     Delete a NiFi instance.
     Requires admin privileges.
     """
+    logger.info(f"Delete request - token_data: {token_data}, role: {token_data.get('role')!r}")
+    
     if token_data.get("role") != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -216,7 +224,17 @@ async def test_nifi_connection_temp(
     Test NiFi connection without saving to database.
     Used for validating credentials before creating an instance.
     """
+    logger.info("=== TEST ENDPOINT CALLED ===")
+    logger.info(f"Raw instance_data type: {type(instance_data)}")
+    logger.info(f"instance_data object: {instance_data}")
+    
     try:
+        # Debug: Log received data
+        data_dict = instance_data.dict()
+        logger.info(f"instance_data.dict(): {data_dict}")
+        logger.info(f"OIDC provider ID in dict: {data_dict.get('oidc_provider_id')!r}")
+        logger.info(f"OIDC provider ID direct access: {instance_data.oidc_provider_id!r}")
+        
         # Configure temporary connection
         configure_nifi_test_connection(
             nifi_url=instance_data.nifi_url,
@@ -230,18 +248,57 @@ async def test_nifi_connection_temp(
         
         # Try to get NiFi version as a connection test
         import nipyapi
-        version_info = nipyapi.system.get_nifi_version_info()
         
-        return {
-            "status": "success",
-            "message": "Connection successful",
-            "details": {
-                "version": version_info.nifi_version if hasattr(version_info, "nifi_version") else str(version_info),
-            },
-        }
+        logger.info("Attempting to connect to NiFi...")
+        logger.info(f"nipyapi config host: {nipyapi.config.nifi_config.host}")
+        logger.info(f"nipyapi config verify_ssl: {nipyapi.config.nifi_config.verify_ssl}")
+        
+        # Try the most basic API call - get about info
+        try:
+            logger.info("Trying to get about info...")
+            flow_api = nipyapi.nifi.FlowApi()
+            about = flow_api.get_about_info()
+            logger.info(f"About info response: {about}")
+            
+            if about is None:
+                logger.error("get_about_info() returned None")
+                return {
+                    "status": "error",
+                    "message": "Connection failed: NiFi API returned no response. Possible issues: wrong URL, authentication failed, or NiFi is not running.",
+                }
+            
+            # Extract version info
+            version = "unknown"
+            if about and hasattr(about, 'about') and about.about:
+                version = about.about.version if hasattr(about.about, 'version') else "unknown"
+            
+            logger.info(f"Successfully connected to NiFi version: {version}")
+            
+            # Try to get process group status as additional verification
+            try:
+                logger.info("Trying to get root process group...")
+                root_pg = nipyapi.canvas.get_process_group(nipyapi.canvas.get_root_pg_id(), 'id')
+                logger.info(f"Root process group: {root_pg.id if root_pg else None}")
+            except Exception as pg_err:
+                logger.warning(f"Could not get process group (not critical): {pg_err}")
+            
+            return {
+                "status": "success",
+                "message": "Connection successful",
+                "details": {
+                    "version": version,
+                },
+            }
+            
+        except Exception as api_err:
+            logger.error(f"Failed to connect to NiFi API: {api_err}", exc_info=True)
+            return {
+                "status": "error",
+                "message": f"Connection failed: {str(api_err)}",
+            }
         
     except Exception as e:
-        logger.error(f"Connection test failed: {e}")
+        logger.error(f"Connection test failed: {e}", exc_info=True)
         return {
             "status": "error",
             "message": f"Connection failed: {str(e)}",
@@ -264,6 +321,8 @@ async def test_nifi_connection_existing(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"NiFi instance with id {instance_id} not found",
             )
+        
+        logger.info(f"Testing instance {instance_id}: OIDC={instance.oidc_provider_id!r}, Cert={instance.certificate_name!r}, User={instance.username!r}")
         
         # Configure connection
         configure_nifi_connection(instance)

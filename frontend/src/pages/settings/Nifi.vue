@@ -87,9 +87,9 @@
               <span class="value">
                 <span
                   v-if="instance.use_ssl"
-                  class="badge bg-success"
+                  class="badge bg-success text-white"
                 >Enabled</span>
-                <span v-else class="badge bg-secondary">Disabled</span>
+                <span v-else class="badge bg-secondary text-white">Disabled</span>
               </span>
             </div>
             <div class="info-row">
@@ -97,22 +97,23 @@
               <span class="value">
                 <span
                   v-if="instance.verify_ssl"
-                  class="badge bg-success"
+                  class="badge bg-success text-white"
                 >Yes</span>
-                <span v-else class="badge bg-warning">No</span>
+                <span v-else class="badge bg-warning text-dark">No</span>
               </span>
             </div>
             <div class="info-row">
               <span class="label">Auth Method:</span>
               <span class="value">
-                <span v-if="instance.oidc_provider_id" class="badge bg-primary">
+                <span v-if="instance.oidc_provider_id" class="badge bg-primary text-white">
                   OIDC: {{ instance.oidc_provider_id }}
                 </span>
                 <span
                   v-else-if="instance.certificate_name"
-                  class="badge bg-info"
+                  class="badge bg-info text-white"
                 >Certificate: {{ instance.certificate_name }}</span>
-                <span v-else class="badge bg-secondary">Username/Password</span>
+                <span v-else-if="instance.username" class="badge bg-secondary text-white">Username/Password</span>
+                <span v-else class="badge bg-warning text-dark">Not configured</span>
               </span>
             </div>
           </div>
@@ -336,6 +337,7 @@ const loadOIDCProviders = async () => {
   try {
     const data = await apiRequest("/auth/oidc/backend-providers") as any;
     oidcProviders.value = data.providers || [];
+    console.log("Loaded OIDC providers:", oidcProviders.value);
   } catch (error) {
     console.error("Error loading OIDC providers:", error);
     oidcProviders.value = [];
@@ -398,6 +400,12 @@ const showAddModal = async () => {
   await loadHierarchy();
   await loadCertificates();
   await loadOIDCProviders();
+
+  console.log("Modal opened - Available auth methods:", {
+    oidcProviders: oidcProviders.value.length,
+    certificates: certificates.value.length,
+    authMethodOptions: authMethodOptions.value,
+  });
 
   // Set default hierarchy attribute to first one
   if (hierarchyConfig.value.length > 0) {
@@ -522,6 +530,15 @@ const testConnection = async (instanceId: number) => {
 
 const testConnectionFromModal = async () => {
   try {
+    // Log form state for debugging
+    console.log("Testing connection with form data:", {
+      authMethod: form.value.authMethod,
+      oidcProvider: form.value.oidcProvider,
+      username: form.value.username,
+      hasPassword: !!form.value.password,
+      nifi_url: form.value.nifi_url,
+    });
+
     // Determine authentication method
     let certificateName = null;
     let oidcProviderId = null;
@@ -537,6 +554,11 @@ const testConnectionFromModal = async () => {
     } else if (form.value.authMethod === "username") {
       username = form.value.username || "";
       password = form.value.password || "";
+      // Validate username/password are provided
+      if (!username || !password) {
+        alert("Please provide both username and password for username/password authentication");
+        return;
+      }
     } else if (form.value.authMethod.startsWith("cert:")) {
       certificateName = form.value.authMethod.substring(5);
     }
@@ -553,6 +575,11 @@ const testConnectionFromModal = async () => {
       oidc_provider_id: oidcProviderId,
       check_hostname: form.value.checkHostname,
     };
+
+    console.log("Sending test connection payload:", {
+      ...payload,
+      password: payload.password ? "***" : "",
+    });
 
     const result = await apiRequest("/api/nifi-instances/test", {
       method: "POST",
@@ -733,6 +760,37 @@ onMounted(() => {
     font-size: 13px;
     text-align: right;
     word-break: break-all;
+    
+    .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      font-weight: 500;
+      
+      &.bg-primary {
+        background-color: #007bff !important;
+        color: #ffffff !important;
+      }
+      
+      &.bg-info {
+        background-color: #17a2b8 !important;
+        color: #ffffff !important;
+      }
+      
+      &.bg-secondary {
+        background-color: #6c757d !important;
+        color: #ffffff !important;
+      }
+      
+      &.bg-success {
+        background-color: #28a745 !important;
+        color: #ffffff !important;
+      }
+      
+      &.bg-warning {
+        background-color: #ffc107 !important;
+        color: #212529 !important;
+      }
+    }
   }
 }
 </style>

@@ -61,6 +61,10 @@ class NiFiInstanceCreate(BaseModel):
     # OIDC authentication - provider ID from oidc_providers.yaml
     oidc_provider_id: Optional[str] = None
 
+    class Config:
+        # Ensure field names are used as-is without conversion
+        populate_by_name = True
+
 
 class NiFiInstanceUpdate(BaseModel):
     """Schema for updating a NiFi instance"""

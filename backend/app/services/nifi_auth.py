@@ -29,6 +29,12 @@ def configure_nifi_connection(
         instance: NiFi instance model with connection details
         normalize_url: If True, removes /nifi-api suffix and re-adds it (for deployment endpoints)
     """
+    # Log authentication method being used for debugging
+    logger.debug(
+        f"Configuring NiFi instance {instance.id} - OIDC: {instance.oidc_provider_id!r}, "
+        f"Cert: {instance.certificate_name!r}, User: {instance.username!r}"
+    )
+    
     # Configure base URL
     nifi_url = instance.nifi_url.rstrip("/")
 
@@ -51,7 +57,7 @@ def configure_nifi_connection(
         return
     
     # Priority 2: Certificate-based Authentication
-    if instance.certificate_name:
+    if instance.certificate_name and instance.certificate_name.strip():
         logger.info(f"Using certificate authentication: {instance.certificate_name}")
         _configure_certificate_auth(instance)
         return
@@ -62,7 +68,11 @@ def configure_nifi_connection(
         _configure_username_auth(instance)
         return
     
-    logger.warning("No authentication method configured for NiFi instance")
+    logger.warning(
+        f"No authentication method configured for NiFi instance {instance.id}. "
+        f"OIDC provider: {instance.oidc_provider_id!r}, Certificate: {instance.certificate_name!r}, "
+        f"Username: {instance.username!r}"
+    )
 
 
 def _configure_oidc_auth(provider_id: str, verify_ssl: bool = True) -> None:
@@ -246,8 +256,12 @@ def configure_nifi_test_connection(
         check_hostname: Whether to verify SSL certificate hostname matches
         oidc_provider_id: Optional OIDC provider ID from oidc_providers.yaml
     """
+    # Log authentication method being used for debugging
+    logger.debug(f"Test connection auth params - OIDC: {oidc_provider_id!r}, Cert: {certificate_name!r}, User: {username!r}")
+    
     # Configure base URL
     nifi_url = nifi_url.rstrip("/")
+    logger.info(f"Configuring NiFi URL: {nifi_url}")
     config.nifi_config.host = nifi_url
     config.nifi_config.verify_ssl = verify_ssl
 
@@ -258,10 +272,11 @@ def configure_nifi_test_connection(
     if oidc_provider_id and oidc_provider_id.strip():
         logger.info(f"Test connection using OIDC provider: {oidc_provider_id}")
         _configure_oidc_auth(oidc_provider_id, verify_ssl)
+        logger.info(f"After OIDC auth - nipyapi host: {config.nifi_config.host}")
         return
 
     # Priority 2: Certificate Authentication
-    if certificate_name:
+    if certificate_name and certificate_name.strip():
         logger.info(f"Test connection using certificate: {certificate_name}")
         _configure_certificate_test_auth(certificate_name, verify_ssl, check_hostname)
         return
@@ -274,7 +289,11 @@ def configure_nifi_test_connection(
         security.service_login(service="nifi", username=username, password=password)
         return
 
-    logger.warning("No authentication method configured for test connection")
+    logger.warning(
+        f"No authentication method configured for test connection. "
+        f"OIDC provider: {oidc_provider_id!r}, Certificate: {certificate_name!r}, "
+        f"Username: {username!r}, Has password: {bool(password)}"
+    )
 
 
 def _configure_certificate_test_auth(

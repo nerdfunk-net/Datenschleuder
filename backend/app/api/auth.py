@@ -66,7 +66,7 @@ async def login(
     # Create access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": "admin" if user.is_superuser else "user"}, expires_delta=access_token_expires
     )
 
     # Create refresh token
@@ -125,7 +125,7 @@ async def refresh_access_token(
     # Create new access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": "admin" if user.is_superuser else "user"}, expires_delta=access_token_expires
     )
 
     # Return new access token with same refresh token

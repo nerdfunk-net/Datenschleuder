@@ -55,7 +55,7 @@ def get_processor_configuration(
             - 500: Configuration retrieval failed
     """
     logger.info("=" * 80)
-    logger.info(f"GET PROCESSOR CONFIGURATION REQUEST")
+    logger.info("GET PROCESSOR CONFIGURATION REQUEST")
     logger.info(f"User: {current_user.get('sub', 'unknown')}")
     logger.info(f"Instance ID: {instance_id}")
     logger.info(f"Processor ID: {processor_id}")
@@ -202,7 +202,7 @@ def update_processor_configuration(
             - 500: Configuration update failed
     """
     logger.info("=" * 80)
-    logger.info(f"UPDATE PROCESSOR CONFIGURATION REQUEST")
+    logger.info("UPDATE PROCESSOR CONFIGURATION REQUEST")
     logger.info(f"User: {current_user.get('sub', 'unknown')}")
     logger.info(f"Instance ID: {instance_id}")
     logger.info(f"Processor ID: {processor_id}")
@@ -252,12 +252,14 @@ def update_processor_configuration(
                 detail="Failed to update processor configuration",
             )
 
-        logger.info(f"Successfully updated processor: {updated_processor.component.name}")
+        logger.info(
+            f"Successfully updated processor: {updated_processor.component.name}"
+        )
         logger.info("=" * 80)
 
         return ProcessorConfigurationUpdateResponse(
             status="success",
-            message=f"Processor configuration updated successfully",
+            message="Processor configuration updated successfully",
             processor_id=updated_processor.component.id,
             processor_name=updated_processor.component.name,
         )

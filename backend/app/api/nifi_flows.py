@@ -520,7 +520,7 @@ async def copy_nifi_flow(
             excluded_columns = ["id", "created_at", "modified_at"]
             columns_to_copy = [col for col in columns if col not in excluded_columns]
             values_to_copy = [values_dict[col] for col in columns_to_copy]
-            
+
             # Set active to False for the copied flow
             if "active" in columns_to_copy:
                 active_index = columns_to_copy.index("active")

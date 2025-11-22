@@ -16,7 +16,9 @@ class RegistryFlow(Base):
     __tablename__ = "registry_flows"
 
     id = Column(Integer, primary_key=True, index=True)
-    nifi_instance_id = Column(Integer, ForeignKey("nifi_instances.id"), nullable=False, index=True)
+    nifi_instance_id = Column(
+        Integer, ForeignKey("nifi_instances.id"), nullable=False, index=True
+    )
     nifi_instance_name = Column(
         String, nullable=False, index=True
     )  # Name of NiFi instance

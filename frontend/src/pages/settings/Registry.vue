@@ -439,14 +439,20 @@
     >
       <template #modal-title>
         <div>
-          <div class="modal-title-main">Flow Versions</div>
-          <div class="modal-title-sub">{{ selectedFlowForVersions?.flow_name }}</div>
+          <div class="modal-title-main">
+            Flow Versions
+          </div>
+          <div class="modal-title-sub">
+            {{ selectedFlowForVersions?.flow_name }}
+          </div>
         </div>
       </template>
 
       <div v-if="loadingVersions" class="text-center py-5">
         <b-spinner variant="primary" />
-        <p class="mt-3 text-muted">Loading versions...</p>
+        <p class="mt-3 text-muted">
+          Loading versions...
+        </p>
       </div>
 
       <div v-else-if="flowVersionsError" class="alert alert-danger">

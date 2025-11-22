@@ -16,17 +16,17 @@ from app.core.settings_manager import settings_manager
 
 def test_oidc_backend_config():
     """Test OIDC backend configuration loading"""
-    
+
     print("=" * 70)
     print("OIDC Backend Configuration Test")
     print("=" * 70)
     print()
-    
+
     # Test 1: Check OIDC_BACKEND_PROVIDER setting
     print("1. Environment Configuration:")
     print(f"   OIDC_BACKEND_PROVIDER: '{settings.OIDC_BACKEND_PROVIDER}'")
     print()
-    
+
     # Test 2: Load all providers
     print("2. All OIDC Providers:")
     all_providers = settings_manager.get_oidc_providers()
@@ -43,7 +43,7 @@ def test_oidc_backend_config():
             print(f"     Enabled: {enabled}")
             print(f"     Backend-only: {backend}")
     print()
-    
+
     # Test 3: User-facing providers (should exclude backend=true)
     print("3. User-Facing Providers (shown on login page):")
     user_providers = settings_manager.get_enabled_user_providers()
@@ -55,7 +55,7 @@ def test_oidc_backend_config():
             name = provider.get("name", provider_id)
             print(f"   - {provider_id}: {name}")
     print()
-    
+
     # Test 4: Backend provider lookup
     print("4. Backend Provider Configuration:")
     if settings.OIDC_BACKEND_PROVIDER:
@@ -67,18 +67,22 @@ def test_oidc_backend_config():
             print(f"   Provider name: {backend_provider.get('name')}")
             print(f"   Discovery URL: {backend_provider.get('discovery_url')}")
             print(f"   Client ID: {backend_provider.get('client_id')}")
-            print(f"   Client Secret: {'***' if backend_provider.get('client_secret') else 'NOT SET'}")
+            print(
+                f"   Client Secret: {'***' if backend_provider.get('client_secret') else 'NOT SET'}"
+            )
         else:
-            print(f"   ❌ Backend provider '{settings.OIDC_BACKEND_PROVIDER}' not found or not enabled")
+            print(
+                f"   ❌ Backend provider '{settings.OIDC_BACKEND_PROVIDER}' not found or not enabled"
+            )
     else:
         print("   ℹ️  No backend provider configured (using certificate/username auth)")
     print()
-    
+
     # Test 5: Validation
     print("5. Configuration Validation:")
     errors = []
     warnings = []
-    
+
     # Check if OIDC_BACKEND_PROVIDER is set but provider doesn't exist
     if settings.OIDC_BACKEND_PROVIDER:
         backend_provider = settings_manager.get_backend_provider(
@@ -92,12 +96,18 @@ def test_oidc_backend_config():
         else:
             # Validate required fields
             if not backend_provider.get("discovery_url"):
-                errors.append(f"Provider '{settings.OIDC_BACKEND_PROVIDER}' missing discovery_url")
+                errors.append(
+                    f"Provider '{settings.OIDC_BACKEND_PROVIDER}' missing discovery_url"
+                )
             if not backend_provider.get("client_id"):
-                errors.append(f"Provider '{settings.OIDC_BACKEND_PROVIDER}' missing client_id")
+                errors.append(
+                    f"Provider '{settings.OIDC_BACKEND_PROVIDER}' missing client_id"
+                )
             if not backend_provider.get("client_secret"):
-                errors.append(f"Provider '{settings.OIDC_BACKEND_PROVIDER}' missing client_secret")
-    
+                errors.append(
+                    f"Provider '{settings.OIDC_BACKEND_PROVIDER}' missing client_secret"
+                )
+
     # Check for providers marked as backend but also shown to users
     for provider in all_providers:
         if provider.get("enabled") and provider.get("backend"):
@@ -106,23 +116,23 @@ def test_oidc_backend_config():
                     f"Provider '{provider.get('provider_id')}' is marked as backend=true "
                     "but still appears in user-facing providers"
                 )
-    
+
     if errors:
         print("   ❌ Errors found:")
         for error in errors:
             print(f"      - {error}")
-    
+
     if warnings:
         print("   ⚠️  Warnings:")
         for warning in warnings:
             print(f"      - {warning}")
-    
+
     if not errors and not warnings:
         print("   ✅ Configuration is valid")
-    
+
     print()
     print("=" * 70)
-    
+
     return len(errors) == 0
 
 

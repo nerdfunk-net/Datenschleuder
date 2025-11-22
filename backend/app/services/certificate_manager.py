@@ -71,9 +71,7 @@ class CertificateManager:
         """Get list of all certificate names"""
         return [cert.name for cert in self.get_certificates()]
 
-    def get_certificate_paths(
-        self, cert_name: str
-    ) -> Optional[Dict[str, Path]]:
+    def get_certificate_paths(self, cert_name: str) -> Optional[Dict[str, Path]]:
         """
         Get full paths for a certificate's files
 

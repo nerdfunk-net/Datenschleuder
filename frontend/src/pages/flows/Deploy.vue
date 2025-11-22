@@ -379,7 +379,7 @@
           </div>
 
           <!-- Divider -->
-          <hr class="my-4">
+          <hr class="my-4" />
 
           <!-- Process Group Name Template -->
           <div class="form-group">
@@ -616,7 +616,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, reactive } from "vue";
+import { onMounted, reactive } from "vue";
 import { useDeploymentWizard } from "@/composables/useDeploymentWizard";
 import { useDeploymentOperations } from "@/composables/useDeploymentOperations";
 import * as deploymentService from "@/services/deploymentService";

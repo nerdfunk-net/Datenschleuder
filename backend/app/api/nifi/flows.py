@@ -26,8 +26,7 @@ async def export_flow(
     db: Session = Depends(get_db),
 ):
     """Export a flow from registry using nipyapi.versioning.export_flow_version"""
-    import nipyapi
-    from nipyapi import config, versioning
+    from nipyapi import versioning
 
     instance = get_instance_or_404(db, instance_id)
 
@@ -45,22 +44,25 @@ async def export_flow(
         # Verify the registry client exists and get its type
         registry_clients = versioning.list_registry_clients()
         registry_found = False
-        registry_client = None
         registry_type = None
 
-        if hasattr(registry_clients, 'registries') and registry_clients.registries:
+        if hasattr(registry_clients, "registries") and registry_clients.registries:
             for client in registry_clients.registries:
                 if client.id == registry_id:
                     registry_found = True
-                    registry_client = client
-                    if hasattr(client, 'component') and hasattr(client.component, 'type'):
+                    if hasattr(client, "component") and hasattr(
+                        client.component, "type"
+                    ):
                         registry_type = client.component.type
                     break
 
         if not registry_found:
             available_registries = []
-            if hasattr(registry_clients, 'registries') and registry_clients.registries:
-                available_registries = [f"{c.id} ({c.component.name if hasattr(c, 'component') else 'unknown'})" for c in registry_clients.registries]
+            if hasattr(registry_clients, "registries") and registry_clients.registries:
+                available_registries = [
+                    f"{c.id} ({c.component.name if hasattr(c, 'component') else 'unknown'})"
+                    for c in registry_clients.registries
+                ]
 
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -68,7 +70,9 @@ async def export_flow(
             )
 
         # Check if this is a GitHub or other external registry type
-        is_external_registry = registry_type and ('github' in registry_type.lower() or 'git' in registry_type.lower())
+        is_external_registry = registry_type and (
+            "github" in registry_type.lower() or "git" in registry_type.lower()
+        )
 
         if is_external_registry:
             raise HTTPException(
@@ -78,10 +82,7 @@ async def export_flow(
 
         # For NiFi Registry, use nipyapi's built-in export function
         exported_content = versioning.export_flow_version(
-            bucket_id=bucket_id,
-            flow_id=flow_id,
-            version=version,
-            mode=mode
+            bucket_id=bucket_id, flow_id=flow_id, version=version, mode=mode
         )
 
         # Get flow name for filename
@@ -90,7 +91,7 @@ async def export_flow(
             flow = versioning.get_flow_in_bucket(bucket_id, identifier=flow_id)
             if hasattr(flow, 'name'):
                 flow_name = flow.name
-        except:
+        except Exception:
             pass
 
         # Generate filename
@@ -103,9 +104,7 @@ async def export_flow(
         return Response(
             content=exported_content,
             media_type=content_type,
-            headers={
-                "Content-Disposition": f"attachment; filename={filename}"
-            }
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
 
     except HTTPException:
@@ -113,6 +112,7 @@ async def export_flow(
     except Exception as e:
         error_msg = str(e)
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -132,8 +132,7 @@ async def import_flow(
     db: Session = Depends(get_db),
 ):
     """Import a flow to registry using nipyapi.versioning.import_flow_version"""
-    import nipyapi
-    from nipyapi import config, versioning
+    from nipyapi import versioning
 
     instance = get_instance_or_404(db, instance_id)
 
@@ -145,7 +144,7 @@ async def import_flow(
         )
 
     # Validate file type
-    if not file.filename.endswith(('.json', '.yaml', '.yml')):
+    if not file.filename.endswith((".json", ".yaml", ".yml")):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File must be a JSON or YAML file",
@@ -158,22 +157,25 @@ async def import_flow(
         # Verify the registry client exists and get its type
         registry_clients = versioning.list_registry_clients()
         registry_found = False
-        registry_client = None
         registry_type = None
 
-        if hasattr(registry_clients, 'registries') and registry_clients.registries:
+        if hasattr(registry_clients, "registries") and registry_clients.registries:
             for client in registry_clients.registries:
                 if client.id == registry_id:
                     registry_found = True
-                    registry_client = client
-                    if hasattr(client, 'component') and hasattr(client.component, 'type'):
+                    if hasattr(client, "component") and hasattr(
+                        client.component, "type"
+                    ):
                         registry_type = client.component.type
                     break
 
         if not registry_found:
             available_registries = []
-            if hasattr(registry_clients, 'registries') and registry_clients.registries:
-                available_registries = [f"{c.id} ({c.component.name if hasattr(c, 'component') else 'unknown'})" for c in registry_clients.registries]
+            if hasattr(registry_clients, "registries") and registry_clients.registries:
+                available_registries = [
+                    f"{c.id} ({c.component.name if hasattr(c, 'component') else 'unknown'})"
+                    for c in registry_clients.registries
+                ]
 
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -181,7 +183,9 @@ async def import_flow(
             )
 
         # Check if this is a GitHub or other external registry type
-        is_external_registry = registry_type and ('github' in registry_type.lower() or 'git' in registry_type.lower())
+        is_external_registry = registry_type and (
+            "github" in registry_type.lower() or "git" in registry_type.lower()
+        )
 
         if is_external_registry:
             raise HTTPException(
@@ -191,14 +195,14 @@ async def import_flow(
 
         # Read the uploaded file content
         file_content = await file.read()
-        encoded_flow = file_content.decode('utf-8')
+        encoded_flow = file_content.decode("utf-8")
 
         # For NiFi Registry, use nipyapi's built-in import function
         imported_flow = versioning.import_flow_version(
             bucket_id=bucket_id,
             encoded_flow=encoded_flow,
             flow_name=flow_name,
-            flow_id=flow_id
+            flow_id=flow_id,
         )
 
         # Extract flow information from the response
@@ -206,17 +210,17 @@ async def import_flow(
         result_flow_id = flow_id
         result_version = "unknown"
 
-        if hasattr(imported_flow, 'snapshot_metadata'):
+        if hasattr(imported_flow, "snapshot_metadata"):
             metadata = imported_flow.snapshot_metadata
-            if hasattr(metadata, 'flow_identifier'):
+            if hasattr(metadata, "flow_identifier"):
                 result_flow_id = metadata.flow_identifier
-            if hasattr(metadata, 'version'):
+            if hasattr(metadata, "version"):
                 result_version = str(metadata.version)
 
-        if hasattr(imported_flow, 'flow'):
-            if hasattr(imported_flow.flow, 'identifier'):
+        if hasattr(imported_flow, "flow"):
+            if hasattr(imported_flow.flow, "identifier"):
                 result_flow_id = imported_flow.flow.identifier
-            if hasattr(imported_flow.flow, 'name'):
+            if hasattr(imported_flow.flow, "name"):
                 result_flow_name = imported_flow.flow.name
 
         return {
@@ -233,6 +237,7 @@ async def import_flow(
     except Exception as e:
         error_msg = str(e)
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

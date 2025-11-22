@@ -28,7 +28,9 @@ class NiFiDeploymentService:
         """
         self.instance = instance
         self.last_hierarchy_attr = last_hierarchy_attr
-        logger.info(f"=== NiFiDeploymentService initialized with hierarchy_attr: '{last_hierarchy_attr}' ===")
+        logger.info(
+            f"=== NiFiDeploymentService initialized with hierarchy_attr: '{last_hierarchy_attr}' ==="
+        )
 
     def get_registry_info(
         self, deployment: DeploymentRequest, db: Session
@@ -58,8 +60,12 @@ class NiFiDeploymentService:
                     detail=f"Template with ID {deployment.template_id} not found",
                 )
 
-            logger.info(f"Using template '{template.flow_name}' (ID: {deployment.template_id})")
-            logger.info(f"  Registry: {template.registry_name} ({template.registry_id})")
+            logger.info(
+                f"Using template '{template.flow_name}' (ID: {deployment.template_id})"
+            )
+            logger.info(
+                f"  Registry: {template.registry_name} ({template.registry_id})"
+            )
             logger.info(f"  Bucket: {template.bucket_name} ({template.bucket_id})")
             logger.info(f"  Flow: {template.flow_name} ({template.flow_id})")
 
@@ -104,7 +110,9 @@ class NiFiDeploymentService:
             HTTPException: If resolution fails
         """
         if deployment.parent_process_group_id:
-            logger.info(f"Using provided parent_process_group_id: {deployment.parent_process_group_id}")
+            logger.info(
+                f"Using provided parent_process_group_id: {deployment.parent_process_group_id}"
+            )
             return deployment.parent_process_group_id
         else:
             logger.info(f"Resolving path: '{deployment.parent_process_group_path}'")
@@ -124,6 +132,7 @@ class NiFiDeploymentService:
             except Exception as e:
                 logger.error(f"✗ UNEXPECTED ERROR during path resolution: {e}")
                 import traceback
+
                 traceback.print_exc()
                 raise
 
@@ -155,7 +164,9 @@ class NiFiDeploymentService:
         )
 
         if is_github_registry:
-            logger.info("GitHub registry detected, using provided bucket/flow IDs directly")
+            logger.info(
+                "GitHub registry detected, using provided bucket/flow IDs directly"
+            )
             return bucket_id, flow_id
         else:
             logger.info("Getting bucket and flow identifiers from NiFi Registry...")
@@ -210,20 +221,26 @@ class NiFiDeploymentService:
                     bucket_id=bucket_identifier,
                     flow_id=flow_identifier,
                     registry_id=reg_client_id,
-                    service="nifi"
+                    service="nifi",
                 )
 
                 logger.info(f"DEBUG: flow_versions object type: {type(flow_versions)}")
                 logger.info(f"DEBUG: flow_versions attributes: {dir(flow_versions)}")
 
-                if flow_versions and hasattr(flow_versions, 'versioned_flow_snapshot_metadata_set'):
+                if flow_versions and hasattr(
+                    flow_versions, "versioned_flow_snapshot_metadata_set"
+                ):
                     versions_list = flow_versions.versioned_flow_snapshot_metadata_set
-                    logger.info(f"DEBUG: Found {len(versions_list)} versions in metadata set")
+                    logger.info(
+                        f"DEBUG: Found {len(versions_list)} versions in metadata set"
+                    )
 
                     if versions_list:
                         # Log all available versions for debugging
                         logger.info("=" * 60)
-                        logger.info("ALL AVAILABLE VERSIONS (as returned from registry):")
+                        logger.info(
+                            "ALL AVAILABLE VERSIONS (as returned from registry):"
+                        )
                         for idx, v in enumerate(versions_list):
                             metadata = v.versioned_flow_snapshot_metadata
                             logger.info(f"  [{idx}] Version: {metadata.version}")
@@ -238,30 +255,43 @@ class NiFiDeploymentService:
                         sorted_versions = sorted(
                             versions_list,
                             key=lambda x: x.versioned_flow_snapshot_metadata.timestamp,
-                            reverse=True
+                            reverse=True,
                         )
 
                         logger.info("SORTED VERSIONS (by timestamp, newest first):")
                         for idx, v in enumerate(sorted_versions):
                             metadata = v.versioned_flow_snapshot_metadata
-                            logger.info(f"  [{idx}] Version: {metadata.version} | Timestamp: {metadata.timestamp}")
+                            logger.info(
+                                f"  [{idx}] Version: {metadata.version} | Timestamp: {metadata.timestamp}"
+                            )
                         logger.info("=" * 60)
 
                         latest_version_metadata = sorted_versions[0]
                         deploy_version = latest_version_metadata.versioned_flow_snapshot_metadata.version
-                        logger.info(f"✓ LATEST version selected (by timestamp): {deploy_version}")
-                        logger.info(f"  Timestamp: {latest_version_metadata.versioned_flow_snapshot_metadata.timestamp}")
+                        logger.info(
+                            f"✓ LATEST version selected (by timestamp): {deploy_version}"
+                        )
+                        logger.info(
+                            f"  Timestamp: {latest_version_metadata.versioned_flow_snapshot_metadata.timestamp}"
+                        )
                     else:
-                        logger.warning("No versions found in flow metadata, will use version=None as fallback")
+                        logger.warning(
+                            "No versions found in flow metadata, will use version=None as fallback"
+                        )
                         deploy_version = None
                 else:
-                    logger.warning("Could not retrieve flow versions, will use version=None as fallback")
+                    logger.warning(
+                        "Could not retrieve flow versions, will use version=None as fallback"
+                    )
                     deploy_version = None
 
             except Exception as version_error:
                 logger.warning(f"Could not fetch latest version: {version_error}")
-                logger.warning("Falling back to version=None (nipyapi will determine latest)")
+                logger.warning(
+                    "Falling back to version=None (nipyapi will determine latest)"
+                )
                 import traceback
+
                 logger.error(f"DEBUG: Full traceback:\n{traceback.format_exc()}")
                 deploy_version = None
 
@@ -410,7 +440,9 @@ class NiFiDeploymentService:
 
         if new_name and pg_id:
             try:
-                logger.info(f"Renaming process group from '{pg_name}' to '{new_name}'...")
+                logger.info(
+                    f"Renaming process group from '{pg_name}' to '{new_name}'..."
+                )
 
                 updated_pg = canvas.update_process_group(
                     pg=deployed_pg, update={"name": new_name}
@@ -420,7 +452,9 @@ class NiFiDeploymentService:
                 logger.info(f"✓ Successfully renamed process group to '{pg_name}'")
 
             except Exception as rename_error:
-                logger.warning(f"⚠ Warning: Could not rename process group: {rename_error}")
+                logger.warning(
+                    f"⚠ Warning: Could not rename process group: {rename_error}"
+                )
 
         return pg_id, pg_name
 
@@ -442,9 +476,7 @@ class NiFiDeploymentService:
                 return vci.version
         return None
 
-    def auto_connect_ports(
-        self, pg_id: str, parent_pg_id: str
-    ) -> None:
+    def auto_connect_ports(self, pg_id: str, parent_pg_id: str) -> None:
         """
         Auto-connect input and output ports between child and parent process groups.
 
@@ -457,7 +489,7 @@ class NiFiDeploymentService:
         logger.info(f"  Child process group ID: {pg_id}")
         logger.info(f"  Parent process group ID: {parent_pg_id}")
         logger.info("=" * 60)
-        
+
         pg_api = ProcessGroupsApi()
 
         # Connect output ports
@@ -467,7 +499,7 @@ class NiFiDeploymentService:
         # Connect input ports
         logger.info("\n--- Attempting INPUT port connections ---")
         self._connect_input_ports(pg_api, pg_id, parent_pg_id)
-        
+
         logger.info("=" * 60)
         logger.info("AUTO-CONNECT PORTS: Completed auto-connection process")
         logger.info("=" * 60)
@@ -492,7 +524,9 @@ class NiFiDeploymentService:
             ValueError: If port_type is not 'input' or 'output'
         """
         if port_type not in ("input", "output"):
-            raise ValueError(f"Invalid port_type: {port_type}. Must be 'input' or 'output'")
+            raise ValueError(
+                f"Invalid port_type: {port_type}. Must be 'input' or 'output'"
+            )
 
         try:
             logger.info(f"=== Auto-connect {port_type} ports ===")
@@ -505,7 +539,9 @@ class NiFiDeploymentService:
             if port_type == "output":
                 child_response = pg_api.get_output_ports(id=child_pg_id)
                 logger.debug(f"  Child response type: {type(child_response)}")
-                logger.debug(f"  Child response has 'output_ports': {hasattr(child_response, 'output_ports')}")
+                logger.debug(
+                    f"  Child response has 'output_ports': {hasattr(child_response, 'output_ports')}"
+                )
                 child_ports = (
                     child_response.output_ports
                     if hasattr(child_response, "output_ports")
@@ -514,18 +550,27 @@ class NiFiDeploymentService:
             else:  # input
                 child_response = pg_api.get_input_ports(id=child_pg_id)
                 logger.debug(f"  Child response type: {type(child_response)}")
-                logger.debug(f"  Child response has 'input_ports': {hasattr(child_response, 'input_ports')}")
+                logger.debug(
+                    f"  Child response has 'input_ports': {hasattr(child_response, 'input_ports')}"
+                )
                 child_ports = (
                     child_response.input_ports
                     if hasattr(child_response, "input_ports")
                     else []
                 )
 
-            logger.info(f"  Child {port_type} ports count: {len(child_ports) if child_ports else 0}")
+            logger.info(
+                f"  Child {port_type} ports count: {len(child_ports) if child_ports else 0}"
+            )
             if child_ports:
                 for idx, port in enumerate(child_ports):
-                    port_name = port.component.name if hasattr(port, 'component') and hasattr(port.component, 'name') else 'Unknown'
-                    port_id = port.id if hasattr(port, 'id') else 'Unknown'
+                    port_name = (
+                        port.component.name
+                        if hasattr(port, "component")
+                        and hasattr(port.component, "name")
+                        else "Unknown"
+                    )
+                    port_id = port.id if hasattr(port, "id") else "Unknown"
                     logger.debug(f"    Child port {idx}: '{port_name}' (ID: {port_id})")
 
             if not child_ports:
@@ -543,7 +588,9 @@ class NiFiDeploymentService:
             if port_type == "output":
                 parent_response = pg_api.get_output_ports(id=parent_pg_id)
                 logger.debug(f"  Parent response type: {type(parent_response)}")
-                logger.debug(f"  Parent response has 'output_ports': {hasattr(parent_response, 'output_ports')}")
+                logger.debug(
+                    f"  Parent response has 'output_ports': {hasattr(parent_response, 'output_ports')}"
+                )
                 parent_ports = (
                     parent_response.output_ports
                     if hasattr(parent_response, "output_ports")
@@ -552,19 +599,30 @@ class NiFiDeploymentService:
             else:  # input
                 parent_response = pg_api.get_input_ports(id=parent_pg_id)
                 logger.debug(f"  Parent response type: {type(parent_response)}")
-                logger.debug(f"  Parent response has 'input_ports': {hasattr(parent_response, 'input_ports')}")
+                logger.debug(
+                    f"  Parent response has 'input_ports': {hasattr(parent_response, 'input_ports')}"
+                )
                 parent_ports = (
                     parent_response.input_ports
                     if hasattr(parent_response, "input_ports")
                     else []
                 )
 
-            logger.info(f"  Parent {port_type} ports count: {len(parent_ports) if parent_ports else 0}")
+            logger.info(
+                f"  Parent {port_type} ports count: {len(parent_ports) if parent_ports else 0}"
+            )
             if parent_ports:
                 for idx, port in enumerate(parent_ports):
-                    port_name = port.component.name if hasattr(port, 'component') and hasattr(port.component, 'name') else 'Unknown'
-                    port_id = port.id if hasattr(port, 'id') else 'Unknown'
-                    logger.debug(f"    Parent port {idx}: '{port_name}' (ID: {port_id})")
+                    port_name = (
+                        port.component.name
+                        if hasattr(port, "component")
+                        and hasattr(port.component, "name")
+                        else "Unknown"
+                    )
+                    port_id = port.id if hasattr(port, "id") else "Unknown"
+                    logger.debug(
+                        f"    Parent port {idx}: '{port_name}' (ID: {port_id})"
+                    )
 
             if not parent_ports:
                 logger.info(
@@ -589,14 +647,28 @@ class NiFiDeploymentService:
                 source_port = parent_port
                 target_port = child_port
 
-            source_name = source_port.component.name if hasattr(source_port, 'component') and hasattr(source_port.component, 'name') else 'Unknown'
-            target_name = target_port.component.name if hasattr(target_port, 'component') and hasattr(target_port.component, 'name') else 'Unknown'
-            
+            source_name = (
+                source_port.component.name
+                if hasattr(source_port, "component")
+                and hasattr(source_port.component, "name")
+                else "Unknown"
+            )
+            target_name = (
+                target_port.component.name
+                if hasattr(target_port, "component")
+                and hasattr(target_port.component, "name")
+                else "Unknown"
+            )
+
             logger.info(
                 f"  Connecting {port_type}: '{source_name}' -> '{target_name}'..."
             )
-            logger.debug(f"    Source port ID: {source_port.id if hasattr(source_port, 'id') else 'Unknown'}")
-            logger.debug(f"    Target port ID: {target_port.id if hasattr(target_port, 'id') else 'Unknown'}")
+            logger.debug(
+                f"    Source port ID: {source_port.id if hasattr(source_port, 'id') else 'Unknown'}"
+            )
+            logger.debug(
+                f"    Target port ID: {target_port.id if hasattr(target_port, 'id') else 'Unknown'}"
+            )
 
             created_conn = canvas.create_connection(
                 source=source_port,
@@ -614,6 +686,7 @@ class NiFiDeploymentService:
             )
             logger.error(f"  Error type: {type(connect_error).__name__}")
             import traceback
+
             logger.error(f"  Traceback: {traceback.format_exc()}")
             logger.warning(
                 f"⚠ Warning: Could not auto-connect {port_type} ports: {connect_error}"
@@ -648,7 +721,7 @@ class NiFiDeploymentService:
             logger.info("=== Connecting INPUT ports ===")
             logger.info(f"  Child PG ID: {child_pg_id}")
             logger.info(f"  Parent PG ID: {parent_pg_id}")
-            
+
             # Get child input ports
             logger.debug("  Fetching input ports from child process group...")
             child_response = pg_api.get_input_ports(id=child_pg_id)
@@ -657,63 +730,90 @@ class NiFiDeploymentService:
                 if hasattr(child_response, "input_ports")
                 else []
             )
-            
-            logger.info(f"  Child input ports count: {len(child_ports) if child_ports else 0}")
-            
+
+            logger.info(
+                f"  Child input ports count: {len(child_ports) if child_ports else 0}"
+            )
+
             if not child_ports:
-                logger.info("  No input ports found in child process group - skipping input auto-connect")
+                logger.info(
+                    "  No input ports found in child process group - skipping input auto-connect"
+                )
                 return
-            
+
             child_port = child_ports[0]
-            child_port_name = child_port.component.name if hasattr(child_port, 'component') and hasattr(child_port.component, 'name') else 'Unknown'
-            logger.info(f"  Child input port: '{child_port_name}' (ID: {child_port.id})")
+            child_port_name = (
+                child_port.component.name
+                if hasattr(child_port, "component")
+                and hasattr(child_port.component, "name")
+                else "Unknown"
+            )
+            logger.info(
+                f"  Child input port: '{child_port_name}' (ID: {child_port.id})"
+            )
 
             # Strategy 1 (PRIORITY): Check for RouteOnAttribute processor in parent
-            logger.info("  Strategy 1 (Priority): Looking for RouteOnAttribute processor in parent...")
+            logger.info(
+                "  Strategy 1 (Priority): Looking for RouteOnAttribute processor in parent..."
+            )
             logger.debug("  Fetching processors from parent process group...")
             processors_list = canvas.list_all_processors(pg_id=parent_pg_id)
-            
+
             if not processors_list:
                 logger.warning("  No processors found in parent process group")
                 return
-            
+
             logger.info(f"  Found {len(processors_list)} processor(s) in parent")
-            
+
             # Find RouteOnAttribute processor
             route_processor = None
             for processor in processors_list:
                 processor_type = (
                     processor.component.type
-                    if hasattr(processor, "component") and hasattr(processor.component, "type")
+                    if hasattr(processor, "component")
+                    and hasattr(processor.component, "type")
                     else None
                 )
                 processor_name = (
                     processor.component.name
-                    if hasattr(processor, "component") and hasattr(processor.component, "name")
+                    if hasattr(processor, "component")
+                    and hasattr(processor.component, "name")
                     else "Unknown"
                 )
                 processor_pg_id = (
                     processor.component.parent_group_id
-                    if hasattr(processor, "component") and hasattr(processor.component, "parent_group_id")
+                    if hasattr(processor, "component")
+                    and hasattr(processor.component, "parent_group_id")
                     else "Unknown"
                 )
-                
-                logger.debug(f"    Processor: '{processor_name}' (Type: {processor_type}, Parent PG: {processor_pg_id})")
-                
+
+                logger.debug(
+                    f"    Processor: '{processor_name}' (Type: {processor_type}, Parent PG: {processor_pg_id})"
+                )
+
                 # CRITICAL: Only consider processors that are DIRECTLY in the parent PG
                 # Exclude processors from child process groups (like the newly deployed one)
                 if processor_pg_id != parent_pg_id:
-                    logger.debug(f"      -> Skipping - not in parent PG (expected: {parent_pg_id})")
+                    logger.debug(
+                        f"      -> Skipping - not in parent PG (expected: {parent_pg_id})"
+                    )
                     continue
-                
-                if processor_type == "org.apache.nifi.processors.standard.RouteOnAttribute":
+
+                if (
+                    processor_type
+                    == "org.apache.nifi.processors.standard.RouteOnAttribute"
+                ):
                     route_processor = processor
-                    logger.info(f"  ✓ Found RouteOnAttribute processor in PARENT: '{processor_name}' (ID: {processor.id})")
+                    logger.info(
+                        f"  ✓ Found RouteOnAttribute processor in PARENT: '{processor_name}' (ID: {processor.id})"
+                    )
                     break
-            
+
             if not route_processor:
                 logger.info("  No RouteOnAttribute processor found in parent")
-                logger.info("  Strategy 2 (Fallback): Trying parent INPUT port -> child INPUT port connection")
+                logger.info(
+                    "  Strategy 2 (Fallback): Trying parent INPUT port -> child INPUT port connection"
+                )
 
                 # Fallback: Try to get parent INPUT ports
                 logger.debug("  Fetching INPUT ports from parent process group...")
@@ -724,14 +824,23 @@ class NiFiDeploymentService:
                     else []
                 )
 
-                logger.info(f"  Parent INPUT ports count: {len(parent_input_ports) if parent_input_ports else 0}")
+                logger.info(
+                    f"  Parent INPUT ports count: {len(parent_input_ports) if parent_input_ports else 0}"
+                )
 
                 if parent_input_ports:
                     logger.info("  Connecting parent INPUT port -> child INPUT port")
                     parent_input_port = parent_input_ports[0]
-                    parent_port_name = parent_input_port.component.name if hasattr(parent_input_port, 'component') and hasattr(parent_input_port.component, 'name') else 'Unknown'
+                    parent_port_name = (
+                        parent_input_port.component.name
+                        if hasattr(parent_input_port, "component")
+                        and hasattr(parent_input_port.component, "name")
+                        else "Unknown"
+                    )
 
-                    logger.info(f"  Connecting: '{parent_port_name}' (parent INPUT) -> '{child_port_name}' (child INPUT)...")
+                    logger.info(
+                        f"  Connecting: '{parent_port_name}' (parent INPUT) -> '{child_port_name}' (child INPUT)..."
+                    )
 
                     created_conn = canvas.create_connection(
                         source=parent_input_port,
@@ -739,194 +848,256 @@ class NiFiDeploymentService:
                         name=f"{parent_port_name} to {child_port_name}",
                     )
 
-                    logger.info(f"  ✓ Successfully created input connection (ID: {created_conn.id})")
+                    logger.info(
+                        f"  ✓ Successfully created input connection (ID: {created_conn.id})"
+                    )
                     return
                 else:
-                    logger.warning("  No parent INPUT port found either - cannot auto-connect")
+                    logger.warning(
+                        "  No parent INPUT port found either - cannot auto-connect"
+                    )
                     return
-            
+
             # Get the child process group name to use as relationship name
-            logger.debug("  Fetching child process group details for relationship name...")
+            logger.debug(
+                "  Fetching child process group details for relationship name..."
+            )
             child_pg = pg_api.get_process_group(id=child_pg_id)
             child_pg_name = (
                 child_pg.component.name
-                if hasattr(child_pg, "component") and hasattr(child_pg.component, "name")
+                if hasattr(child_pg, "component")
+                and hasattr(child_pg.component, "name")
                 else "Unknown"
             )
-            
+
             logger.info(f"  Child PG name: '{child_pg_name}'")
-            
+
             # Get RouteOnAttribute processor configuration to check properties
             route_processor_id = route_processor.id
-            logger.info(f"  Checking RouteOnAttribute processor configuration...")
+            logger.info("  Checking RouteOnAttribute processor configuration...")
             logger.debug(f"    Processor ID: {route_processor_id}")
-            
+
             # Get processor configuration
             route_config = canvas.get_processor(route_processor_id, "id")
-            config_obj = route_config.component.config if hasattr(route_config, "component") else None
+            config_obj = (
+                route_config.component.config
+                if hasattr(route_config, "component")
+                else None
+            )
             properties = {}
-            
-            if config_obj and hasattr(config_obj, "properties") and config_obj.properties:
+
+            if (
+                config_obj
+                and hasattr(config_obj, "properties")
+                and config_obj.properties
+            ):
                 properties = dict(config_obj.properties)
                 logger.info(f"  Current properties: {list(properties.keys())}")
-                logger.info(f"  ===== FULL PROPERTY DUMP =====")
+                logger.info("  ===== FULL PROPERTY DUMP =====")
                 for prop_key, prop_value in properties.items():
                     logger.info(f"    '{prop_key}': '{prop_value}'")
-                logger.info(f"  ==============================")
+                logger.info("  ==============================")
             else:
                 logger.warning("  No properties found in RouteOnAttribute processor")
-            
+
             # Check if property for child PG exists
             property_exists = child_pg_name in properties
             logger.info(f"  Looking for property: '{child_pg_name}'")
             logger.info(f"  Property exists: {property_exists}")
-            
+
             # Check if Routing Strategy is correctly set
             routing_strategy = properties.get("Routing Strategy", "")
             logger.debug(f"  Current Routing Strategy: '{routing_strategy}'")
-            
+
             needs_update = False
             if not property_exists:
-                logger.info(f"  Property '{child_pg_name}' does NOT exist - will add it")
+                logger.info(
+                    f"  Property '{child_pg_name}' does NOT exist - will add it"
+                )
                 needs_update = True
             else:
-                logger.info(f"  ✓ Property '{child_pg_name}' already exists with value: {properties[child_pg_name]}")
-            
+                logger.info(
+                    f"  ✓ Property '{child_pg_name}' already exists with value: {properties[child_pg_name]}"
+                )
+
             if routing_strategy != "Route to Property name":
-                logger.warning(f"  Routing Strategy is '{routing_strategy}' but should be 'Route to Property name'")
+                logger.warning(
+                    f"  Routing Strategy is '{routing_strategy}' but should be 'Route to Property name'"
+                )
                 needs_update = True
-            
+
             if needs_update:
                 # Get current processor state
-                current_state = route_processor.component.state if hasattr(route_processor, "component") else "STOPPED"
+                current_state = (
+                    route_processor.component.state
+                    if hasattr(route_processor, "component")
+                    else "STOPPED"
+                )
                 logger.info(f"  Current processor state: {current_state}")
-                
+
                 # Stop processor if running (required for configuration changes)
                 if current_state == "RUNNING":
-                    logger.info(f"  Stopping processor before configuration update...")
+                    logger.info("  Stopping processor before configuration update...")
                     try:
                         canvas.schedule_processor(route_processor, scheduled=False)
-                        logger.info(f"  ✓ Processor stopped")
+                        logger.info("  ✓ Processor stopped")
                         import time
+
                         time.sleep(0.5)  # Wait for processor to stop
                     except Exception as stop_error:
                         logger.warning(f"  Could not stop processor: {stop_error}")
-                
+
                 # Add/update properties
                 if not property_exists:
                     property_value = f"${{{self.last_hierarchy_attr}:equalsIgnoreCase('{child_pg_name}')}}"
                     properties[child_pg_name] = property_value
-                    logger.info(f"  ===== CREATING PROPERTY =====")
+                    logger.info("  ===== CREATING PROPERTY =====")
                     logger.info(f"  Property name: '{child_pg_name}'")
-                    logger.info(f"  Hierarchy attribute used: '{self.last_hierarchy_attr}'")
+                    logger.info(
+                        f"  Hierarchy attribute used: '{self.last_hierarchy_attr}'"
+                    )
                     logger.info(f"  Property value: '{property_value}'")
-                    logger.info(f"  =============================")
-                
+                    logger.info("  =============================")
+
                 if routing_strategy != "Route to Property name":
                     properties["Routing Strategy"] = "Route to Property name"
-                    logger.info(f"  Set Routing Strategy to 'Route to Property name'")
-                
-                logger.info(f"  ===== PROPERTIES TO UPDATE =====")
+                    logger.info("  Set Routing Strategy to 'Route to Property name'")
+
+                logger.info("  ===== PROPERTIES TO UPDATE =====")
                 logger.info(f"  Total properties: {len(properties)}")
                 for prop_key, prop_value in properties.items():
                     logger.info(f"    '{prop_key}': '{prop_value}'")
-                logger.info(f"  =================================")
-                logger.info(f"  Updating processor configuration...")
-                
+                logger.info("  =================================")
+                logger.info("  Updating processor configuration...")
+
                 # Update processor with new properties
                 try:
                     # Create a proper ProcessorConfigDTO object
                     from nipyapi.nifi import ProcessorConfigDTO
-                    
-                    logger.debug(f"  Creating ProcessorConfigDTO with {len(properties)} properties")
-                    
+
+                    logger.debug(
+                        f"  Creating ProcessorConfigDTO with {len(properties)} properties"
+                    )
+
                     # Create updated config with new properties
                     updated_config = ProcessorConfigDTO(properties=properties)
-                    
-                    logger.debug(f"  Calling canvas.update_processor...")
+
+                    logger.debug("  Calling canvas.update_processor...")
                     updated_processor = canvas.update_processor(
                         processor=route_processor,
                         update=updated_config,
                     )
-                    
+
                     if updated_processor:
-                        logger.info(f"  ✓ Successfully updated RouteOnAttribute processor properties")
-                        logger.debug(f"    Updated processor ID: {updated_processor.id}")
-                        
+                        logger.info(
+                            "  ✓ Successfully updated RouteOnAttribute processor properties"
+                        )
+                        logger.debug(
+                            f"    Updated processor ID: {updated_processor.id}"
+                        )
+
                         # Refresh the processor object to get the new relationships
                         # NiFi will validate and register dynamic relationships automatically
-                        logger.debug(f"  Refreshing processor to get updated relationships...")
+                        logger.debug(
+                            "  Refreshing processor to get updated relationships..."
+                        )
                         import time
+
                         time.sleep(0.5)  # Wait briefly for NiFi to process the update
                         route_processor = canvas.get_processor(route_processor_id, "id")
-                        logger.debug(f"  Processor refreshed successfully")
+                        logger.debug("  Processor refreshed successfully")
                     else:
                         logger.error("  ✗ Failed to update processor (returned None)")
                         raise Exception("Processor update returned None")
-                        
+
                 except Exception as update_error:
-                    logger.error(f"  ✗ Failed to update RouteOnAttribute processor: {update_error}")
+                    logger.error(
+                        f"  ✗ Failed to update RouteOnAttribute processor: {update_error}"
+                    )
                     import traceback
+
                     logger.error(f"    Traceback: {traceback.format_exc()}")
                     raise
             else:
-                logger.info(f"  Configuration is correct - no update needed")
+                logger.info("  Configuration is correct - no update needed")
                 # Still refresh to get current state
-                logger.debug(f"  Refreshing processor to get current relationships...")
+                logger.debug("  Refreshing processor to get current relationships...")
                 route_processor = canvas.get_processor(route_processor_id, "id")
-                logger.debug(f"  Processor refreshed successfully")
-            
+                logger.debug("  Processor refreshed successfully")
+
             # Log available relationships before creating connection
-            if hasattr(route_processor, "component") and hasattr(route_processor.component, "relationships"):
-                available_rels = [rel.name for rel in route_processor.component.relationships]
-                logger.info(f"  ===== RELATIONSHIPS DUMP =====")
+            if hasattr(route_processor, "component") and hasattr(
+                route_processor.component, "relationships"
+            ):
+                available_rels = [
+                    rel.name for rel in route_processor.component.relationships
+                ]
+                logger.info("  ===== RELATIONSHIPS DUMP =====")
                 logger.info(f"  Available relationships: {available_rels}")
                 logger.info(f"  Number of relationships: {len(available_rels)}")
                 for idx, rel in enumerate(route_processor.component.relationships):
-                    logger.info(f"    Relationship {idx}: name='{rel.name}', autoTerminate={getattr(rel, 'auto_terminate', 'N/A')}")
-                logger.info(f"  ==============================")
+                    logger.info(
+                        f"    Relationship {idx}: name='{rel.name}', autoTerminate={getattr(rel, 'auto_terminate', 'N/A')}"
+                    )
+                logger.info("  ==============================")
                 logger.info(f"  Looking for relationship: '{child_pg_name}'")
-                logger.info(f"  Relationship '{child_pg_name}' in list: {child_pg_name in available_rels}")
+                logger.info(
+                    f"  Relationship '{child_pg_name}' in list: {child_pg_name in available_rels}"
+                )
             else:
-                logger.warning(f"  Could not retrieve available relationships from processor")
-            
+                logger.warning(
+                    "  Could not retrieve available relationships from processor"
+                )
+
             # Create connection from RouteOnAttribute to child input port
             route_processor_name = (
                 route_processor.component.name
-                if hasattr(route_processor, "component") and hasattr(route_processor.component, "name")
+                if hasattr(route_processor, "component")
+                and hasattr(route_processor.component, "name")
                 else "RouteOnAttribute"
             )
-            
+
             logger.info(f"  Creating connection with relationship: '{child_pg_name}'")
-            logger.info(f"  Connecting: '{route_processor_name}' -> '{child_port_name}'...")
-            logger.debug(f"    Connection parameters: name='{child_pg_name}', relationships=['{child_pg_name}']")
-            
+            logger.info(
+                f"  Connecting: '{route_processor_name}' -> '{child_port_name}'..."
+            )
+            logger.debug(
+                f"    Connection parameters: name='{child_pg_name}', relationships=['{child_pg_name}']"
+            )
+
             created_conn = canvas.create_connection(
                 source=route_processor,
                 target=child_port,
                 name=child_pg_name,
                 relationships=[child_pg_name],
             )
-            
-            logger.info(f"  ✓ Successfully created RouteOnAttribute connection (ID: {created_conn.id})")
+
+            logger.info(
+                f"  ✓ Successfully created RouteOnAttribute connection (ID: {created_conn.id})"
+            )
             logger.info(f"    Connection name: '{child_pg_name}'")
             logger.info(f"    Relationship: '{child_pg_name}'")
-            
+
             # Restart the RouteOnAttribute processor if it was stopped for configuration
             if needs_update and current_state == "RUNNING":
-                logger.info(f"  Restarting RouteOnAttribute processor...")
+                logger.info("  Restarting RouteOnAttribute processor...")
                 try:
                     canvas.schedule_processor(route_processor, scheduled=True)
-                    logger.info(f"  ✓ RouteOnAttribute processor restarted")
+                    logger.info("  ✓ RouteOnAttribute processor restarted")
                 except Exception as restart_error:
                     logger.warning(f"  Could not restart processor: {restart_error}")
-            
+
         except Exception as connect_error:
-            logger.error(f"⚠ ERROR: Could not auto-connect input ports: {connect_error}")
+            logger.error(
+                f"⚠ ERROR: Could not auto-connect input ports: {connect_error}"
+            )
             logger.error(f"  Error type: {type(connect_error).__name__}")
             import traceback
+
             logger.error(f"  Traceback: {traceback.format_exc()}")
-            logger.warning(f"⚠ Warning: Could not auto-connect input ports: {connect_error}")
+            logger.warning(
+                f"⚠ Warning: Could not auto-connect input ports: {connect_error}"
+            )
 
     def stop_version_control(self, pg_id: str) -> None:
         """
@@ -936,47 +1107,62 @@ class NiFiDeploymentService:
             pg_id: Process group ID to remove from version control
         """
         try:
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
             logger.info(f"STOP VERSION CONTROL: Starting for process group {pg_id}")
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
 
             # Get the process group
-            pg = canvas.get_process_group(pg_id, 'id')
+            pg = canvas.get_process_group(pg_id, "id")
 
             if not pg:
                 logger.warning(f"  Process group {pg_id} not found")
                 return
 
             # Check if process group is under version control
-            logger.info(f"  Checking if process group has version control information...")
+            logger.info(
+                "  Checking if process group has version control information..."
+            )
             logger.info(f"  - Has 'component' attribute: {hasattr(pg, 'component')}")
-            if hasattr(pg, 'component'):
-                logger.info(f"  - Has 'version_control_information' attribute: {hasattr(pg.component, 'version_control_information')}")
-                if hasattr(pg.component, 'version_control_information'):
+            if hasattr(pg, "component"):
+                logger.info(
+                    f"  - Has 'version_control_information' attribute: {hasattr(pg.component, 'version_control_information')}"
+                )
+                if hasattr(pg.component, "version_control_information"):
                     version_info = pg.component.version_control_information
-                    logger.info(f"  - version_control_information is not None: {version_info is not None}")
+                    logger.info(
+                        f"  - version_control_information is not None: {version_info is not None}"
+                    )
                     if version_info:
-                        logger.info(f"  - Version control info: bucket={getattr(version_info, 'bucket_id', 'N/A')}, flow={getattr(version_info, 'flow_id', 'N/A')}, version={getattr(version_info, 'version', 'N/A')}")
+                        logger.info(
+                            f"  - Version control info: bucket={getattr(version_info, 'bucket_id', 'N/A')}, flow={getattr(version_info, 'flow_id', 'N/A')}, version={getattr(version_info, 'version', 'N/A')}"
+                        )
 
-            if not hasattr(pg, 'component') or not hasattr(pg.component, 'version_control_information'):
-                logger.info(f"  Process group {pg_id} is not under version control (no version_control_information attribute)")
+            if not hasattr(pg, "component") or not hasattr(
+                pg.component, "version_control_information"
+            ):
+                logger.info(
+                    f"  Process group {pg_id} is not under version control (no version_control_information attribute)"
+                )
                 return
 
             version_info = pg.component.version_control_information
             if not version_info:
-                logger.info(f"  Process group {pg_id} is not under version control (version_control_information is None)")
+                logger.info(
+                    f"  Process group {pg_id} is not under version control (version_control_information is None)"
+                )
                 return
 
             # Stop version control
-            logger.info(f"  Removing process group from version control...")
+            logger.info("  Removing process group from version control...")
             versioning.stop_flow_ver(pg, refresh=True)
 
             logger.info(f"  ✓ Version control stopped for process group {pg_id}")
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
 
         except Exception as e:
             logger.error(f"  ✗ Failed to stop version control for {pg_id}: {e}")
             import traceback
+
             logger.error(f"  Traceback: {traceback.format_exc()}")
             # Don't raise - this is a non-critical operation
             logger.warning(f"  Warning: Could not stop version control: {e}")
@@ -996,23 +1182,31 @@ class NiFiDeploymentService:
         """
         try:
             from nipyapi.nifi import (
-                ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
-                InputPortsApi, OutputPortsApi, PortRunStatusEntity
+                ProcessorsApi,
+                ProcessorRunStatusEntity,
+                RevisionDTO,
+                InputPortsApi,
+                OutputPortsApi,
+                PortRunStatusEntity,
             )
 
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
             logger.info(f"START PROCESS GROUP: Starting for process group {pg_id}")
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
 
             # Verify the process group exists first
-            pg = canvas.get_process_group(pg_id, 'id')
+            pg = canvas.get_process_group(pg_id, "id")
 
             if not pg:
                 logger.warning(f"  Process group {pg_id} not found")
                 return
 
-            logger.info(f"  Process group found: {pg.status.name if hasattr(pg, 'status') else 'Unknown'}")
-            logger.info(f"  Note: NiFi deploys flows in STOPPED state. This will START them.")
+            logger.info(
+                f"  Process group found: {pg.status.name if hasattr(pg, 'status') else 'Unknown'}"
+            )
+            logger.info(
+                "  Note: NiFi deploys flows in STOPPED state. This will START them."
+            )
 
             # Get all processors in the process group (recursively)
             processors = canvas.list_all_processors(pg_id)
@@ -1025,33 +1219,45 @@ class NiFiDeploymentService:
                 try:
                     processor_id = processor.id
                     current_revision = processor.revision
-                    current_state = processor.status.run_status if hasattr(processor, 'status') else 'UNKNOWN'
-                    processor_name = processor.status.name if hasattr(processor, 'status') else processor_id
+                    current_state = (
+                        processor.status.run_status
+                        if hasattr(processor, "status")
+                        else "UNKNOWN"
+                    )
+                    processor_name = (
+                        processor.status.name
+                        if hasattr(processor, "status")
+                        else processor_id
+                    )
 
-                    logger.info(f"    - Processor: {processor_name} (current state: {current_state})")
+                    logger.info(
+                        f"    - Processor: {processor_name} (current state: {current_state})"
+                    )
 
                     # Skip if already running
-                    if current_state == 'RUNNING':
-                        logger.info(f"      Already running, skipping")
+                    if current_state == "RUNNING":
+                        logger.info("      Already running, skipping")
                         continue
 
                     # Skip if disabled (cannot start disabled processors)
-                    if current_state == 'DISABLED':
-                        logger.info(f"      Disabled (locked), skipping")
+                    if current_state == "DISABLED":
+                        logger.info("      Disabled (locked), skipping")
                         continue
 
                     run_status = ProcessorRunStatusEntity(
                         revision=RevisionDTO(version=current_revision.version),
-                        state="RUNNING"
+                        state="RUNNING",
                     )
 
                     # Use the correct API method name: update_run_status4
                     processors_api.update_run_status4(body=run_status, id=processor_id)
                     started_processors += 1
-                    logger.info(f"      ✓ Started")
+                    logger.info("      ✓ Started")
 
                 except Exception as e:
-                    logger.warning(f"      ✗ Failed to start processor {processor_id}: {e}")
+                    logger.warning(
+                        f"      ✗ Failed to start processor {processor_id}: {e}"
+                    )
                     logger.error(f"      Error details: {type(e).__name__}")
                     # Continue with other processors
 
@@ -1068,30 +1274,34 @@ class NiFiDeploymentService:
                 try:
                     port_id = port.id
                     current_revision = port.revision
-                    current_state = port.status.run_status if hasattr(port, 'status') else 'UNKNOWN'
-                    port_name = port.status.name if hasattr(port, 'status') else port_id
+                    current_state = (
+                        port.status.run_status if hasattr(port, "status") else "UNKNOWN"
+                    )
+                    port_name = port.status.name if hasattr(port, "status") else port_id
 
-                    logger.info(f"    - Input Port: {port_name} (current state: {current_state})")
+                    logger.info(
+                        f"    - Input Port: {port_name} (current state: {current_state})"
+                    )
 
                     # Skip if already running
-                    if current_state == 'RUNNING':
-                        logger.info(f"      Already running, skipping")
+                    if current_state == "RUNNING":
+                        logger.info("      Already running, skipping")
                         continue
 
                     # Skip if disabled
-                    if current_state == 'DISABLED':
-                        logger.info(f"      Disabled (locked), skipping")
+                    if current_state == "DISABLED":
+                        logger.info("      Disabled (locked), skipping")
                         continue
 
                     run_status = PortRunStatusEntity(
                         revision=RevisionDTO(version=current_revision.version),
-                        state="RUNNING"
+                        state="RUNNING",
                     )
 
                     # Use the correct API method name: update_run_status2
                     input_ports_api.update_run_status2(body=run_status, id=port_id)
                     started_input_ports += 1
-                    logger.info(f"      ✓ Started")
+                    logger.info("      ✓ Started")
 
                 except Exception as e:
                     logger.warning(f"      ✗ Failed to start input port {port_id}: {e}")
@@ -1110,40 +1320,48 @@ class NiFiDeploymentService:
                 try:
                     port_id = port.id
                     current_revision = port.revision
-                    current_state = port.status.run_status if hasattr(port, 'status') else 'UNKNOWN'
-                    port_name = port.status.name if hasattr(port, 'status') else port_id
+                    current_state = (
+                        port.status.run_status if hasattr(port, "status") else "UNKNOWN"
+                    )
+                    port_name = port.status.name if hasattr(port, "status") else port_id
 
-                    logger.info(f"    - Output Port: {port_name} (current state: {current_state})")
+                    logger.info(
+                        f"    - Output Port: {port_name} (current state: {current_state})"
+                    )
 
                     # Skip if already running
-                    if current_state == 'RUNNING':
-                        logger.info(f"      Already running, skipping")
+                    if current_state == "RUNNING":
+                        logger.info("      Already running, skipping")
                         continue
 
                     # Skip if disabled
-                    if current_state == 'DISABLED':
-                        logger.info(f"      Disabled (locked), skipping")
+                    if current_state == "DISABLED":
+                        logger.info("      Disabled (locked), skipping")
                         continue
 
                     run_status = PortRunStatusEntity(
                         revision=RevisionDTO(version=current_revision.version),
-                        state="RUNNING"
+                        state="RUNNING",
                     )
 
                     # Use the correct API method name: update_run_status3
                     output_ports_api.update_run_status3(body=run_status, id=port_id)
                     started_output_ports += 1
-                    logger.info(f"      ✓ Started")
+                    logger.info("      ✓ Started")
 
                 except Exception as e:
-                    logger.warning(f"      ✗ Failed to start output port {port_id}: {e}")
+                    logger.warning(
+                        f"      ✗ Failed to start output port {port_id}: {e}"
+                    )
                     # Continue with other ports
 
             logger.info(f"  Started {started_output_ports} output port(s)")
-            logger.info(f"=" * 60)
-            logger.info(f"START PROCESS GROUP: Completed")
-            logger.info(f"  Total started: {started_processors} processors, {started_input_ports} input ports, {started_output_ports} output ports")
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
+            logger.info("START PROCESS GROUP: Completed")
+            logger.info(
+                f"  Total started: {started_processors} processors, {started_input_ports} input ports, {started_output_ports} output ports"
+            )
+            logger.info("=" * 60)
 
         except Exception as e:
             logger.error(f"Failed to start process group {pg_id}: {e}")
@@ -1165,23 +1383,31 @@ class NiFiDeploymentService:
         """
         try:
             from nipyapi.nifi import (
-                ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
-                InputPortsApi, OutputPortsApi, PortRunStatusEntity
+                ProcessorsApi,
+                ProcessorRunStatusEntity,
+                RevisionDTO,
+                InputPortsApi,
+                OutputPortsApi,
+                PortRunStatusEntity,
             )
 
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
             logger.info(f"DISABLE PROCESS GROUP: Starting for process group {pg_id}")
-            logger.info(f"=" * 60)
+            logger.info("=" * 60)
 
             # Verify the process group exists first
-            pg = canvas.get_process_group(pg_id, 'id')
+            pg = canvas.get_process_group(pg_id, "id")
 
             if not pg:
                 logger.warning(f"  Process group {pg_id} not found")
                 return
 
-            logger.info(f"  Process group found: {pg.status.name if hasattr(pg, 'status') else 'Unknown'}")
-            logger.info(f"  Note: NiFi deploys flows in STOPPED state. This will DISABLE (lock) them.")
+            logger.info(
+                f"  Process group found: {pg.status.name if hasattr(pg, 'status') else 'Unknown'}"
+            )
+            logger.info(
+                "  Note: NiFi deploys flows in STOPPED state. This will DISABLE (lock) them."
+            )
 
             # Get all processors in the process group (recursively)
             processors = canvas.list_all_processors(pg_id)
@@ -1194,28 +1420,40 @@ class NiFiDeploymentService:
                 try:
                     processor_id = processor.id
                     current_revision = processor.revision
-                    current_state = processor.status.run_status if hasattr(processor, 'status') else 'UNKNOWN'
-                    processor_name = processor.status.name if hasattr(processor, 'status') else processor_id
+                    current_state = (
+                        processor.status.run_status
+                        if hasattr(processor, "status")
+                        else "UNKNOWN"
+                    )
+                    processor_name = (
+                        processor.status.name
+                        if hasattr(processor, "status")
+                        else processor_id
+                    )
 
-                    logger.info(f"    - Processor: {processor_name} (current state: {current_state})")
+                    logger.info(
+                        f"    - Processor: {processor_name} (current state: {current_state})"
+                    )
 
                     # Skip if already stopped or disabled
-                    if current_state == 'DISABLED':
-                        logger.info(f"      Already disabled, skipping")
+                    if current_state == "DISABLED":
+                        logger.info("      Already disabled, skipping")
                         continue
 
                     run_status = ProcessorRunStatusEntity(
                         revision=RevisionDTO(version=current_revision.version),
-                        state="DISABLED"
+                        state="DISABLED",
                     )
 
                     # Use the correct API method name: update_run_status4
                     processors_api.update_run_status4(body=run_status, id=processor_id)
                     disabled_processors += 1
-                    logger.info(f"      ✓ Disabled (locked - cannot be started)")
+                    logger.info("      ✓ Disabled (locked - cannot be started)")
 
                 except Exception as e:
-                    logger.warning(f"      ✗ Failed to disable processor {processor_id}: {e}")
+                    logger.warning(
+                        f"      ✗ Failed to disable processor {processor_id}: {e}"
+                    )
                     logger.error(f"      Error details: {type(e).__name__}")
                     # Continue with other processors
 
@@ -1232,28 +1470,34 @@ class NiFiDeploymentService:
                 try:
                     port_id = port.id
                     current_revision = port.revision
-                    current_state = port.status.run_status if hasattr(port, 'status') else 'UNKNOWN'
-                    port_name = port.status.name if hasattr(port, 'status') else port_id
+                    current_state = (
+                        port.status.run_status if hasattr(port, "status") else "UNKNOWN"
+                    )
+                    port_name = port.status.name if hasattr(port, "status") else port_id
 
-                    logger.info(f"    - Input Port: {port_name} (current state: {current_state})")
+                    logger.info(
+                        f"    - Input Port: {port_name} (current state: {current_state})"
+                    )
 
                     # Skip if already stopped or disabled
-                    if current_state == 'DISABLED':
-                        logger.info(f"      Already disabled, skipping")
+                    if current_state == "DISABLED":
+                        logger.info("      Already disabled, skipping")
                         continue
 
                     run_status = PortRunStatusEntity(
                         revision=RevisionDTO(version=current_revision.version),
-                        state="DISABLED"
+                        state="DISABLED",
                     )
 
                     # Use the correct API method name: update_run_status2
                     input_ports_api.update_run_status2(body=run_status, id=port_id)
                     disabled_input_ports += 1
-                    logger.info(f"      ✓ Disabled")
+                    logger.info("      ✓ Disabled")
 
                 except Exception as e:
-                    logger.warning(f"      ✗ Failed to disable input port {port_id}: {e}")
+                    logger.warning(
+                        f"      ✗ Failed to disable input port {port_id}: {e}"
+                    )
                     logger.error(f"      Error details: {type(e).__name__}")
                     # Continue with other ports
 
@@ -1270,25 +1514,29 @@ class NiFiDeploymentService:
                 try:
                     port_id = port.id
                     current_revision = port.revision
-                    current_state = port.status.run_status if hasattr(port, 'status') else 'UNKNOWN'
-                    port_name = port.status.name if hasattr(port, 'status') else port_id
+                    current_state = (
+                        port.status.run_status if hasattr(port, "status") else "UNKNOWN"
+                    )
+                    port_name = port.status.name if hasattr(port, "status") else port_id
 
-                    logger.info(f"    - Output Port: {port_name} (current state: {current_state})")
+                    logger.info(
+                        f"    - Output Port: {port_name} (current state: {current_state})"
+                    )
 
                     # Skip if already stopped or disabled
-                    if current_state == 'DISABLED':
-                        logger.info(f"      Already disabled, skipping")
+                    if current_state == "DISABLED":
+                        logger.info("      Already disabled, skipping")
                         continue
 
                     run_status = PortRunStatusEntity(
                         revision=RevisionDTO(version=current_revision.version),
-                        state="DISABLED"
+                        state="DISABLED",
                     )
 
                     # Use the correct API method name: update_run_status3
                     output_ports_api.update_run_status3(body=run_status, id=port_id)
                     disabled_output_ports += 1
-                    logger.info(f"      ✓ Disabled")
+                    logger.info("      ✓ Disabled")
 
                 except Exception as e:
                     logger.warning(f"      ✗ Failed to stop output port {port_id}: {e}")
@@ -1297,14 +1545,19 @@ class NiFiDeploymentService:
 
             logger.info(f"  Disabled {disabled_output_ports} output port(s)")
 
-            total_disabled = disabled_processors + disabled_input_ports + disabled_output_ports
-            logger.info(f"  ✓ Process group disabled successfully (total: {total_disabled} components)")
-            logger.info(f"  Components are DISABLED (locked - cannot be started)")
-            logger.info(f"=" * 60)
+            total_disabled = (
+                disabled_processors + disabled_input_ports + disabled_output_ports
+            )
+            logger.info(
+                f"  ✓ Process group disabled successfully (total: {total_disabled} components)"
+            )
+            logger.info("  Components are DISABLED (locked - cannot be started)")
+            logger.info("=" * 60)
 
         except Exception as e:
             logger.error(f"  ✗ Failed to disable process group {pg_id}: {e}")
             import traceback
+
             logger.error(f"  Traceback: {traceback.format_exc()}")
             # Don't raise - this is a non-critical operation
             logger.warning(f"  Warning: Could not disable process group: {e}")
@@ -1325,34 +1578,41 @@ class NiFiDeploymentService:
 
         try:
             logger.info("=" * 60)
-            logger.info(f"ASSIGN PARAMETER CONTEXT: Starting assignment process")
+            logger.info("ASSIGN PARAMETER CONTEXT: Starting assignment process")
             logger.info(f"  Process group ID: {pg_id}")
             logger.info(f"  Parameter context name: {parameter_context_name}")
             logger.info("=" * 60)
 
             # Step 1: Look up parameter context ID by name
-            logger.info(f"  Step 1: Looking up parameter context ID for name '{parameter_context_name}'...")
-            
+            logger.info(
+                f"  Step 1: Looking up parameter context ID for name '{parameter_context_name}'..."
+            )
+
             import nipyapi
+
             param_context = nipyapi.parameters.get_parameter_context(
-                identifier=parameter_context_name,
-                identifier_type="name",
-                greedy=True
+                identifier=parameter_context_name, identifier_type="name", greedy=True
             )
 
             if not param_context:
-                logger.warning(f"  ✗ Parameter context '{parameter_context_name}' not found, skipping assignment")
+                logger.warning(
+                    f"  ✗ Parameter context '{parameter_context_name}' not found, skipping assignment"
+                )
                 return
 
-            param_context_id = param_context.id if hasattr(param_context, 'id') else None
+            param_context_id = (
+                param_context.id if hasattr(param_context, "id") else None
+            )
             if not param_context_id:
-                logger.warning(f"  ✗ Could not extract ID from parameter context, skipping assignment")
+                logger.warning(
+                    "  ✗ Could not extract ID from parameter context, skipping assignment"
+                )
                 return
 
             logger.info(f"  ✓ Found parameter context ID: {param_context_id}")
 
             # Step 2: Get current process group configuration
-            logger.info(f"  Step 2: Getting current process group configuration...")
+            logger.info("  Step 2: Getting current process group configuration...")
             pg_api = ProcessGroupsApi()
             pg = pg_api.get_process_group(id=pg_id)
 
@@ -1360,31 +1620,33 @@ class NiFiDeploymentService:
                 logger.error(f"  ✗ Process group {pg_id} not found")
                 return
 
-            logger.info(f"  ✓ Retrieved process group configuration")
+            logger.info("  ✓ Retrieved process group configuration")
 
             # Step 3: Update process group with parameter context
-            logger.info(f"  Step 3: Assigning parameter context to process group...")
-            
+            logger.info("  Step 3: Assigning parameter context to process group...")
+
             # Build the update request body for NiFi API
             # We need to update the component with the parameter context reference
             body = {
                 "revision": {
-                    "version": pg.revision.version if hasattr(pg.revision, 'version') else 0,
+                    "version": pg.revision.version
+                    if hasattr(pg.revision, "version")
+                    else 0,
                 },
                 "component": {
                     "id": pg_id,
-                    "parameterContext": {
-                        "id": param_context_id
-                    }
-                }
+                    "parameterContext": {"id": param_context_id},
+                },
             }
 
             logger.debug(f"  Update body: {body}")
 
             # Use the ProcessGroupsApi to update the process group directly
-            updated_pg = pg_api.update_process_group(id=pg_id, body=body)
+            pg_api.update_process_group(id=pg_id, body=body)
 
-            logger.info(f"  ✓ Parameter context '{parameter_context_name}' (ID: {param_context_id}) assigned successfully")
+            logger.info(
+                f"  ✓ Parameter context '{parameter_context_name}' (ID: {param_context_id}) assigned successfully"
+            )
             logger.info("=" * 60)
             logger.info("ASSIGN PARAMETER CONTEXT: Completed assignment process")
             logger.info("=" * 60)
@@ -1392,6 +1654,7 @@ class NiFiDeploymentService:
         except Exception as e:
             logger.error(f"  ✗ Failed to assign parameter context: {e}")
             import traceback
+
             logger.error(f"  Traceback: {traceback.format_exc()}")
             # Don't raise - this is a non-critical operation
             logger.warning(f"  Warning: Could not assign parameter context: {e}")

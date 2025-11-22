@@ -1,5 +1,5 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -13,7 +13,6 @@ from app.core.security import (
     create_refresh_token,
     verify_refresh_token,
     revoke_refresh_token,
-    revoke_all_user_tokens,
 )
 from app.core.config import settings
 from app.models.user import User, UserCreate, UserResponse, Token
@@ -66,7 +65,8 @@ async def login(
     # Create access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "role": "admin" if user.is_superuser else "user"}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": "admin" if user.is_superuser else "user"},
+        expires_delta=access_token_expires,
     )
 
     # Create refresh token
@@ -75,7 +75,7 @@ async def login(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "refresh_token": refresh_token
+        "refresh_token": refresh_token,
     }
 
 
@@ -110,13 +110,13 @@ async def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 class RefreshTokenRequest(BaseModel):
     """Request schema for refresh token"""
+
     refresh_token: str
 
 
 @router.post("/refresh", response_model=Token)
 async def refresh_access_token(
-    request: RefreshTokenRequest,
-    db: Session = Depends(get_db)
+    request: RefreshTokenRequest, db: Session = Depends(get_db)
 ):
     """Refresh access token using refresh token"""
     # Verify refresh token and get user
@@ -125,14 +125,15 @@ async def refresh_access_token(
     # Create new access token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username, "role": "admin" if user.is_superuser else "user"}, expires_delta=access_token_expires
+        data={"sub": user.username, "role": "admin" if user.is_superuser else "user"},
+        expires_delta=access_token_expires,
     )
 
     # Return new access token with same refresh token
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "refresh_token": request.refresh_token
+        "refresh_token": request.refresh_token,
     }
 
 
@@ -140,7 +141,7 @@ async def refresh_access_token(
 async def logout(
     request: RefreshTokenRequest,
     db: Session = Depends(get_db),
-    token_data: dict = Depends(verify_token)
+    token_data: dict = Depends(verify_token),
 ):
     """Logout user by revoking refresh token"""
     # Revoke the provided refresh token

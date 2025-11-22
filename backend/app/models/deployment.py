@@ -24,21 +24,35 @@ class DeploymentRequest(BaseModel):
 
     # Common parameters
     parent_process_group_id: Optional[str] = None  # ID of parent PG, None = root
-    parent_process_group_path: Optional[str] = None  # Path to parent PG (alternative to ID)
+    parent_process_group_path: Optional[str] = (
+        None  # Path to parent PG (alternative to ID)
+    )
     process_group_name: Optional[str] = (
         None  # Name for the deployed process group (will rename after deployment)
     )
-    hierarchy_attribute: Optional[str] = None  # Hierarchy attribute name for RouteOnAttribute processor (e.g., "datenschleuder_cn")
+    hierarchy_attribute: Optional[str] = (
+        None  # Hierarchy attribute name for RouteOnAttribute processor (e.g., "datenschleuder_cn")
+    )
     version: Optional[Union[int, str]] = (
         None  # None = latest; int for NiFi Registry, str (commit hash) for GitHub Registry
     )
     x_position: Optional[int] = 0
     y_position: Optional[int] = 0
-    parameter_context_id: Optional[str] = None  # Optional parameter context ID to assign to the deployed process group
-    parameter_context_name: Optional[str] = None  # Optional parameter context name to assign (will be looked up to get ID)
-    stop_versioning_after_deploy: Optional[bool] = False  # Stop version control after deployment
-    disable_after_deploy: Optional[bool] = False  # DISABLE (lock) the process group after deployment (prevents starting)
-    start_after_deploy: Optional[bool] = False  # START the process group after deployment
+    parameter_context_id: Optional[str] = (
+        None  # Optional parameter context ID to assign to the deployed process group
+    )
+    parameter_context_name: Optional[str] = (
+        None  # Optional parameter context name to assign (will be looked up to get ID)
+    )
+    stop_versioning_after_deploy: Optional[bool] = (
+        False  # Stop version control after deployment
+    )
+    disable_after_deploy: Optional[bool] = (
+        False  # DISABLE (lock) the process group after deployment (prevents starting)
+    )
+    start_after_deploy: Optional[bool] = (
+        False  # START the process group after deployment
+    )
 
 
 class DeploymentResponse(BaseModel):

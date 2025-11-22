@@ -9,7 +9,6 @@ from app.models.nifi_instance import NiFiInstance
 from app.services.encryption_service import encryption_service
 from app.services.certificate_manager import certificate_manager
 from app.core.settings_manager import settings_manager
-from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ def configure_nifi_connection(
         f"Configuring NiFi instance {instance.id} - OIDC: {instance.oidc_provider_id!r}, "
         f"Cert: {instance.certificate_name!r}, User: {instance.username!r}"
     )
-    
+
     # Configure base URL
     nifi_url = instance.nifi_url.rstrip("/")
 
@@ -52,22 +51,24 @@ def configure_nifi_connection(
 
     # Priority 1: OIDC Authentication (if oidc_provider_id is set)
     if instance.oidc_provider_id and instance.oidc_provider_id.strip():
-        logger.info(f"Using OIDC authentication with provider: {instance.oidc_provider_id}")
+        logger.info(
+            f"Using OIDC authentication with provider: {instance.oidc_provider_id}"
+        )
         _configure_oidc_auth(instance.oidc_provider_id, instance.verify_ssl)
         return
-    
+
     # Priority 2: Certificate-based Authentication
     if instance.certificate_name and instance.certificate_name.strip():
         logger.info(f"Using certificate authentication: {instance.certificate_name}")
         _configure_certificate_auth(instance)
         return
-    
+
     # Priority 3: Username/Password Authentication
     if instance.username:
         logger.info("Using username/password authentication")
         _configure_username_auth(instance)
         return
-    
+
     logger.warning(
         f"No authentication method configured for NiFi instance {instance.id}. "
         f"OIDC provider: {instance.oidc_provider_id!r}, Certificate: {instance.certificate_name!r}, "
@@ -78,7 +79,7 @@ def configure_nifi_connection(
 def _configure_oidc_auth(provider_id: str, verify_ssl: bool = True) -> None:
     """
     Configure OIDC authentication using a provider from oidc_providers.yaml.
-    
+
     Args:
         provider_id: ID of the OIDC provider from oidc_providers.yaml
         verify_ssl: Whether to verify SSL certificates for OIDC endpoints
@@ -90,41 +91,38 @@ def _configure_oidc_auth(provider_id: str, verify_ssl: bool = True) -> None:
             raise ValueError(
                 f"OIDC provider '{provider_id}' not found in oidc_providers.yaml"
             )
-        
+
         if not provider_config.get("enabled", False):
             raise ValueError(
                 f"OIDC provider '{provider_id}' is not enabled in oidc_providers.yaml"
             )
-        
+
         # Get OIDC configuration
         discovery_url = provider_config.get("discovery_url")
         if not discovery_url:
-            raise ValueError(
-                f"OIDC provider '{provider_id}' missing discovery_url"
-            )
-        
+            raise ValueError(f"OIDC provider '{provider_id}' missing discovery_url")
+
         # Derive token endpoint from discovery URL
         # For Keycloak: https://host/realms/realm/.well-known/openid-configuration
         #            -> https://host/realms/realm/protocol/openid-connect/token
         token_endpoint = discovery_url
         if "/.well-known/openid-configuration" in token_endpoint:
             token_endpoint = token_endpoint.replace(
-                "/.well-known/openid-configuration",
-                "/protocol/openid-connect/token"
+                "/.well-known/openid-configuration", "/protocol/openid-connect/token"
             )
-        
+
         client_id = provider_config.get("client_id")
         client_secret = provider_config.get("client_secret")
-        
+
         if not client_id or not client_secret:
             raise ValueError(
                 f"OIDC provider '{provider_id}' missing client_id or client_secret"
             )
-        
+
         # Use Client Credentials flow (no username/password)
         # This is the recommended approach for backend-to-NiFi authentication
         logger.debug(f"Authenticating with OIDC token endpoint: {token_endpoint}")
-        
+
         security.service_login_oidc(
             service="nifi",
             oidc_token_endpoint=token_endpoint,
@@ -132,9 +130,9 @@ def _configure_oidc_auth(provider_id: str, verify_ssl: bool = True) -> None:
             client_secret=client_secret,
             verify_ssl=verify_ssl,
         )
-        
+
         logger.info(f"Successfully authenticated with OIDC provider: {provider_id}")
-        
+
     except Exception as e:
         logger.error(f"Failed to authenticate with OIDC provider '{provider_id}': {e}")
         raise ValueError(f"OIDC authentication failed: {str(e)}")
@@ -143,25 +141,27 @@ def _configure_oidc_auth(provider_id: str, verify_ssl: bool = True) -> None:
 def _configure_certificate_auth(instance: NiFiInstance) -> None:
     """
     Configure certificate-based authentication.
-    
+
     Args:
         instance: NiFi instance with certificate configuration
     """
     try:
         # Get certificate configuration from certificate manager
-        cert_paths = certificate_manager.get_certificate_paths(instance.certificate_name)
-        
+        cert_paths = certificate_manager.get_certificate_paths(
+            instance.certificate_name
+        )
+
         if not cert_paths:
             raise ValueError(
                 f"Certificate '{instance.certificate_name}' not found in certificates.yaml"
             )
-        
+
         # Get certificate paths and password
         ca_cert_path = cert_paths["ca_cert_path"]
         cert_path = cert_paths["cert_path"]
         key_path = cert_paths["key_path"]
         key_password = cert_paths["password"]
-        
+
         # Verify certificate files exist
         if not ca_cert_path.exists():
             raise FileNotFoundError(f"CA certificate not found: {ca_cert_path}")
@@ -169,20 +169,20 @@ def _configure_certificate_auth(instance: NiFiInstance) -> None:
             raise FileNotFoundError(f"Client certificate not found: {cert_path}")
         if not key_path.exists():
             raise FileNotFoundError(f"Client key not found: {key_path}")
-        
+
         # Create SSL context
         ssl_context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
-        
+
         # Load client certificate and key
         ssl_context.load_cert_chain(
             certfile=str(cert_path),
             keyfile=str(key_path),
             password=key_password,
         )
-        
+
         # Load CA certificate
         ssl_context.load_verify_locations(cafile=str(ca_cert_path))
-        
+
         # Configure SSL verification based on instance settings
         if not instance.verify_ssl:
             ssl_context.check_hostname = False
@@ -190,12 +190,14 @@ def _configure_certificate_auth(instance: NiFiInstance) -> None:
         elif not instance.check_hostname:
             ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_REQUIRED
-        
+
         # Set the SSL context to nipyapi config
         config.nifi_config.ssl_context = ssl_context
-        
-        logger.info(f"Successfully configured certificate authentication: {instance.certificate_name}")
-        
+
+        logger.info(
+            f"Successfully configured certificate authentication: {instance.certificate_name}"
+        )
+
     except Exception as e:
         logger.error(f"Failed to configure certificate authentication: {e}")
         raise
@@ -204,7 +206,7 @@ def _configure_certificate_auth(instance: NiFiInstance) -> None:
 def _configure_username_auth(instance: NiFiInstance) -> None:
     """
     Configure username/password authentication.
-    
+
     Args:
         instance: NiFi instance with username/password
     """
@@ -214,22 +216,20 @@ def _configure_username_auth(instance: NiFiInstance) -> None:
             password = encryption_service.decrypt_from_string(
                 instance.password_encrypted
             )
-        
+
         if not password:
             logger.warning("Username provided but password is empty")
             return
-        
+
         config.nifi_config.username = instance.username
         config.nifi_config.password = password
-        
+
         security.service_login(
-            service="nifi",
-            username=instance.username,
-            password=password
+            service="nifi", username=instance.username, password=password
         )
-        
+
         logger.info(f"Successfully authenticated with username: {instance.username}")
-        
+
     except Exception as e:
         logger.error(f"Failed to authenticate with username/password: {e}")
         raise
@@ -257,8 +257,10 @@ def configure_nifi_test_connection(
         oidc_provider_id: Optional OIDC provider ID from oidc_providers.yaml
     """
     # Log authentication method being used for debugging
-    logger.debug(f"Test connection auth params - OIDC: {oidc_provider_id!r}, Cert: {certificate_name!r}, User: {username!r}")
-    
+    logger.debug(
+        f"Test connection auth params - OIDC: {oidc_provider_id!r}, Cert: {certificate_name!r}, User: {username!r}"
+    )
+
     # Configure base URL
     nifi_url = nifi_url.rstrip("/")
     logger.info(f"Configuring NiFi URL: {nifi_url}")
@@ -301,7 +303,7 @@ def _configure_certificate_test_auth(
 ) -> None:
     """
     Configure certificate-based authentication for testing.
-    
+
     Args:
         certificate_name: Name of certificate from certificates.yaml
         verify_ssl: Whether to verify SSL certificates
@@ -352,7 +354,7 @@ def _configure_certificate_test_auth(
 
         # Set the SSL context to nipyapi config
         config.nifi_config.ssl_context = ssl_context
-        
+
     except Exception as e:
         logger.error(f"Failed to configure certificate for test: {e}")
         raise

@@ -60,11 +60,11 @@ def get_process_group_map(instance: NiFiInstance) -> Tuple[List[Dict[str, Any]],
     logger.info("Getting root process group ID...")
     root_pg_id = canvas.get_root_pg_id()
     logger.info(f"Root PG ID: {root_pg_id}")
-    
+
     logger.info("Listing all process groups...")
     all_pgs_raw = canvas.list_all_process_groups(root_pg_id)
     logger.info(f"Found {len(all_pgs_raw) if all_pgs_raw else 0} process groups")
-    
+
     if not all_pgs_raw:
         logger.warning("No process groups returned from NiFi")
         all_pgs_raw = []
@@ -286,10 +286,10 @@ async def check_path(
         # Get flows and configuration
         flows = get_flows_from_database(db)
         logger.info(f"Found {len(flows)} flows in database")
-        
+
         configured_path = get_deployment_path_config(db, instance_id, path_type)
         logger.info(f"Configured {path_type} path: {configured_path}")
-        
+
         hierarchy = get_hierarchy_config(db)
         logger.info(f"Hierarchy config: {hierarchy}")
 
@@ -308,7 +308,7 @@ async def check_path(
             exists = path in pg_by_path
             logger.info(f"Path '{path}': exists={exists}")
             status_list.append(PathStatus(path=path, exists=exists))
-        
+
         logger.info(f"Returning {len(status_list)} path statuses")
         return CheckPathResponse(status=status_list)
 
@@ -345,11 +345,15 @@ async def create_groups(
 
         # Get flows and configuration
         flows = get_flows_from_database(db)
-        configured_path = get_deployment_path_config(db, request.instance_id, request.path_type)
+        configured_path = get_deployment_path_config(
+            db, request.instance_id, request.path_type
+        )
         hierarchy = get_hierarchy_config(db)
 
         # Build expected paths
-        all_paths = build_flow_paths(flows, configured_path, hierarchy, request.path_type)
+        all_paths = build_flow_paths(
+            flows, configured_path, hierarchy, request.path_type
+        )
 
         # Build pg lookup by path
         pg_by_path = build_pg_by_path_lookup(all_pgs)
@@ -443,5 +447,6 @@ async def create_groups(
     except Exception as e:
         logger.error(f"Error creating process groups: {e}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))

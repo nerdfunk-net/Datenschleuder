@@ -8,7 +8,7 @@ code reuse and maintainability.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 def extract_pg_info(pg: Any) -> Dict[str, Any]:
@@ -80,7 +80,9 @@ def safe_get_attribute(obj: Any, attr_path: str, default: Any = None) -> Any:
         return default
 
 
-def build_process_group_path(pg_map: Dict[str, Dict[str, Any]], pg_id: str, root_pg_id: str) -> str:
+def build_process_group_path(
+    pg_map: Dict[str, Dict[str, Any]], pg_id: str, root_pg_id: str
+) -> str:
     """
     Build the full path string for a process group from the root.
 
@@ -108,24 +110,24 @@ def build_process_group_path(pg_map: Dict[str, Dict[str, Any]], pg_id: str, root
     """
     if pg_id == root_pg_id:
         return "/"
-    
+
     path_parts = []
     current_id = pg_id
     visited_ids = set()
-    
+
     # Traverse from target to root, collecting names
     while current_id and current_id in pg_map and current_id != root_pg_id:
         # Prevent infinite loops
         if current_id in visited_ids:
             break
         visited_ids.add(current_id)
-        
+
         pg_info = pg_map[current_id]
         path_parts.insert(0, pg_info["name"])
         current_id = pg_info.get("parent_group_id")
-    
+
     # Add root name if it exists
     if root_pg_id in pg_map:
         path_parts.insert(0, pg_map[root_pg_id]["name"])
-    
+
     return "/".join(path_parts) if path_parts else "/"

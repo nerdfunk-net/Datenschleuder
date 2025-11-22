@@ -2,8 +2,8 @@
 Pydantic models for OIDC authentication.
 """
 
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from typing import List, Optional
+from pydantic import BaseModel
 
 
 class OIDCConfig(BaseModel):
@@ -25,7 +25,7 @@ class OIDCConfig(BaseModel):
 
 class OIDCProvider(BaseModel):
     """OIDC provider information for frontend display."""
-    
+
     provider_id: str
     name: str
     description: str = ""
@@ -35,14 +35,14 @@ class OIDCProvider(BaseModel):
 
 class OIDCProvidersResponse(BaseModel):
     """Response containing available OIDC providers."""
-    
+
     providers: List[OIDCProvider]
     allow_traditional_login: bool = True
 
 
 class OIDCLoginResponse(BaseModel):
     """Response for OIDC login initiation."""
-    
+
     authorization_url: str
     state: str
     provider_id: str
@@ -50,14 +50,14 @@ class OIDCLoginResponse(BaseModel):
 
 class OIDCCallbackRequest(BaseModel):
     """Request body for OIDC callback."""
-    
+
     code: str
     state: Optional[str] = None
 
 
 class OIDCTokenResponse(BaseModel):
     """Response from OIDC token exchange."""
-    
+
     access_token: str
     token_type: str = "bearer"
     expires_in: int
@@ -68,7 +68,7 @@ class OIDCTokenResponse(BaseModel):
 
 class OIDCUserData(BaseModel):
     """Extracted user data from OIDC claims."""
-    
+
     username: str
     email: Optional[str] = None
     name: Optional[str] = None

@@ -32,7 +32,7 @@ async def get_parameter_contexts(
 ):
     """
     Get list of parameter contexts configured in NiFi instance.
-    
+
     Args:
         instance_id: The NiFi instance ID
         search: Optional parameter to search for a specific context by name or ID
@@ -51,9 +51,7 @@ async def get_parameter_contexts(
             import nipyapi
 
             context = nipyapi.parameters.get_parameter_context(
-                identifier=search,
-                identifier_type=identifier_type,
-                greedy=True
+                identifier=search, identifier_type=identifier_type, greedy=True
             )
 
             if context:
@@ -551,15 +549,24 @@ async def update_parameter_context(
             existing_context.component.description = data.description
 
         # Handle inherited parameter contexts
-        if hasattr(data, 'inherited_parameter_contexts') and data.inherited_parameter_contexts is not None:
+        if (
+            hasattr(data, "inherited_parameter_contexts")
+            and data.inherited_parameter_contexts is not None
+        ):
             if len(data.inherited_parameter_contexts) == 0:
                 # Empty list means clear all inheritance
                 print("Clearing inherited_parameter_contexts (empty list)")
                 existing_context.component.inherited_parameter_contexts = []
             else:
-                print(f"Setting inherited_parameter_contexts: {data.inherited_parameter_contexts}")
+                print(
+                    f"Setting inherited_parameter_contexts: {data.inherited_parameter_contexts}"
+                )
                 # Build list of inherited context references
-                from nipyapi.nifi.models import ParameterContextReferenceEntity, ParameterContextReferenceDTO
+                from nipyapi.nifi.models import (
+                    ParameterContextReferenceEntity,
+                    ParameterContextReferenceDTO,
+                )
+
                 inherited_refs = []
                 for context_id_str in data.inherited_parameter_contexts:
                     # Fetch the referenced context to get its name
@@ -568,22 +575,27 @@ async def update_parameter_context(
                         # Create proper reference with component
                         ref_dto = ParameterContextReferenceDTO(
                             id=context_id_str,
-                            name=ref_context.component.name if hasattr(ref_context, 'component') else None
+                            name=ref_context.component.name
+                            if hasattr(ref_context, "component")
+                            else None,
                         )
                         ref_entity = ParameterContextReferenceEntity(
                             id=context_id_str,
                             component=ref_dto,
-                            permissions={'canRead': True, 'canWrite': True}
+                            permissions={"canRead": True, "canWrite": True},
                         )
                         inherited_refs.append(ref_entity)
-                        print(f"  Added reference to context: {ref_dto.name} ({context_id_str})")
+                        print(
+                            f"  Added reference to context: {ref_dto.name} ({context_id_str})"
+                        )
                     except Exception as e:
-                        print(f"  Warning: Could not resolve context {context_id_str}: {e}")
+                        print(
+                            f"  Warning: Could not resolve context {context_id_str}: {e}"
+                        )
                         # Try with just ID and component
                         ref_dto = ParameterContextReferenceDTO(id=context_id_str)
                         ref_entity = ParameterContextReferenceEntity(
-                            id=context_id_str,
-                            component=ref_dto
+                            id=context_id_str, component=ref_dto
                         )
                         inherited_refs.append(ref_entity)
 

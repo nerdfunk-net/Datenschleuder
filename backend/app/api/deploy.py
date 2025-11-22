@@ -2,7 +2,6 @@
 
 import json
 import logging
-from typing import Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -10,19 +9,12 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_token
 from app.models.nifi_instance import NiFiInstance
-from app.models.registry_flow import RegistryFlow
 from app.models.setting import Setting
 from app.models.deployment import (
     DeploymentRequest,
     DeploymentResponse,
 )
-from app.models.parameter_context import (
-    AssignParameterContextRequest,
-    AssignParameterContextResponse,
-)
-from app.services.encryption_service import encryption_service
 from app.services.nifi_deployment_service import NiFiDeploymentService
-from app.utils.nifi_helpers import extract_pg_info
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -57,19 +49,25 @@ def find_or_create_process_group_by_path(path: str) -> str:
 
     # Get root process group info
     root_pg_id = canvas.get_root_pg_id()
-    root_pg = canvas.get_process_group(root_pg_id, 'id')
-    root_pg_name = root_pg.component.name if hasattr(root_pg, 'component') and hasattr(root_pg.component, 'name') else None
+    root_pg = canvas.get_process_group(root_pg_id, "id")
+    root_pg_name = (
+        root_pg.component.name
+        if hasattr(root_pg, "component") and hasattr(root_pg.component, "name")
+        else None
+    )
 
     logger.debug(f"  Root PG: '{root_pg_name}' (ID: {root_pg_id})")
 
     # Check if first part of path matches root PG name
     if root_pg_name and path_parts[0] == root_pg_name:
-        logger.debug(f"  ✓ First part '{path_parts[0]}' matches root PG name, skipping it")
+        logger.debug(
+            f"  ✓ First part '{path_parts[0]}' matches root PG name, skipping it"
+        )
         path_parts = path_parts[1:]
 
         # If only root was specified, return root ID
         if not path_parts:
-            logger.debug(f"  Path is just root, returning root ID")
+            logger.debug("  Path is just root, returning root ID")
             return root_pg_id
 
     # Get all process groups
@@ -99,7 +97,9 @@ def find_or_create_process_group_by_path(path: str) -> str:
     for pg_id, pg_info in pg_map.items():
         pg_path_parts = build_path_parts(pg_id)
         if pg_path_parts == path_parts:
-            logger.info(f"  ✓ Found existing process group at path: /{'/'.join(path_parts)}")
+            logger.info(
+                f"  ✓ Found existing process group at path: /{'/'.join(path_parts)}"
+            )
             return pg_id
 
     # Path doesn't exist - need to create missing process groups
@@ -110,7 +110,7 @@ def find_or_create_process_group_by_path(path: str) -> str:
     existing_depth = 0
 
     for i in range(len(path_parts)):
-        partial_path = path_parts[:i+1]
+        partial_path = path_parts[: i + 1]
         found = False
 
         for pg_id, pg_info in pg_map.items():
@@ -125,27 +125,33 @@ def find_or_create_process_group_by_path(path: str) -> str:
             break
 
     if existing_depth > 0:
-        logger.debug(f"  ✓ Found existing parent at depth {existing_depth}: /{'/'.join(path_parts[:existing_depth])}")
+        logger.debug(
+            f"  ✓ Found existing parent at depth {existing_depth}: /{'/'.join(path_parts[:existing_depth])}"
+        )
     else:
-        logger.debug(f"  Starting from root process group")
+        logger.debug("  Starting from root process group")
 
     # Create missing process groups
     for i in range(existing_depth, len(path_parts)):
         pg_name = path_parts[i]
-        logger.info(f"  Creating process group '{pg_name}' in parent {current_parent_id}...")
+        logger.info(
+            f"  Creating process group '{pg_name}' in parent {current_parent_id}..."
+        )
 
         try:
             new_pg = canvas.create_process_group(
-                parent_pg=canvas.get_process_group(current_parent_id, 'id'),
+                parent_pg=canvas.get_process_group(current_parent_id, "id"),
                 new_pg_name=pg_name,
-                location=(0.0, 0.0)
+                location=(0.0, 0.0),
             )
             current_parent_id = new_pg.id
-            logger.info(f"  ✓ Created process group '{pg_name}' (ID: {current_parent_id})")
+            logger.info(
+                f"  ✓ Created process group '{pg_name}' (ID: {current_parent_id})"
+            )
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to create process group '{pg_name}': {str(e)}"
+                detail=f"Failed to create process group '{pg_name}': {str(e)}",
             )
 
     logger.info(f"  ✓ Full path created: /{'/'.join(path_parts)}")
@@ -173,7 +179,9 @@ async def deploy_flow(
     logger.info(f"Hierarchy Attribute (from request): {deployment.hierarchy_attribute}")
     logger.info(f"Parameter Context Name: {deployment.parameter_context_name}")
     logger.info(f"Parameter Context ID: {deployment.parameter_context_id}")
-    logger.info(f"Stop Versioning After Deploy: {deployment.stop_versioning_after_deploy}")
+    logger.info(
+        f"Stop Versioning After Deploy: {deployment.stop_versioning_after_deploy}"
+    )
     logger.info(f"Disable After Deploy: {deployment.disable_after_deploy}")
     logger.info(f"Start After Deploy: {deployment.start_after_deploy}")
 
@@ -186,7 +194,10 @@ async def deploy_flow(
         )
 
     # Validate parent process group requirement
-    if not deployment.parent_process_group_id and not deployment.parent_process_group_path:
+    if (
+        not deployment.parent_process_group_id
+        and not deployment.parent_process_group_path
+    ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Either parent_process_group_id or parent_process_group_path is required",
@@ -202,61 +213,88 @@ async def deploy_flow(
             logger.info("Successfully configured authentication")
 
         # Fetch hierarchy configuration from settings
-        hierarchy_setting = db.query(Setting).filter(Setting.key == "hierarchy_config").first()
+        hierarchy_setting = (
+            db.query(Setting).filter(Setting.key == "hierarchy_config").first()
+        )
         last_hierarchy_attr = "cn"  # Default fallback
-        
+
         logger.info(f"DEBUG: hierarchy_setting found: {hierarchy_setting is not None}")
         if hierarchy_setting:
-            logger.info(f"DEBUG: hierarchy_setting.value type: {type(hierarchy_setting.value)}")
-            logger.info(f"DEBUG: hierarchy_setting.value: {hierarchy_setting.value[:200] if hierarchy_setting.value else 'None'}")
-        
+            logger.info(
+                f"DEBUG: hierarchy_setting.value type: {type(hierarchy_setting.value)}"
+            )
+            logger.info(
+                f"DEBUG: hierarchy_setting.value: {hierarchy_setting.value[:200] if hierarchy_setting.value else 'None'}"
+            )
+
         if hierarchy_setting and hierarchy_setting.value:
             try:
                 hierarchy_config = json.loads(hierarchy_setting.value)
-                logger.info(f"DEBUG: Parsed hierarchy_config type: {type(hierarchy_config)}")
+                logger.info(
+                    f"DEBUG: Parsed hierarchy_config type: {type(hierarchy_config)}"
+                )
                 logger.info(f"DEBUG: Parsed hierarchy_config: {hierarchy_config}")
-                
+
                 # Handle both formats: direct list or wrapped in {"hierarchy": [...]}
                 hierarchy_list = None
-                if isinstance(hierarchy_config, dict) and "hierarchy" in hierarchy_config:
+                if (
+                    isinstance(hierarchy_config, dict)
+                    and "hierarchy" in hierarchy_config
+                ):
                     hierarchy_list = hierarchy_config["hierarchy"]
-                    logger.info(f"DEBUG: Found 'hierarchy' key in dict, extracted list")
+                    logger.info("DEBUG: Found 'hierarchy' key in dict, extracted list")
                 elif isinstance(hierarchy_config, list):
                     hierarchy_list = hierarchy_config
-                    logger.info(f"DEBUG: hierarchy_config is already a list")
-                
-                if hierarchy_list and isinstance(hierarchy_list, list) and len(hierarchy_list) > 0:
-                    logger.info(f"DEBUG: hierarchy_list has {len(hierarchy_list)} items")
+                    logger.info("DEBUG: hierarchy_config is already a list")
+
+                if (
+                    hierarchy_list
+                    and isinstance(hierarchy_list, list)
+                    and len(hierarchy_list) > 0
+                ):
+                    logger.info(
+                        f"DEBUG: hierarchy_list has {len(hierarchy_list)} items"
+                    )
                     # Get the last item's name from the hierarchy
                     last_item = hierarchy_list[-1]
                     logger.info(f"DEBUG: Last item: {last_item}")
                     logger.info(f"DEBUG: Last item type: {type(last_item)}")
-                    
+
                     if isinstance(last_item, dict) and "name" in last_item:
                         last_hierarchy_attr = last_item["name"]
-                        logger.info(f"Using hierarchy attribute from config: '{last_hierarchy_attr}'")
+                        logger.info(
+                            f"Using hierarchy attribute from config: '{last_hierarchy_attr}'"
+                        )
                     else:
-                        logger.warning(f"Invalid hierarchy config format, using default: 'cn'")
-                        logger.warning(f"DEBUG: Last item doesn't have 'name' key or isn't a dict")
+                        logger.warning(
+                            "Invalid hierarchy config format, using default: 'cn'"
+                        )
+                        logger.warning(
+                            "DEBUG: Last item doesn't have 'name' key or isn't a dict"
+                        )
                 else:
-                    logger.warning(f"Empty hierarchy config, using default: 'cn'")
-                    logger.warning(f"DEBUG: hierarchy_list is empty or invalid")
+                    logger.warning("Empty hierarchy config, using default: 'cn'")
+                    logger.warning("DEBUG: hierarchy_list is empty or invalid")
             except (json.JSONDecodeError, Exception) as e:
-                logger.warning(f"Failed to parse hierarchy config: {e}, using default: 'cn'")
+                logger.warning(
+                    f"Failed to parse hierarchy config: {e}, using default: 'cn'"
+                )
                 logger.error(f"DEBUG: Exception details: {type(e).__name__}: {str(e)}")
         else:
-            logger.info(f"No hierarchy config found, using default: 'cn'")
+            logger.info("No hierarchy config found, using default: 'cn'")
 
         # Use hierarchy_attribute from request if provided, otherwise use the last from config
         hierarchy_attr_to_use = deployment.hierarchy_attribute or last_hierarchy_attr
-        logger.info(f"Using hierarchy attribute: '{hierarchy_attr_to_use}' (from {'request' if deployment.hierarchy_attribute else 'config'})")
+        logger.info(
+            f"Using hierarchy attribute: '{hierarchy_attr_to_use}' (from {'request' if deployment.hierarchy_attribute else 'config'})"
+        )
 
         # Initialize deployment service with hierarchy info
         service = NiFiDeploymentService(instance, hierarchy_attr_to_use)
 
         # Step 1: Get registry information (from template or direct parameters)
-        bucket_id, flow_id, registry_client_id, template_name = service.get_registry_info(
-            deployment, db
+        bucket_id, flow_id, registry_client_id, template_name = (
+            service.get_registry_info(deployment, db)
         )
 
         # Step 2: Resolve parent process group (by ID or path)
@@ -284,8 +322,12 @@ async def deploy_flow(
 
         # Step 6: Deploy the flow
         deployed_pg = service.deploy_flow_version(
-            parent_pg_id, deployment, bucket_identifier,
-            flow_identifier, registry_client_id, deploy_version
+            parent_pg_id,
+            deployment,
+            bucket_identifier,
+            flow_identifier,
+            registry_client_id,
+            deploy_version,
         )
 
         pg_id = deployed_pg.id if hasattr(deployed_pg, "id") else None
@@ -303,15 +345,20 @@ async def deploy_flow(
         # Step 8: Assign parameter context if specified
         # Priority: parameter_context_name (lookup by name) > parameter_context_id (direct ID)
         if pg_id and deployment.parameter_context_name:
-            logger.info(f"Assigning parameter context by name: '{deployment.parameter_context_name}'")
+            logger.info(
+                f"Assigning parameter context by name: '{deployment.parameter_context_name}'"
+            )
             service.assign_parameter_context(pg_id, deployment.parameter_context_name)
         elif pg_id and deployment.parameter_context_id:
-            logger.info(f"Assigning parameter context by ID: {deployment.parameter_context_id}")
+            logger.info(
+                f"Assigning parameter context by ID: {deployment.parameter_context_id}"
+            )
             try:
                 from nipyapi import parameters
 
                 # Re-fetch the process group to get the latest state after rename
                 from nipyapi.nifi import ProcessGroupsApi
+
                 pg_api = ProcessGroupsApi()
                 pg = pg_api.get_process_group(id=pg_id)
 
@@ -320,51 +367,73 @@ async def deploy_flow(
                     context_id=deployment.parameter_context_id,
                     cascade=False,
                 )
-                logger.info(f"✓ Parameter context assigned successfully")
+                logger.info("✓ Parameter context assigned successfully")
             except Exception as param_error:
-                logger.warning(f"⚠ Warning: Could not assign parameter context: {param_error}")
+                logger.warning(
+                    f"⚠ Warning: Could not assign parameter context: {param_error}"
+                )
                 # Don't fail the deployment if parameter context assignment fails
 
         # Step 9: Auto-connect ports if parent PG specified
         # Use parent_pg_id that was resolved (could be from ID or path)
-        logger.info(f"DEBUG: Checking auto-connect conditions:")
+        logger.info("DEBUG: Checking auto-connect conditions:")
         logger.info(f"  pg_id exists: {pg_id is not None}")
         logger.info(f"  parent_pg_id resolved: {parent_pg_id}")
-        logger.info(f"  deployment.parent_process_group_id: {deployment.parent_process_group_id}")
-        logger.info(f"  deployment.parent_process_group_path: {deployment.parent_process_group_path}")
+        logger.info(
+            f"  deployment.parent_process_group_id: {deployment.parent_process_group_id}"
+        )
+        logger.info(
+            f"  deployment.parent_process_group_path: {deployment.parent_process_group_path}"
+        )
 
         if pg_id and parent_pg_id:
-            logger.info(f"✓ Triggering auto-connect between child={pg_id} and parent={parent_pg_id}")
+            logger.info(
+                f"✓ Triggering auto-connect between child={pg_id} and parent={parent_pg_id}"
+            )
             service.auto_connect_ports(pg_id, parent_pg_id)
         else:
-            logger.warning(f"⚠ Skipping auto-connect: pg_id={pg_id}, parent_pg_id={parent_pg_id}")
+            logger.warning(
+                f"⚠ Skipping auto-connect: pg_id={pg_id}, parent_pg_id={parent_pg_id}"
+            )
 
         # Step 10: Stop version control if requested
         if pg_id and deployment.stop_versioning_after_deploy:
-            logger.info(f"Stopping version control after deployment (stop_versioning_after_deploy=True)")
+            logger.info(
+                "Stopping version control after deployment (stop_versioning_after_deploy=True)"
+            )
             service.stop_version_control(pg_id)
 
         # Step 11: Disable the process group if requested
         if pg_id and deployment.disable_after_deploy:
-            logger.info(f"Disabling process group after deployment (disable_after_deploy=True)")
-            logger.info(f"Note: NiFi deploys flows in STOPPED state by default. This will DISABLE (lock) them.")
+            logger.info(
+                "Disabling process group after deployment (disable_after_deploy=True)"
+            )
+            logger.info(
+                "Note: NiFi deploys flows in STOPPED state by default. This will DISABLE (lock) them."
+            )
             try:
                 # Disable all components in the process group (sets to DISABLED state)
                 # DISABLED = locked, cannot be started (prevents accidental starting)
                 # Note: NiFi already deploys in STOPPED state, this goes further to DISABLE
                 service.stop_process_group(pg_id)
-                logger.info(f"✓ Process group disabled successfully (locked - cannot be started)")
+                logger.info(
+                    "✓ Process group disabled successfully (locked - cannot be started)"
+                )
             except Exception as e:
                 logger.warning(f"Failed to disable process group after deployment: {e}")
 
         # Step 12: Start the process group if requested
         if pg_id and deployment.start_after_deploy:
-            logger.info(f"Starting process group after deployment (start_after_deploy=True)")
-            logger.info(f"Note: NiFi deploys flows in STOPPED state by default. This will START them.")
+            logger.info(
+                "Starting process group after deployment (start_after_deploy=True)"
+            )
+            logger.info(
+                "Note: NiFi deploys flows in STOPPED state by default. This will START them."
+            )
             try:
                 # Start the process group (sets to RUNNING state)
                 service.start_process_group(pg_id)
-                logger.info(f"✓ Process group started successfully")
+                logger.info("✓ Process group started successfully")
             except Exception as e:
                 logger.warning(f"Failed to start process group after deployment: {e}")
 
@@ -396,6 +465,7 @@ async def deploy_flow(
         error_msg = str(e)
         logger.error(f"✗ Deployment failed: {error_msg}")
         import traceback
+
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

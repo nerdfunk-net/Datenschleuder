@@ -87,17 +87,21 @@ async def stop_process_group_versioning(
         logger.info(f"Stopping version control for process group {process_group_id}...")
 
         # Get the process group
-        pg = canvas.get_process_group(process_group_id, 'id')
+        pg = canvas.get_process_group(process_group_id, "id")
 
         if not pg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Process group {process_group_id} not found"
+                detail=f"Process group {process_group_id} not found",
             )
 
         # Check if process group is under version control
-        if not hasattr(pg, 'component') or not hasattr(pg.component, 'version_control_information'):
-            logger.info(f"Process group {process_group_id} is not under version control")
+        if not hasattr(pg, "component") or not hasattr(
+            pg.component, "version_control_information"
+        ):
+            logger.info(
+                f"Process group {process_group_id} is not under version control"
+            )
             return {
                 "status": "success",
                 "message": "Process group is not under version control",
@@ -107,7 +111,9 @@ async def stop_process_group_versioning(
 
         version_info = pg.component.version_control_information
         if not version_info:
-            logger.info(f"Process group {process_group_id} is not under version control")
+            logger.info(
+                f"Process group {process_group_id} is not under version control"
+            )
             return {
                 "status": "success",
                 "message": "Process group is not under version control",
@@ -116,7 +122,7 @@ async def stop_process_group_versioning(
             }
 
         # Stop version control
-        logger.info(f"Removing process group from version control...")
+        logger.info("Removing process group from version control...")
         versioning.stop_flow_ver(pg, refresh=True)
 
         logger.info(f"✓ Version control stopped for process group {process_group_id}")

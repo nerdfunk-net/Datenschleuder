@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, validator
 
 from app.core.database import get_db
-from app.core.security import verify_token, require_admin, get_current_user
+from app.core.security import require_admin, get_current_user
 from app.models.setting import Setting, NifiSettings, RegistrySettings
 from app.models.user import User
 from app.services.encryption_service import encryption_service

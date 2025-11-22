@@ -186,7 +186,9 @@ async def get_registry_details(
         setup_nifi_connection(instance)
 
         # Get the registry client
-        registry_client = versioning.get_registry_client(registry_id, identifier_type='id')
+        registry_client = versioning.get_registry_client(
+            registry_id, identifier_type="id"
+        )
 
         if not registry_client:
             raise HTTPException(
@@ -195,21 +197,33 @@ async def get_registry_details(
             )
 
         # Extract registry details
-        registry_name = registry_client.component.name if hasattr(registry_client, 'component') and hasattr(registry_client.component, 'name') else 'Unknown'
-        registry_type = registry_client.component.type if hasattr(registry_client, 'component') and hasattr(registry_client.component, 'type') else 'Unknown'
+        registry_name = (
+            registry_client.component.name
+            if hasattr(registry_client, "component")
+            and hasattr(registry_client.component, "name")
+            else "Unknown"
+        )
+        registry_type = (
+            registry_client.component.type
+            if hasattr(registry_client, "component")
+            and hasattr(registry_client.component, "type")
+            else "Unknown"
+        )
 
         # Extract properties
         properties = {}
         github_url = None
 
-        if hasattr(registry_client, 'component') and hasattr(registry_client.component, 'properties'):
+        if hasattr(registry_client, "component") and hasattr(
+            registry_client.component, "properties"
+        ):
             properties = registry_client.component.properties
 
             # For GitHub registries, construct the repository URL
-            if 'github' in registry_type.lower():
-                repo_owner = properties.get('Repository Owner')
-                repo_name = properties.get('Repository Name')
-                repo_path = properties.get('Repository Path', '')
+            if "github" in registry_type.lower():
+                repo_owner = properties.get("Repository Owner")
+                repo_name = properties.get("Repository Name")
+                repo_path = properties.get("Repository Path", "")
 
                 if repo_owner and repo_name:
                     github_url = f"https://github.com/{repo_owner}/{repo_name}"
@@ -221,7 +235,7 @@ async def get_registry_details(
             "registry_id": registry_id,
             "name": registry_name,
             "type": registry_type,
-            "is_github": 'github' in registry_type.lower(),
+            "is_github": "github" in registry_type.lower(),
             "github_url": github_url,
             "properties": properties,
         }
@@ -338,27 +352,43 @@ async def get_flow_versions(
             bucket_id=bucket_id,
             flow_id=flow_id,
             registry_id=registry_id,
-            service="nifi"
+            service="nifi",
         )
 
         # Convert to serializable format
         versions_list = []
-        if flow_versions and hasattr(flow_versions, 'versioned_flow_snapshot_metadata_set'):
+        if flow_versions and hasattr(
+            flow_versions, "versioned_flow_snapshot_metadata_set"
+        ):
             for version_item in flow_versions.versioned_flow_snapshot_metadata_set:
-                if hasattr(version_item, 'versioned_flow_snapshot_metadata'):
+                if hasattr(version_item, "versioned_flow_snapshot_metadata"):
                     metadata = version_item.versioned_flow_snapshot_metadata
                     version_data = {
-                        "version": metadata.version if hasattr(metadata, 'version') else None,
-                        "timestamp": metadata.timestamp if hasattr(metadata, 'timestamp') else None,
-                        "comments": metadata.comments if hasattr(metadata, 'comments') else "",
-                        "author": metadata.author if hasattr(metadata, 'author') else "Unknown",
-                        "bucket_identifier": metadata.bucket_identifier if hasattr(metadata, 'bucket_identifier') else bucket_id,
-                        "flow_identifier": metadata.flow_identifier if hasattr(metadata, 'flow_identifier') else flow_id,
+                        "version": metadata.version
+                        if hasattr(metadata, "version")
+                        else None,
+                        "timestamp": metadata.timestamp
+                        if hasattr(metadata, "timestamp")
+                        else None,
+                        "comments": metadata.comments
+                        if hasattr(metadata, "comments")
+                        else "",
+                        "author": metadata.author
+                        if hasattr(metadata, "author")
+                        else "Unknown",
+                        "bucket_identifier": metadata.bucket_identifier
+                        if hasattr(metadata, "bucket_identifier")
+                        else bucket_id,
+                        "flow_identifier": metadata.flow_identifier
+                        if hasattr(metadata, "flow_identifier")
+                        else flow_id,
                     }
                     versions_list.append(version_data)
 
         # Sort by timestamp descending (newest first)
-        versions_list.sort(key=lambda x: x['timestamp'] if x['timestamp'] else 0, reverse=True)
+        versions_list.sort(
+            key=lambda x: x["timestamp"] if x["timestamp"] else 0, reverse=True
+        )
 
         return {
             "status": "success",
@@ -373,6 +403,7 @@ async def get_flow_versions(
         error_msg = str(e)
         logger.error(f"Failed to get flow versions: {error_msg}")
         import traceback
+
         logger.error(traceback.format_exc())
         return {
             "status": "error",

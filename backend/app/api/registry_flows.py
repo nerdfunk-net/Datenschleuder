@@ -17,23 +17,25 @@ router = APIRouter(prefix="/api/registry-flows", tags=["registry-flows"])
 
 @router.get("/", response_model=List[RegistryFlowResponse])
 async def list_registry_flows(
-    nifi_instance: Optional[int] = Query(None, description="Filter by NiFi instance ID"),
+    nifi_instance: Optional[int] = Query(
+        None, description="Filter by NiFi instance ID"
+    ),
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
 ):
     """List all registry flows, optionally filtered by NiFi instance"""
     query = db.query(RegistryFlow)
-    
+
     # Apply filter if nifi_instance parameter is provided
     if nifi_instance is not None:
         query = query.filter(RegistryFlow.nifi_instance_id == nifi_instance)
-    
+
     flows = query.order_by(
         RegistryFlow.nifi_instance_name,
         RegistryFlow.bucket_name,
         RegistryFlow.flow_name,
     ).all()
-    
+
     return flows
 
 

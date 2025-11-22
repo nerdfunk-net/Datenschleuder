@@ -7,7 +7,7 @@ import urllib3
 
 # Disable urllib3 SSL warnings globally
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-warnings.filterwarnings('ignore', message='Unverified HTTPS request')
+warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
 from app.core.database import init_db, get_session_local
 from app.core.config import settings
@@ -29,19 +29,12 @@ from app.api.users import router as users_router
 # Import all models to ensure they're registered with SQLAlchemy
 from app.models import (
     User,
-    RefreshToken,
-    Credential,
-    Setting,
-    HierarchyValue,
-    NiFiInstance,
-    FlowView,
-    RegistryFlow,
 )
 
 # Configure logging
 logging.basicConfig(
     level=logging.DEBUG,  # Set root level to DEBUG to see detailed OIDC logs
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     force=True,  # Force reconfiguration even if logging was already set up
 )
 
@@ -51,7 +44,9 @@ logger.setLevel(logging.DEBUG)
 
 # Set specific loggers to appropriate levels
 logging.getLogger("app").setLevel(logging.DEBUG)  # All app modules - show debug logs
-logging.getLogger("app.services.oidc_service").setLevel(logging.DEBUG)  # OIDC service debug
+logging.getLogger("app.services.oidc_service").setLevel(
+    logging.DEBUG
+)  # OIDC service debug
 logging.getLogger("app.api.oidc").setLevel(logging.DEBUG)  # OIDC API debug
 logging.getLogger("app.services.nifi_deployment_service").setLevel(logging.INFO)
 logging.getLogger("app.api.deploy").setLevel(logging.INFO)

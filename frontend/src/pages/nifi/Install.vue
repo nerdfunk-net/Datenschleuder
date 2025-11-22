@@ -8,7 +8,9 @@
       <div class="alert alert-info mt-3" role="alert">
         <i class="pe-7s-info-circle me-2"></i>
         <strong>Note:</strong> Only configured flows are checked. You need at least one flow configured in the 
-        <router-link to="/flows/manage">Flow Management</router-link> page to see the hierarchy paths here.
+        <router-link to="/flows/manage">
+          Flow Management
+        </router-link> page to see the hierarchy paths here.
       </div>
     </div>
 

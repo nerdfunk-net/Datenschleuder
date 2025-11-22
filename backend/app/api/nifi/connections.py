@@ -1,7 +1,7 @@
 """NiFi connection testing API endpoints"""
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -25,7 +25,9 @@ async def test_nifi_connection(
         from nipyapi.nifi import FlowApi
 
         logger.info("=== CONNECTIONS.PY TEST ENDPOINT CALLED ===")
-        logger.info(f"Received data: username={data.username!r}, oidc_provider_id={data.oidc_provider_id!r}, certificate_name={data.certificate_name!r}")
+        logger.info(
+            f"Received data: username={data.username!r}, oidc_provider_id={data.oidc_provider_id!r}, certificate_name={data.certificate_name!r}"
+        )
 
         # Configure nipyapi with authentication
         configure_nifi_test_connection(

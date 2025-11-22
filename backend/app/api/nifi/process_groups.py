@@ -21,8 +21,11 @@ from app.models.parameter_context import (
     AssignParameterContextRequest,
     AssignParameterContextResponse,
 )
-from app.api.nifi.nifi_helpers import get_instance_or_404, setup_nifi_connection, extract_pg_info
-from app.services.encryption_service import encryption_service
+from app.api.nifi.nifi_helpers import (
+    get_instance_or_404,
+    setup_nifi_connection,
+    extract_pg_info,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +82,9 @@ async def get_process_group(
                 identifier=id, identifier_type="id", greedy=greedy
             )
         elif name:
-            logger.info(f"Searching for process group with name: {name} (greedy={greedy})")
+            logger.info(
+                f"Searching for process group with name: {name} (greedy={greedy})"
+            )
             process_group_result = canvas.get_process_group(
                 identifier=name, identifier_type="name", greedy=greedy
             )
@@ -577,7 +582,9 @@ async def get_output_ports(
         pg_name = pg.component.name if hasattr(pg, "component") else None
 
         # Get output ports
-        logger.info(f"Getting output ports for process group {process_group_id} ({pg_name})")
+        logger.info(
+            f"Getting output ports for process group {process_group_id} ({pg_name})"
+        )
         output_ports = canvas.list_all_output_ports(
             pg_id=process_group_id, descendants=False
         )
@@ -752,8 +759,12 @@ async def start_process_group(
     try:
         from nipyapi import canvas
         from nipyapi.nifi import (
-            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
-            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+            ProcessorsApi,
+            ProcessorRunStatusEntity,
+            RevisionDTO,
+            InputPortsApi,
+            OutputPortsApi,
+            PortRunStatusEntity,
         )
 
         # Configure nipyapi connection with proper SSL handling
@@ -762,12 +773,12 @@ async def start_process_group(
         logger.info(f"Starting process group {process_group_id}...")
 
         # Verify the process group exists first
-        pg = canvas.get_process_group(process_group_id, 'id')
+        pg = canvas.get_process_group(process_group_id, "id")
 
         if not pg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Process group {process_group_id} not found"
+                detail=f"Process group {process_group_id} not found",
             )
 
         # Get all processors in the process group (recursively)
@@ -784,12 +795,14 @@ async def start_process_group(
 
                 run_status = ProcessorRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="RUNNING"
+                    state="RUNNING",
                 )
 
                 processors_api.update_run_status4(body=run_status, id=processor_id)
                 started_processors += 1
-                logger.debug(f"  Started processor: {processor.component.name} ({processor_id})")
+                logger.debug(
+                    f"  Started processor: {processor.component.name} ({processor_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to start processor {processor_id}: {e}")
@@ -808,7 +821,7 @@ async def start_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="RUNNING"
+                    state="RUNNING",
                 )
 
                 input_ports_api.update_run_status2(body=run_status, id=port_id)
@@ -832,18 +845,22 @@ async def start_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="RUNNING"
+                    state="RUNNING",
                 )
 
                 output_ports_api.update_run_status3(body=run_status, id=port_id)
                 started_output_ports += 1
-                logger.debug(f"  Started output port: {port.component.name} ({port_id})")
+                logger.debug(
+                    f"  Started output port: {port.component.name} ({port_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to start output port {port_id}: {e}")
 
         total_started = started_processors + started_input_ports + started_output_ports
-        logger.info(f"✓ Started {started_processors} processor(s), {started_input_ports} input port(s), {started_output_ports} output port(s)")
+        logger.info(
+            f"✓ Started {started_processors} processor(s), {started_input_ports} input port(s), {started_output_ports} output port(s)"
+        )
 
         return {
             "status": "success",
@@ -853,8 +870,8 @@ async def start_process_group(
                 "processors": started_processors,
                 "input_ports": started_input_ports,
                 "output_ports": started_output_ports,
-                "total": total_started
-            }
+                "total": total_started,
+            },
         }
 
     except HTTPException:
@@ -863,6 +880,7 @@ async def start_process_group(
         error_msg = str(e)
         logger.error(f"Failed to start process group: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -888,8 +906,12 @@ async def stop_process_group(
     try:
         from nipyapi import canvas
         from nipyapi.nifi import (
-            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
-            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+            ProcessorsApi,
+            ProcessorRunStatusEntity,
+            RevisionDTO,
+            InputPortsApi,
+            OutputPortsApi,
+            PortRunStatusEntity,
         )
 
         # Configure nipyapi connection with proper SSL handling
@@ -898,12 +920,12 @@ async def stop_process_group(
         logger.info(f"Stopping process group {process_group_id}...")
 
         # Verify the process group exists first
-        pg = canvas.get_process_group(process_group_id, 'id')
+        pg = canvas.get_process_group(process_group_id, "id")
 
         if not pg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Process group {process_group_id} not found"
+                detail=f"Process group {process_group_id} not found",
             )
 
         # Get all processors in the process group (recursively)
@@ -920,12 +942,14 @@ async def stop_process_group(
 
                 run_status = ProcessorRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 processors_api.update_run_status4(body=run_status, id=processor_id)
                 stopped_processors += 1
-                logger.debug(f"  Stopped processor: {processor.component.name} ({processor_id})")
+                logger.debug(
+                    f"  Stopped processor: {processor.component.name} ({processor_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to stop processor {processor_id}: {e}")
@@ -944,7 +968,7 @@ async def stop_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 input_ports_api.update_run_status2(body=run_status, id=port_id)
@@ -968,18 +992,22 @@ async def stop_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 output_ports_api.update_run_status3(body=run_status, id=port_id)
                 stopped_output_ports += 1
-                logger.debug(f"  Stopped output port: {port.component.name} ({port_id})")
+                logger.debug(
+                    f"  Stopped output port: {port.component.name} ({port_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to stop output port {port_id}: {e}")
 
         total_stopped = stopped_processors + stopped_input_ports + stopped_output_ports
-        logger.info(f"✓ Stopped {stopped_processors} processor(s), {stopped_input_ports} input port(s), {stopped_output_ports} output port(s)")
+        logger.info(
+            f"✓ Stopped {stopped_processors} processor(s), {stopped_input_ports} input port(s), {stopped_output_ports} output port(s)"
+        )
 
         return {
             "status": "success",
@@ -989,8 +1017,8 @@ async def stop_process_group(
                 "processors": stopped_processors,
                 "input_ports": stopped_input_ports,
                 "output_ports": stopped_output_ports,
-                "total": total_stopped
-            }
+                "total": total_stopped,
+            },
         }
 
     except HTTPException:
@@ -999,6 +1027,7 @@ async def stop_process_group(
         error_msg = str(e)
         logger.error(f"Failed to stop process group: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1024,8 +1053,12 @@ async def enable_process_group(
     try:
         from nipyapi import canvas
         from nipyapi.nifi import (
-            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
-            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+            ProcessorsApi,
+            ProcessorRunStatusEntity,
+            RevisionDTO,
+            InputPortsApi,
+            OutputPortsApi,
+            PortRunStatusEntity,
         )
 
         # Configure nipyapi connection with proper SSL handling
@@ -1034,12 +1067,12 @@ async def enable_process_group(
         logger.info(f"Enabling process group {process_group_id}...")
 
         # Verify the process group exists first
-        pg = canvas.get_process_group(process_group_id, 'id')
+        pg = canvas.get_process_group(process_group_id, "id")
 
         if not pg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Process group {process_group_id} not found"
+                detail=f"Process group {process_group_id} not found",
             )
 
         # Get all processors in the process group (recursively)
@@ -1056,12 +1089,14 @@ async def enable_process_group(
 
                 run_status = ProcessorRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 processors_api.update_run_status4(body=run_status, id=processor_id)
                 enabled_processors += 1
-                logger.debug(f"  Enabled processor: {processor.component.name} ({processor_id})")
+                logger.debug(
+                    f"  Enabled processor: {processor.component.name} ({processor_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to enable processor {processor_id}: {e}")
@@ -1080,7 +1115,7 @@ async def enable_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 input_ports_api.update_run_status2(body=run_status, id=port_id)
@@ -1104,18 +1139,22 @@ async def enable_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 output_ports_api.update_run_status3(body=run_status, id=port_id)
                 enabled_output_ports += 1
-                logger.debug(f"  Enabled output port: {port.component.name} ({port_id})")
+                logger.debug(
+                    f"  Enabled output port: {port.component.name} ({port_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to enable output port {port_id}: {e}")
 
         total_enabled = enabled_processors + enabled_input_ports + enabled_output_ports
-        logger.info(f"✓ Enabled {enabled_processors} processor(s), {enabled_input_ports} input port(s), {enabled_output_ports} output port(s)")
+        logger.info(
+            f"✓ Enabled {enabled_processors} processor(s), {enabled_input_ports} input port(s), {enabled_output_ports} output port(s)"
+        )
 
         return {
             "status": "success",
@@ -1125,8 +1164,8 @@ async def enable_process_group(
                 "processors": enabled_processors,
                 "input_ports": enabled_input_ports,
                 "output_ports": enabled_output_ports,
-                "total": total_enabled
-            }
+                "total": total_enabled,
+            },
         }
 
     except HTTPException:
@@ -1135,6 +1174,7 @@ async def enable_process_group(
         error_msg = str(e)
         logger.error(f"Failed to enable process group: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1160,8 +1200,12 @@ async def disable_process_group(
     try:
         from nipyapi import canvas
         from nipyapi.nifi import (
-            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
-            InputPortsApi, OutputPortsApi, PortRunStatusEntity
+            ProcessorsApi,
+            ProcessorRunStatusEntity,
+            RevisionDTO,
+            InputPortsApi,
+            OutputPortsApi,
+            PortRunStatusEntity,
         )
 
         # Configure nipyapi connection with proper SSL handling
@@ -1170,12 +1214,12 @@ async def disable_process_group(
         logger.info(f"Disabling process group {process_group_id}...")
 
         # Verify the process group exists first
-        pg = canvas.get_process_group(process_group_id, 'id')
+        pg = canvas.get_process_group(process_group_id, "id")
 
         if not pg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Process group {process_group_id} not found"
+                detail=f"Process group {process_group_id} not found",
             )
 
         # Get all processors in the process group (recursively)
@@ -1192,12 +1236,14 @@ async def disable_process_group(
 
                 run_status = ProcessorRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="DISABLED"
+                    state="DISABLED",
                 )
 
                 processors_api.update_run_status4(body=run_status, id=processor_id)
                 disabled_processors += 1
-                logger.debug(f"  Disabled processor: {processor.component.name} ({processor_id})")
+                logger.debug(
+                    f"  Disabled processor: {processor.component.name} ({processor_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to disable processor {processor_id}: {e}")
@@ -1216,12 +1262,14 @@ async def disable_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="DISABLED"
+                    state="DISABLED",
                 )
 
                 input_ports_api.update_run_status2(body=run_status, id=port_id)
                 disabled_input_ports += 1
-                logger.debug(f"  Disabled input port: {port.component.name} ({port_id})")
+                logger.debug(
+                    f"  Disabled input port: {port.component.name} ({port_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to disable input port {port_id}: {e}")
@@ -1240,18 +1288,24 @@ async def disable_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="DISABLED"
+                    state="DISABLED",
                 )
 
                 output_ports_api.update_run_status3(body=run_status, id=port_id)
                 disabled_output_ports += 1
-                logger.debug(f"  Disabled output port: {port.component.name} ({port_id})")
+                logger.debug(
+                    f"  Disabled output port: {port.component.name} ({port_id})"
+                )
 
             except Exception as e:
                 logger.warning(f"  Failed to disable output port {port_id}: {e}")
 
-        total_disabled = disabled_processors + disabled_input_ports + disabled_output_ports
-        logger.info(f"✓ Disabled {disabled_processors} processor(s), {disabled_input_ports} input port(s), {disabled_output_ports} output port(s)")
+        total_disabled = (
+            disabled_processors + disabled_input_ports + disabled_output_ports
+        )
+        logger.info(
+            f"✓ Disabled {disabled_processors} processor(s), {disabled_input_ports} input port(s), {disabled_output_ports} output port(s)"
+        )
 
         return {
             "status": "success",
@@ -1261,8 +1315,8 @@ async def disable_process_group(
                 "processors": disabled_processors,
                 "input_ports": disabled_input_ports,
                 "output_ports": disabled_output_ports,
-                "total": total_disabled
-            }
+                "total": total_disabled,
+            },
         }
 
     except HTTPException:
@@ -1271,6 +1325,7 @@ async def disable_process_group(
         error_msg = str(e)
         logger.error(f"Failed to disable process group: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1294,12 +1349,15 @@ async def delete_process_group(
     instance = get_instance_or_404(db, instance_id)
 
     try:
-        import nipyapi
-        from nipyapi import config, security, canvas
+        from nipyapi import canvas
         from nipyapi.nifi import (
-            ProcessorsApi, ProcessorRunStatusEntity, RevisionDTO,
-            InputPortsApi, OutputPortsApi, PortRunStatusEntity,
-            ProcessGroupsApi
+            ProcessorsApi,
+            ProcessorRunStatusEntity,
+            RevisionDTO,
+            InputPortsApi,
+            OutputPortsApi,
+            PortRunStatusEntity,
+            ProcessGroupsApi,
         )
 
         # Configure nipyapi
@@ -1314,10 +1372,14 @@ async def delete_process_group(
         if not pg:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Process group {process_group_id} not found"
+                detail=f"Process group {process_group_id} not found",
             )
 
-        pg_name = pg.component.name if hasattr(pg, 'component') and hasattr(pg.component, 'name') else process_group_id
+        pg_name = (
+            pg.component.name
+            if hasattr(pg, "component") and hasattr(pg.component, "name")
+            else process_group_id
+        )
         logger.info(f"Found process group: {pg_name}")
 
         # Step 1: Stop all components in the process group
@@ -1335,7 +1397,7 @@ async def delete_process_group(
 
                 run_status = ProcessorRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 processors_api.update_run_status4(body=run_status, id=processor_id)
@@ -1356,7 +1418,7 @@ async def delete_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 input_ports_api.update_run_status2(body=run_status, id=port_id)
@@ -1377,7 +1439,7 @@ async def delete_process_group(
 
                 run_status = PortRunStatusEntity(
                     revision=RevisionDTO(version=current_revision.version),
-                    state="STOPPED"
+                    state="STOPPED",
                 )
 
                 output_ports_api.update_run_status3(body=run_status, id=port_id)
@@ -1386,115 +1448,227 @@ async def delete_process_group(
             except Exception as e:
                 logger.warning(f"    Failed to stop output port {port_id}: {e}")
 
-        logger.info(f"✓ All components stopped successfully")
+        logger.info("✓ All components stopped successfully")
 
         # Step 2: Stop destinations of all outgoing connections (including connections in parent PG)
         # Track original states to restore them later
-        logger.info(f"Step 2: Checking and stopping outgoing connection destinations...")
+        logger.info("Step 2: Checking and stopping outgoing connection destinations...")
 
         components_to_restore = []  # List of (component_type, component_id, original_state, api)
 
         try:
             # Get parent process group ID to search for connections there as well
-            parent_pg_id = pg.component.parent_group_id if hasattr(pg, 'component') and hasattr(pg.component, 'parent_group_id') else None
+            parent_pg_id = (
+                pg.component.parent_group_id
+                if hasattr(pg, "component") and hasattr(pg.component, "parent_group_id")
+                else None
+            )
 
             if parent_pg_id:
-                logger.info(f"  Checking connections in parent process group: {parent_pg_id}")
+                logger.info(
+                    f"  Checking connections in parent process group: {parent_pg_id}"
+                )
 
                 # Get all connections from the parent process group (this includes connections FROM our PG TO parent)
-                parent_connections = canvas.list_all_connections(parent_pg_id, descendants=False)
-                logger.info(f"  Found {len(parent_connections)} connection(s) in parent process group")
+                parent_connections = canvas.list_all_connections(
+                    parent_pg_id, descendants=False
+                )
+                logger.info(
+                    f"  Found {len(parent_connections)} connection(s) in parent process group"
+                )
 
                 # Find connections that originate from within our process group
                 for connection in parent_connections:
                     try:
-                        source = connection.component.source if hasattr(connection, 'component') and hasattr(connection.component, 'source') else None
-                        dest = connection.component.destination if hasattr(connection, 'component') and hasattr(connection.component, 'destination') else None
+                        source = (
+                            connection.component.source
+                            if hasattr(connection, "component")
+                            and hasattr(connection.component, "source")
+                            else None
+                        )
+                        dest = (
+                            connection.component.destination
+                            if hasattr(connection, "component")
+                            and hasattr(connection.component, "destination")
+                            else None
+                        )
 
-                        if source and dest and hasattr(source, 'group_id') and hasattr(dest, 'group_id'):
+                        if (
+                            source
+                            and dest
+                            and hasattr(source, "group_id")
+                            and hasattr(dest, "group_id")
+                        ):
                             source_group_id = source.group_id
                             dest_group_id = dest.group_id
                             dest_id = dest.id
-                            dest_type = dest.type if hasattr(dest, 'type') else 'unknown'
-                            dest_name = dest.name if hasattr(dest, 'name') else dest_id
+                            dest_type = (
+                                dest.type if hasattr(dest, "type") else "unknown"
+                            )
+                            dest_name = dest.name if hasattr(dest, "name") else dest_id
 
                             # Check if source is from our process group and destination is in parent (outgoing connection)
-                            if source_group_id == process_group_id and dest_group_id == parent_pg_id:
-                                logger.info(f"    Found outgoing connection to {dest_type} '{dest_name}' (ID: {dest_id}) in parent group")
+                            if (
+                                source_group_id == process_group_id
+                                and dest_group_id == parent_pg_id
+                            ):
+                                logger.info(
+                                    f"    Found outgoing connection to {dest_type} '{dest_name}' (ID: {dest_id}) in parent group"
+                                )
 
                                 # Stop the destination component based on its type and track original state
-                                if dest_type == 'OUTPUT_PORT':
+                                if dest_type == "OUTPUT_PORT":
                                     try:
-                                        dest_port = output_ports_api.get_output_port(dest_id)
+                                        dest_port = output_ports_api.get_output_port(
+                                            dest_id
+                                        )
                                         if dest_port:
-                                            original_state = dest_port.component.state if hasattr(dest_port, 'component') and hasattr(dest_port.component, 'state') else None
-                                            logger.info(f"      Original state of output port '{dest_name}': {original_state}")
+                                            original_state = (
+                                                dest_port.component.state
+                                                if hasattr(dest_port, "component")
+                                                and hasattr(
+                                                    dest_port.component, "state"
+                                                )
+                                                else None
+                                            )
+                                            logger.info(
+                                                f"      Original state of output port '{dest_name}': {original_state}"
+                                            )
 
                                             # Only stop if it's running
-                                            if original_state == 'RUNNING':
+                                            if original_state == "RUNNING":
                                                 run_status = PortRunStatusEntity(
-                                                    revision=RevisionDTO(version=dest_port.revision.version),
-                                                    state="STOPPED"
+                                                    revision=RevisionDTO(
+                                                        version=dest_port.revision.version
+                                                    ),
+                                                    state="STOPPED",
                                                 )
-                                                output_ports_api.update_run_status3(body=run_status, id=dest_id)
-                                                logger.info(f"      ✓ Stopped destination output port: {dest_name}")
+                                                output_ports_api.update_run_status3(
+                                                    body=run_status, id=dest_id
+                                                )
+                                                logger.info(
+                                                    f"      ✓ Stopped destination output port: {dest_name}"
+                                                )
 
                                                 # Track for restoration
-                                                components_to_restore.append(('OUTPUT_PORT', dest_id, dest_name, original_state))
+                                                components_to_restore.append(
+                                                    (
+                                                        "OUTPUT_PORT",
+                                                        dest_id,
+                                                        dest_name,
+                                                        original_state,
+                                                    )
+                                                )
                                     except Exception as e:
-                                        logger.warning(f"      Failed to stop destination output port {dest_id}: {e}")
+                                        logger.warning(
+                                            f"      Failed to stop destination output port {dest_id}: {e}"
+                                        )
 
-                                elif dest_type == 'INPUT_PORT':
+                                elif dest_type == "INPUT_PORT":
                                     try:
-                                        dest_port = input_ports_api.get_input_port(dest_id)
+                                        dest_port = input_ports_api.get_input_port(
+                                            dest_id
+                                        )
                                         if dest_port:
-                                            original_state = dest_port.component.state if hasattr(dest_port, 'component') and hasattr(dest_port.component, 'state') else None
-                                            logger.info(f"      Original state of input port '{dest_name}': {original_state}")
+                                            original_state = (
+                                                dest_port.component.state
+                                                if hasattr(dest_port, "component")
+                                                and hasattr(
+                                                    dest_port.component, "state"
+                                                )
+                                                else None
+                                            )
+                                            logger.info(
+                                                f"      Original state of input port '{dest_name}': {original_state}"
+                                            )
 
                                             # Only stop if it's running
-                                            if original_state == 'RUNNING':
+                                            if original_state == "RUNNING":
                                                 run_status = PortRunStatusEntity(
-                                                    revision=RevisionDTO(version=dest_port.revision.version),
-                                                    state="STOPPED"
+                                                    revision=RevisionDTO(
+                                                        version=dest_port.revision.version
+                                                    ),
+                                                    state="STOPPED",
                                                 )
-                                                input_ports_api.update_run_status2(body=run_status, id=dest_id)
-                                                logger.info(f"      ✓ Stopped destination input port: {dest_name}")
+                                                input_ports_api.update_run_status2(
+                                                    body=run_status, id=dest_id
+                                                )
+                                                logger.info(
+                                                    f"      ✓ Stopped destination input port: {dest_name}"
+                                                )
 
                                                 # Track for restoration
-                                                components_to_restore.append(('INPUT_PORT', dest_id, dest_name, original_state))
+                                                components_to_restore.append(
+                                                    (
+                                                        "INPUT_PORT",
+                                                        dest_id,
+                                                        dest_name,
+                                                        original_state,
+                                                    )
+                                                )
                                     except Exception as e:
-                                        logger.warning(f"      Failed to stop destination input port {dest_id}: {e}")
+                                        logger.warning(
+                                            f"      Failed to stop destination input port {dest_id}: {e}"
+                                        )
 
-                                elif dest_type == 'PROCESSOR':
+                                elif dest_type == "PROCESSOR":
                                     try:
-                                        dest_proc = processors_api.get_processor(dest_id)
+                                        dest_proc = processors_api.get_processor(
+                                            dest_id
+                                        )
                                         if dest_proc:
-                                            original_state = dest_proc.component.state if hasattr(dest_proc, 'component') and hasattr(dest_proc.component, 'state') else None
-                                            logger.info(f"      Original state of processor '{dest_name}': {original_state}")
+                                            original_state = (
+                                                dest_proc.component.state
+                                                if hasattr(dest_proc, "component")
+                                                and hasattr(
+                                                    dest_proc.component, "state"
+                                                )
+                                                else None
+                                            )
+                                            logger.info(
+                                                f"      Original state of processor '{dest_name}': {original_state}"
+                                            )
 
                                             # Only stop if it's running
-                                            if original_state == 'RUNNING':
+                                            if original_state == "RUNNING":
                                                 run_status = ProcessorRunStatusEntity(
-                                                    revision=RevisionDTO(version=dest_proc.revision.version),
-                                                    state="STOPPED"
+                                                    revision=RevisionDTO(
+                                                        version=dest_proc.revision.version
+                                                    ),
+                                                    state="STOPPED",
                                                 )
-                                                processors_api.update_run_status4(body=run_status, id=dest_id)
-                                                logger.info(f"      ✓ Stopped destination processor: {dest_name}")
+                                                processors_api.update_run_status4(
+                                                    body=run_status, id=dest_id
+                                                )
+                                                logger.info(
+                                                    f"      ✓ Stopped destination processor: {dest_name}"
+                                                )
 
                                                 # Track for restoration
-                                                components_to_restore.append(('PROCESSOR', dest_id, dest_name, original_state))
+                                                components_to_restore.append(
+                                                    (
+                                                        "PROCESSOR",
+                                                        dest_id,
+                                                        dest_name,
+                                                        original_state,
+                                                    )
+                                                )
                                     except Exception as e:
-                                        logger.warning(f"      Failed to stop destination processor {dest_id}: {e}")
+                                        logger.warning(
+                                            f"      Failed to stop destination processor {dest_id}: {e}"
+                                        )
 
                     except Exception as e:
                         logger.warning(f"    Failed to process connection: {e}")
             else:
-                logger.info(f"  No parent process group found - skipping parent connection check")
+                logger.info(
+                    "  No parent process group found - skipping parent connection check"
+                )
 
         except Exception as e:
             logger.warning(f"  Failed to stop outgoing connection destinations: {e}")
 
-        logger.info(f"✓ Outgoing connection destinations stopped")
+        logger.info("✓ Outgoing connection destinations stopped")
 
         # Step 3: Delete the process group (wrapped in try/finally to ensure restoration)
         deletion_error = None
@@ -1508,49 +1682,77 @@ async def delete_process_group(
         finally:
             # Step 4: ALWAYS restore components that were stopped (regardless of success/failure)
             if components_to_restore:
-                logger.info(f"Step 4: Restoring {len(components_to_restore)} component(s) to original state...")
+                logger.info(
+                    f"Step 4: Restoring {len(components_to_restore)} component(s) to original state..."
+                )
 
-                for comp_type, comp_id, comp_name, original_state in components_to_restore:
+                for (
+                    comp_type,
+                    comp_id,
+                    comp_name,
+                    original_state,
+                ) in components_to_restore:
                     try:
-                        if comp_type == 'OUTPUT_PORT':
+                        if comp_type == "OUTPUT_PORT":
                             # Get fresh component to get current revision
                             dest_port = output_ports_api.get_output_port(comp_id)
-                            if dest_port and original_state == 'RUNNING':
+                            if dest_port and original_state == "RUNNING":
                                 run_status = PortRunStatusEntity(
-                                    revision=RevisionDTO(version=dest_port.revision.version),
-                                    state="RUNNING"
+                                    revision=RevisionDTO(
+                                        version=dest_port.revision.version
+                                    ),
+                                    state="RUNNING",
                                 )
-                                output_ports_api.update_run_status3(body=run_status, id=comp_id)
-                                logger.info(f"      ✓ Restored output port '{comp_name}' to {original_state}")
+                                output_ports_api.update_run_status3(
+                                    body=run_status, id=comp_id
+                                )
+                                logger.info(
+                                    f"      ✓ Restored output port '{comp_name}' to {original_state}"
+                                )
 
-                        elif comp_type == 'INPUT_PORT':
+                        elif comp_type == "INPUT_PORT":
                             dest_port = input_ports_api.get_input_port(comp_id)
-                            if dest_port and original_state == 'RUNNING':
+                            if dest_port and original_state == "RUNNING":
                                 run_status = PortRunStatusEntity(
-                                    revision=RevisionDTO(version=dest_port.revision.version),
-                                    state="RUNNING"
+                                    revision=RevisionDTO(
+                                        version=dest_port.revision.version
+                                    ),
+                                    state="RUNNING",
                                 )
-                                input_ports_api.update_run_status2(body=run_status, id=comp_id)
-                                logger.info(f"      ✓ Restored input port '{comp_name}' to {original_state}")
+                                input_ports_api.update_run_status2(
+                                    body=run_status, id=comp_id
+                                )
+                                logger.info(
+                                    f"      ✓ Restored input port '{comp_name}' to {original_state}"
+                                )
 
-                        elif comp_type == 'PROCESSOR':
+                        elif comp_type == "PROCESSOR":
                             dest_proc = processors_api.get_processor(comp_id)
-                            if dest_proc and original_state == 'RUNNING':
+                            if dest_proc and original_state == "RUNNING":
                                 run_status = ProcessorRunStatusEntity(
-                                    revision=RevisionDTO(version=dest_proc.revision.version),
-                                    state="RUNNING"
+                                    revision=RevisionDTO(
+                                        version=dest_proc.revision.version
+                                    ),
+                                    state="RUNNING",
                                 )
-                                processors_api.update_run_status4(body=run_status, id=comp_id)
-                                logger.info(f"      ✓ Restored processor '{comp_name}' to {original_state}")
+                                processors_api.update_run_status4(
+                                    body=run_status, id=comp_id
+                                )
+                                logger.info(
+                                    f"      ✓ Restored processor '{comp_name}' to {original_state}"
+                                )
 
                     except Exception as e:
-                        logger.error(f"      Failed to restore {comp_type} '{comp_name}' (ID: {comp_id}): {e}")
+                        logger.error(
+                            f"      Failed to restore {comp_type} '{comp_name}' (ID: {comp_id}): {e}"
+                        )
 
-                logger.info(f"✓ Component restoration completed")
+                logger.info("✓ Component restoration completed")
 
         # If deletion failed, raise the error now (after restoration)
         if deletion_error:
             import traceback
+
             logger.error(f"Traceback: {traceback.format_exc()}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1569,6 +1771,7 @@ async def delete_process_group(
         error_msg = str(e)
         logger.error(f"Failed to delete process group: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1631,7 +1834,7 @@ async def get_process_group_processors(
         logger.info(f"Found process group: {pg_name or process_group_id}")
 
         # Get all processors in the process group
-        logger.info(f"Fetching processors using nipyapi.canvas.list_all_processors...")
+        logger.info("Fetching processors using nipyapi.canvas.list_all_processors...")
         processors_list = canvas.list_all_processors(pg_id=process_group_id)
 
         # Convert to our response model
@@ -1680,6 +1883,7 @@ async def get_process_group_processors(
         error_msg = str(e)
         logger.error(f"Failed to get processors: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1745,7 +1949,7 @@ async def get_process_group_input_ports(
         logger.info(f"Found process group: {pg_name or process_group_id}")
 
         # Get all input ports in the process group
-        logger.info(f"Fetching input ports using nipyapi.canvas.list_all_input_ports...")
+        logger.info("Fetching input ports using nipyapi.canvas.list_all_input_ports...")
         input_ports_list = canvas.list_all_input_ports(
             pg_id=process_group_id, descendants=descendants
         )
@@ -1757,12 +1961,10 @@ async def get_process_group_input_ports(
                 port_data = InputPortInfo(
                     id=port.id if hasattr(port, "id") else "Unknown",
                     name=port.component.name
-                    if hasattr(port, "component")
-                    and hasattr(port.component, "name")
+                    if hasattr(port, "component") and hasattr(port.component, "name")
                     else "Unknown",
                     state=port.status.run_status
-                    if hasattr(port, "status")
-                    and hasattr(port.status, "run_status")
+                    if hasattr(port, "status") and hasattr(port.status, "run_status")
                     else "Unknown",
                     parent_group_id=port.component.parent_group_id
                     if hasattr(port, "component")
@@ -1795,6 +1997,7 @@ async def get_process_group_input_ports(
         error_msg = str(e)
         logger.error(f"Failed to get input ports: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1806,7 +2009,7 @@ async def get_process_group_input_ports(
 async def list_all_by_kind(
     instance_id: int,
     kind: str,
-    pg_id: str = 'root',
+    pg_id: str = "root",
     descendants: bool = True,
     token_data: dict = Depends(verify_token),
     db: Session = Depends(get_db),
@@ -1842,9 +2045,7 @@ async def list_all_by_kind(
         from nipyapi import canvas
 
         components_list = canvas.list_all_by_kind(
-            kind=kind,
-            pg_id=pg_id,
-            descendants=descendants
+            kind=kind, pg_id=pg_id, descendants=descendants
         )
 
         # Convert to response format
@@ -1854,70 +2055,120 @@ async def list_all_by_kind(
                 component_data = {}
 
                 # Extract common fields
-                if hasattr(component, 'id'):
-                    component_data['id'] = component.id
+                if hasattr(component, "id"):
+                    component_data["id"] = component.id
 
-                if hasattr(component, 'component'):
+                if hasattr(component, "component"):
                     comp = component.component
-                    component_data['name'] = comp.name if hasattr(comp, 'name') else None
-                    component_data['parent_group_id'] = comp.parent_group_id if hasattr(comp, 'parent_group_id') else None
-                    component_data['type'] = comp.type if hasattr(comp, 'type') else None
-                    component_data['comments'] = comp.comments if hasattr(comp, 'comments') else None
+                    component_data["name"] = (
+                        comp.name if hasattr(comp, "name") else None
+                    )
+                    component_data["parent_group_id"] = (
+                        comp.parent_group_id
+                        if hasattr(comp, "parent_group_id")
+                        else None
+                    )
+                    component_data["type"] = (
+                        comp.type if hasattr(comp, "type") else None
+                    )
+                    component_data["comments"] = (
+                        comp.comments if hasattr(comp, "comments") else None
+                    )
 
                     # For processors, include state
-                    if kind == 'processors' or kind == 'processor':
-                        component_data['state'] = comp.state if hasattr(comp, 'state') else None
+                    if kind == "processors" or kind == "processor":
+                        component_data["state"] = (
+                            comp.state if hasattr(comp, "state") else None
+                        )
 
                     # For ports, include state
-                    if kind in ['input_ports', 'output_ports', 'input_port', 'output_port']:
-                        component_data['state'] = comp.state if hasattr(comp, 'state') else None
+                    if kind in [
+                        "input_ports",
+                        "output_ports",
+                        "input_port",
+                        "output_port",
+                    ]:
+                        component_data["state"] = (
+                            comp.state if hasattr(comp, "state") else None
+                        )
 
                     # For process groups, include version control info
-                    if kind in ['process_groups', 'process_group']:
-                        if hasattr(comp, 'version_control_information') and comp.version_control_information:
+                    if kind in ["process_groups", "process_group"]:
+                        if (
+                            hasattr(comp, "version_control_information")
+                            and comp.version_control_information
+                        ):
                             vci = comp.version_control_information
-                            component_data['version_control_information'] = {
-                                'registry_id': vci.registry_id if hasattr(vci, 'registry_id') else None,
-                                'bucket_id': vci.bucket_id if hasattr(vci, 'bucket_id') else None,
-                                'flow_id': vci.flow_id if hasattr(vci, 'flow_id') else None,
-                                'version': vci.version if hasattr(vci, 'version') else None,
-                                'state': vci.state if hasattr(vci, 'state') else None,
+                            component_data["version_control_information"] = {
+                                "registry_id": vci.registry_id
+                                if hasattr(vci, "registry_id")
+                                else None,
+                                "bucket_id": vci.bucket_id
+                                if hasattr(vci, "bucket_id")
+                                else None,
+                                "flow_id": vci.flow_id
+                                if hasattr(vci, "flow_id")
+                                else None,
+                                "version": vci.version
+                                if hasattr(vci, "version")
+                                else None,
+                                "state": vci.state if hasattr(vci, "state") else None,
                             }
 
                     # For connections, include source and destination
-                    if kind in ['connections', 'connection']:
-                        if hasattr(comp, 'source'):
+                    if kind in ["connections", "connection"]:
+                        if hasattr(comp, "source"):
                             source = comp.source
-                            component_data['source'] = {
-                                'id': source.id if hasattr(source, 'id') else None,
-                                'name': source.name if hasattr(source, 'name') else None,
-                                'type': source.type if hasattr(source, 'type') else None,
-                                'group_id': source.group_id if hasattr(source, 'group_id') else None,
+                            component_data["source"] = {
+                                "id": source.id if hasattr(source, "id") else None,
+                                "name": source.name
+                                if hasattr(source, "name")
+                                else None,
+                                "type": source.type
+                                if hasattr(source, "type")
+                                else None,
+                                "group_id": source.group_id
+                                if hasattr(source, "group_id")
+                                else None,
                             }
-                        if hasattr(comp, 'destination'):
+                        if hasattr(comp, "destination"):
                             dest = comp.destination
-                            component_data['destination'] = {
-                                'id': dest.id if hasattr(dest, 'id') else None,
-                                'name': dest.name if hasattr(dest, 'name') else None,
-                                'type': dest.type if hasattr(dest, 'type') else None,
-                                'group_id': dest.group_id if hasattr(dest, 'group_id') else None,
+                            component_data["destination"] = {
+                                "id": dest.id if hasattr(dest, "id") else None,
+                                "name": dest.name if hasattr(dest, "name") else None,
+                                "type": dest.type if hasattr(dest, "type") else None,
+                                "group_id": dest.group_id
+                                if hasattr(dest, "group_id")
+                                else None,
                             }
 
                 # Include status if available
-                if hasattr(component, 'status'):
+                if hasattr(component, "status"):
                     status = component.status
-                    component_data['status'] = {}
-                    if hasattr(status, 'run_status'):
-                        component_data['status']['run_status'] = status.run_status
-                    if hasattr(status, 'aggregate_snapshot'):
+                    component_data["status"] = {}
+                    if hasattr(status, "run_status"):
+                        component_data["status"]["run_status"] = status.run_status
+                    if hasattr(status, "aggregate_snapshot"):
                         snapshot = status.aggregate_snapshot
-                        component_data['status']['aggregate_snapshot'] = {
-                            'active_thread_count': snapshot.active_thread_count if hasattr(snapshot, 'active_thread_count') else None,
-                            'bytes_in': snapshot.bytes_in if hasattr(snapshot, 'bytes_in') else None,
-                            'bytes_out': snapshot.bytes_out if hasattr(snapshot, 'bytes_out') else None,
-                            'flow_files_in': snapshot.flow_files_in if hasattr(snapshot, 'flow_files_in') else None,
-                            'flow_files_out': snapshot.flow_files_out if hasattr(snapshot, 'flow_files_out') else None,
-                            'queued': snapshot.queued if hasattr(snapshot, 'queued') else None,
+                        component_data["status"]["aggregate_snapshot"] = {
+                            "active_thread_count": snapshot.active_thread_count
+                            if hasattr(snapshot, "active_thread_count")
+                            else None,
+                            "bytes_in": snapshot.bytes_in
+                            if hasattr(snapshot, "bytes_in")
+                            else None,
+                            "bytes_out": snapshot.bytes_out
+                            if hasattr(snapshot, "bytes_out")
+                            else None,
+                            "flow_files_in": snapshot.flow_files_in
+                            if hasattr(snapshot, "flow_files_in")
+                            else None,
+                            "flow_files_out": snapshot.flow_files_out
+                            if hasattr(snapshot, "flow_files_out")
+                            else None,
+                            "queued": snapshot.queued
+                            if hasattr(snapshot, "queued")
+                            else None,
                         }
 
                 components_info.append(component_data)
@@ -1925,12 +2176,12 @@ async def list_all_by_kind(
         logger.info(f"✓ Found {len(components_info)} component(s) of kind '{kind}'")
 
         return {
-            'status': 'success',
-            'kind': kind,
-            'pg_id': pg_id,
-            'descendants': descendants,
-            'components': components_info,
-            'count': len(components_info),
+            "status": "success",
+            "kind": kind,
+            "pg_id": pg_id,
+            "descendants": descendants,
+            "components": components_info,
+            "count": len(components_info),
         }
 
     except HTTPException:
@@ -1939,6 +2190,7 @@ async def list_all_by_kind(
         error_msg = str(e)
         logger.error(f"Failed to list components by kind: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1989,8 +2241,10 @@ async def get_component_connections(
         try:
             processors_api = ProcessorsApi()
             component = processors_api.get_processor(component_id)
-            component_type = 'PROCESSOR'
-            logger.info(f"  Found processor: {component.component.name if hasattr(component, 'component') else component_id}")
+            component_type = "PROCESSOR"
+            logger.info(
+                f"  Found processor: {component.component.name if hasattr(component, 'component') else component_id}"
+            )
         except Exception:
             pass
 
@@ -1999,8 +2253,10 @@ async def get_component_connections(
             try:
                 input_ports_api = InputPortsApi()
                 component = input_ports_api.get_input_port(component_id)
-                component_type = 'INPUT_PORT'
-                logger.info(f"  Found input port: {component.component.name if hasattr(component, 'component') else component_id}")
+                component_type = "INPUT_PORT"
+                logger.info(
+                    f"  Found input port: {component.component.name if hasattr(component, 'component') else component_id}"
+                )
             except Exception:
                 pass
 
@@ -2009,15 +2265,17 @@ async def get_component_connections(
             try:
                 output_ports_api = OutputPortsApi()
                 component = output_ports_api.get_output_port(component_id)
-                component_type = 'OUTPUT_PORT'
-                logger.info(f"  Found output port: {component.component.name if hasattr(component, 'component') else component_id}")
+                component_type = "OUTPUT_PORT"
+                logger.info(
+                    f"  Found output port: {component.component.name if hasattr(component, 'component') else component_id}"
+                )
             except Exception:
                 pass
 
         if not component:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Component with ID {component_id} not found"
+                detail=f"Component with ID {component_id} not found",
             )
 
         # Get connections for the component
@@ -2031,43 +2289,57 @@ async def get_component_connections(
                 dest_info = None
 
                 # Extract source information
-                if hasattr(conn, 'component') and hasattr(conn.component, 'source'):
+                if hasattr(conn, "component") and hasattr(conn.component, "source"):
                     source = conn.component.source
                     source_info = {
-                        'id': source.id if hasattr(source, 'id') else None,
-                        'name': source.name if hasattr(source, 'name') else None,
-                        'type': source.type if hasattr(source, 'type') else None,
-                        'group_id': source.group_id if hasattr(source, 'group_id') else None,
+                        "id": source.id if hasattr(source, "id") else None,
+                        "name": source.name if hasattr(source, "name") else None,
+                        "type": source.type if hasattr(source, "type") else None,
+                        "group_id": source.group_id
+                        if hasattr(source, "group_id")
+                        else None,
                     }
 
                 # Extract destination information
-                if hasattr(conn, 'component') and hasattr(conn.component, 'destination'):
+                if hasattr(conn, "component") and hasattr(
+                    conn.component, "destination"
+                ):
                     dest = conn.component.destination
                     dest_info = {
-                        'id': dest.id if hasattr(dest, 'id') else None,
-                        'name': dest.name if hasattr(dest, 'name') else None,
-                        'type': dest.type if hasattr(dest, 'type') else None,
-                        'group_id': dest.group_id if hasattr(dest, 'group_id') else None,
+                        "id": dest.id if hasattr(dest, "id") else None,
+                        "name": dest.name if hasattr(dest, "name") else None,
+                        "type": dest.type if hasattr(dest, "type") else None,
+                        "group_id": dest.group_id
+                        if hasattr(dest, "group_id")
+                        else None,
                     }
 
                 connection_data = {
-                    'id': conn.id if hasattr(conn, 'id') else None,
-                    'name': conn.component.name if hasattr(conn, 'component') and hasattr(conn.component, 'name') else None,
-                    'parent_group_id': conn.component.parent_group_id if hasattr(conn, 'component') and hasattr(conn.component, 'parent_group_id') else None,
-                    'source': source_info,
-                    'destination': dest_info,
-                    'selected_relationships': conn.component.selected_relationships if hasattr(conn, 'component') and hasattr(conn.component, 'selected_relationships') else None,
+                    "id": conn.id if hasattr(conn, "id") else None,
+                    "name": conn.component.name
+                    if hasattr(conn, "component") and hasattr(conn.component, "name")
+                    else None,
+                    "parent_group_id": conn.component.parent_group_id
+                    if hasattr(conn, "component")
+                    and hasattr(conn.component, "parent_group_id")
+                    else None,
+                    "source": source_info,
+                    "destination": dest_info,
+                    "selected_relationships": conn.component.selected_relationships
+                    if hasattr(conn, "component")
+                    and hasattr(conn.component, "selected_relationships")
+                    else None,
                 }
                 connections_info.append(connection_data)
 
         logger.info(f"✓ Found {len(connections_info)} connection(s) for component")
 
         return {
-            'status': 'success',
-            'component_id': component_id,
-            'component_type': component_type,
-            'connections': connections_info,
-            'count': len(connections_info),
+            "status": "success",
+            "component_id": component_id,
+            "component_type": component_type,
+            "connections": connections_info,
+            "count": len(connections_info),
         }
 
     except HTTPException:
@@ -2076,6 +2348,7 @@ async def get_component_connections(
         error_msg = str(e)
         logger.error(f"Failed to get component connections: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -2131,42 +2404,56 @@ async def get_all_connections(
                 dest_info = None
 
                 # Extract source information
-                if hasattr(conn, 'component') and hasattr(conn.component, 'source'):
+                if hasattr(conn, "component") and hasattr(conn.component, "source"):
                     source = conn.component.source
                     source_info = {
-                        'id': source.id if hasattr(source, 'id') else None,
-                        'name': source.name if hasattr(source, 'name') else None,
-                        'type': source.type if hasattr(source, 'type') else None,
-                        'group_id': source.group_id if hasattr(source, 'group_id') else None,
+                        "id": source.id if hasattr(source, "id") else None,
+                        "name": source.name if hasattr(source, "name") else None,
+                        "type": source.type if hasattr(source, "type") else None,
+                        "group_id": source.group_id
+                        if hasattr(source, "group_id")
+                        else None,
                     }
 
                 # Extract destination information
-                if hasattr(conn, 'component') and hasattr(conn.component, 'destination'):
+                if hasattr(conn, "component") and hasattr(
+                    conn.component, "destination"
+                ):
                     dest = conn.component.destination
                     dest_info = {
-                        'id': dest.id if hasattr(dest, 'id') else None,
-                        'name': dest.name if hasattr(dest, 'name') else None,
-                        'type': dest.type if hasattr(dest, 'type') else None,
-                        'group_id': dest.group_id if hasattr(dest, 'group_id') else None,
+                        "id": dest.id if hasattr(dest, "id") else None,
+                        "name": dest.name if hasattr(dest, "name") else None,
+                        "type": dest.type if hasattr(dest, "type") else None,
+                        "group_id": dest.group_id
+                        if hasattr(dest, "group_id")
+                        else None,
                     }
 
                 connection_data = {
-                    'id': conn.id if hasattr(conn, 'id') else None,
-                    'name': conn.component.name if hasattr(conn, 'component') and hasattr(conn.component, 'name') else None,
-                    'parent_group_id': conn.component.parent_group_id if hasattr(conn, 'component') and hasattr(conn.component, 'parent_group_id') else None,
-                    'source': source_info,
-                    'destination': dest_info,
-                    'selected_relationships': conn.component.selected_relationships if hasattr(conn, 'component') and hasattr(conn.component, 'selected_relationships') else None,
+                    "id": conn.id if hasattr(conn, "id") else None,
+                    "name": conn.component.name
+                    if hasattr(conn, "component") and hasattr(conn.component, "name")
+                    else None,
+                    "parent_group_id": conn.component.parent_group_id
+                    if hasattr(conn, "component")
+                    and hasattr(conn.component, "parent_group_id")
+                    else None,
+                    "source": source_info,
+                    "destination": dest_info,
+                    "selected_relationships": conn.component.selected_relationships
+                    if hasattr(conn, "component")
+                    and hasattr(conn.component, "selected_relationships")
+                    else None,
                 }
                 connections_info.append(connection_data)
 
         logger.info(f"✓ Found {len(connections_info)} connection(s)")
 
         return {
-            'status': 'success',
-            'process_group_id': process_group_id,
-            'connections': connections_info,
-            'count': len(connections_info),
+            "status": "success",
+            "process_group_id": process_group_id,
+            "connections": connections_info,
+            "count": len(connections_info),
         }
 
     except HTTPException:
@@ -2175,6 +2462,7 @@ async def get_all_connections(
         error_msg = str(e)
         logger.error(f"Failed to get connections: {error_msg}")
         import traceback
+
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -2268,7 +2556,7 @@ async def assign_parameter_context_to_process_group(
 
         return AssignParameterContextResponse(
             status="success",
-            message=f"Parameter context assigned to process group successfully",
+            message="Parameter context assigned to process group successfully",
             process_group_id=process_group_id,
             parameter_context_id=assigned_context_id,
         )

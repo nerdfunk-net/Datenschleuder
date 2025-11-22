@@ -108,7 +108,9 @@ async def update_nifi_instance(
     if data.username is not None:
         instance.username = data.username
     if data.password is not None:
-        instance.password_encrypted = encryption_service.encrypt_to_string(data.password)
+        instance.password_encrypted = encryption_service.encrypt_to_string(
+            data.password
+        )
     if data.use_ssl is not None:
         instance.use_ssl = data.use_ssl
     if data.verify_ssl is not None:
@@ -143,6 +145,7 @@ async def delete_nifi_instance(
 
 class ProcessGroupUpdateRequest(BaseModel):
     """Request model for updating process group configuration"""
+
     update: dict
     refresh: bool = True
 
@@ -174,9 +177,7 @@ async def get_process_group_configuration(
         import nipyapi
 
         process_group = nipyapi.canvas.get_process_group(
-            identifier=process_group_id,
-            identifier_type=identifier_type,
-            greedy=True
+            identifier=process_group_id, identifier_type=identifier_type, greedy=True
         )
 
         if not process_group:
@@ -239,9 +240,7 @@ async def update_process_group_configuration(
         import nipyapi
 
         process_group = nipyapi.canvas.get_process_group(
-            identifier=process_group_id,
-            identifier_type=identifier_type,
-            greedy=True
+            identifier=process_group_id, identifier_type=identifier_type, greedy=True
         )
 
         if not process_group:
@@ -252,9 +251,7 @@ async def update_process_group_configuration(
 
         # Update process group configuration
         updated_pg = nipyapi.canvas.update_process_group(
-            pg=process_group,
-            update=request.update,
-            refresh=request.refresh
+            pg=process_group, update=request.update, refresh=request.refresh
         )
 
         # Convert to dict if needed
@@ -281,4 +278,3 @@ async def update_process_group_configuration(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update process group configuration: {str(e)}",
         )
-

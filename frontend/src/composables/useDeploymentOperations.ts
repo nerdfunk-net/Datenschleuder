@@ -110,7 +110,12 @@ export function useDeploymentOperations(
         hierarchyConfig.value,
         deploymentSettings.value?.global?.process_group_name_template || '{last_hierarchy_value}'
       ),
-      parameterContextName
+      parameterContextName,
+      availableVersions: [],
+      selectedVersion: null,
+      registryId: null,
+      bucketId: null,
+      flowIdRegistry: null
     }
 
     // Load paths for this instance

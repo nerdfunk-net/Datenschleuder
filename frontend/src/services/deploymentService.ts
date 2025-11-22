@@ -173,7 +173,7 @@ export function buildDeploymentRequest(
     template_id: config.templateId,
     parent_process_group_id: config.selectedProcessGroupId,
     process_group_name: config.processGroupName,
-    version: null, // Use latest version
+    version: config.selectedVersion, // Use selected version or null for latest
     x_position: 0,
     y_position: 0,
     stop_versioning_after_deploy: settings.global.stop_versioning_after_deploy,

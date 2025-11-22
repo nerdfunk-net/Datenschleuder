@@ -307,6 +307,80 @@
         </div>
 
         <div class="settings-form">
+          <!-- Version Selection Section -->
+          <div class="version-selection-section">
+            <h5 class="section-title">
+              <i class="pe-7s-album"></i>
+              Flow Version Selection
+            </h5>
+            <p class="text-muted mb-3">
+              Select which version to deploy for each target. Leave empty to deploy the latest version.
+            </p>
+
+            <div
+              v-for="deployment in deploymentConfigs"
+              :key="deployment.key"
+              class="version-card"
+            >
+              <div class="version-card-header">
+                <div>
+                  <strong>{{ deployment.flowName }}</strong>
+                  <span class="text-muted ms-2">
+                    →
+                    <span
+                      class="badge"
+                      :class="
+                        deployment.target === 'source'
+                          ? 'badge-primary'
+                          : 'badge-success'
+                      "
+                    >
+                      {{ deployment.target }}
+                    </span>
+                    {{ deployment.hierarchyValue }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="version-card-body">
+                <div v-if="loadingVersionsForDeployment[deployment.key]" class="text-center py-3">
+                  <b-spinner small variant="primary" />
+                  <span class="ms-2 text-muted">Loading versions...</span>
+                </div>
+
+                <div v-else-if="deployment.availableVersions && deployment.availableVersions.length > 0">
+                  <label class="form-label">Select Version:</label>
+                  <select
+                    v-model="deployment.selectedVersion"
+                    class="form-select"
+                  >
+                    <option :value="null">
+                      Latest version (automatic)
+                    </option>
+                    <option
+                      v-for="ver in deployment.availableVersions"
+                      :key="ver.version"
+                      :value="ver.version"
+                    >
+                      v{{ ver.version }} - {{ ver.comments || 'No description' }}
+                    </option>
+                  </select>
+                  <small class="form-text text-muted d-block mt-1">
+                    {{ deployment.availableVersions.length }} version(s) available
+                  </small>
+                </div>
+
+                <div v-else class="alert alert-warning mb-0">
+                  <i class="pe-7s-info-circle"></i>
+                  No versions available for this flow
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <hr class="my-4">
+
           <!-- Process Group Name Template -->
           <div class="form-group">
             <label class="form-label">Process Group Name Template</label>
@@ -487,6 +561,17 @@
                   <span class="review-label">Template:</span>
                   <span>{{ deployment.templateName || "No Template" }}</span>
                 </div>
+                <div class="review-row">
+                  <span class="review-label">Version:</span>
+                  <span>
+                    <span v-if="deployment.selectedVersion === null" class="version-badge latest-version">
+                      Latest (automatic)
+                    </span>
+                    <span v-else class="version-badge specific-version">
+                      v{{ deployment.selectedVersion }}
+                    </span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -531,12 +616,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref, reactive } from "vue";
 import { useDeploymentWizard } from "@/composables/useDeploymentWizard";
 import { useDeploymentOperations } from "@/composables/useDeploymentOperations";
 import * as deploymentService from "@/services/deploymentService";
 import * as processGroupUtils from "@/utils/processGroupUtils";
 import * as flowUtils from "@/utils/flowUtils";
+import { apiRequest } from "@/utils/api";
 import ConflictResolutionModal from "@/components/flows/deploy/ConflictResolutionModal.vue";
 import DeploymentResultsModal from "@/components/flows/deploy/DeploymentResultsModal.vue";
 import type { Flow, DeploymentConfig, ConflictDeployment, ConflictInfo } from "@/composables/useDeploymentWizard";
@@ -600,6 +686,45 @@ const { prepareDeploymentConfigs, deployFlows } =
     flows
   );
 
+// Version loading state
+const loadingVersionsForDeployment = reactive<Record<string, boolean>>({});
+
+// Load versions for all deployment configs
+const loadVersionsForDeployments = async () => {
+  for (const deployment of deploymentConfigs.value) {
+    loadingVersionsForDeployment[deployment.key] = true;
+
+    try {
+      // Find the registry flow to get registry/bucket/flow IDs
+      const registryFlow = registryFlows.value.find(rf => rf.id === deployment.templateId);
+
+      if (registryFlow && deployment.instanceId) {
+        const response = await apiRequest(
+          `/api/nifi/${deployment.instanceId}/registry/${registryFlow.registry_id}/${registryFlow.bucket_id}/${registryFlow.flow_id}/get-versions`
+        ) as any;
+
+        if (response.status === "success" && response.versions) {
+          deployment.availableVersions = response.versions;
+          deployment.registryId = registryFlow.registry_id as string;
+          deployment.bucketId = registryFlow.bucket_id as string;
+          deployment.flowIdRegistry = registryFlow.flow_id as string;
+          // Default to null (latest version)
+          deployment.selectedVersion = null;
+        } else {
+          deployment.availableVersions = [];
+        }
+      } else {
+        deployment.availableVersions = [];
+      }
+    } catch (error) {
+      console.error(`Error loading versions for ${deployment.key}:`, error);
+      deployment.availableVersions = [];
+    } finally {
+      loadingVersionsForDeployment[deployment.key] = false;
+    }
+  }
+};
+
 // Wrapper methods that use utilities
 const getFlowName = (flow: Flow) => {
   return flowUtils.getFlowName(flow, hierarchyConfig.value);
@@ -613,6 +738,9 @@ const goToNextStep = async () => {
   if (currentStep.value === 1) {
     // Moving to step 3: prepare deployment configs and load process groups
     await prepareDeploymentConfigs(flows.value);
+  } else if (currentStep.value === 2) {
+    // Moving to step 4 (Settings): load versions for all deployments
+    await loadVersionsForDeployments();
   }
   wizardGoToNextStep();
 };
@@ -1452,8 +1580,23 @@ onMounted(async () => {
 
 // Settings Form
 .settings-form {
-  max-width: 800px;
+  max-width: 1000px;
   margin-bottom: 30px;
+
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    i {
+      font-size: 1.3rem;
+      color: #2196f3;
+    }
+  }
 
   .form-group {
     margin-bottom: 24px;
@@ -1490,6 +1633,67 @@ onMounted(async () => {
   }
 }
 
+// Version Selection
+.version-selection-section {
+  margin-bottom: 30px;
+}
+
+.version-card {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: #2196f3;
+  }
+}
+
+.version-card-header {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+
+  strong {
+    font-size: 0.95rem;
+    color: #2c3e50;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+
+    &.badge-primary {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+
+    &.badge-success {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+  }
+}
+
+.version-card-body {
+  padding: 16px;
+
+  .alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+
+    i {
+      font-size: 1.2rem;
+    }
+  }
+}
+
 // Settings Card in Review Section
 .settings-card {
   background: #f8f9fa;
@@ -1503,6 +1707,26 @@ onMounted(async () => {
     i {
       font-size: 1.2rem;
     }
+  }
+}
+
+// Version badges in review
+.version-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+
+  &.latest-version {
+    background: #28a745;
+    color: white;
+  }
+
+  &.specific-version {
+    background: #007bff;
+    color: white;
   }
 }
 </style>

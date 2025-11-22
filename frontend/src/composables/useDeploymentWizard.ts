@@ -59,6 +59,13 @@ export interface ConflictDeployment {
   config: DeploymentConfig
 }
 
+export interface FlowVersion {
+  version: number
+  timestamp: number
+  comments: string
+  author: string
+}
+
 export interface DeploymentConfig {
   key: string
   flowId: number
@@ -73,6 +80,11 @@ export interface DeploymentConfig {
   templateName: string | null
   processGroupName: string
   parameterContextName: string | null
+  availableVersions: FlowVersion[]
+  selectedVersion: number | null
+  registryId: string | null
+  bucketId: string | null
+  flowIdRegistry: string | null
 }
 
 export interface DeploymentSettings {

@@ -5,10 +5,6 @@ import logging
 import warnings
 import urllib3
 
-# Disable urllib3 SSL warnings globally
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-warnings.filterwarnings("ignore", message="Unverified HTTPS request")
-
 from app.core.database import init_db, get_session_local
 from app.core.config import settings
 from app.core.security import get_password_hash
@@ -30,6 +26,10 @@ from app.api.users import router as users_router
 from app.models import (
     User,
 )
+
+# Disable urllib3 SSL warnings globally
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+warnings.filterwarnings("ignore", message="Unverified HTTPS request")
 
 # Configure logging
 logging.basicConfig(

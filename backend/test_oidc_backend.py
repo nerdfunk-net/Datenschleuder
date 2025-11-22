@@ -6,12 +6,12 @@ Test script to verify OIDC backend configuration loading
 import sys
 from pathlib import Path
 
+from app.core.config import settings
+from app.core.settings_manager import settings_manager
+
 # Add backend to path
 backend_dir = Path(__file__).parent
 sys.path.insert(0, str(backend_dir))
-
-from app.core.config import settings
-from app.core.settings_manager import settings_manager
 
 
 def test_oidc_backend_config():
